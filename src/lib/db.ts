@@ -5,14 +5,20 @@ import Database from "better-sqlite3";
 import { Pool } from "pg";
 import type { Product } from "@/data/products";
 
-const dataDir = path.join(process.cwd(), "data");
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+const databaseUrl = process.env.DATABASE_URL || "";
+const usesPostgres = Boolean(databaseUrl);
+const dataDir = usesPostgres ? "/tmp/admire-boutique" : process.env.VERCEL ? "/tmp/admire-boutique" : path.join(process.cwd(), "data");
+
+try {
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+} catch {
+  // Serverless platforms like Vercel may not allow writes in the app directory.
+  // In that case, SQLite fallback is skipped by the `usesPostgres` guard on production deployments.
 }
 
 const sqlitePath = path.join(dataDir, "admire_boutique.db");
-const databaseUrl = process.env.DATABASE_URL || "";
-const usesPostgres = Boolean(databaseUrl);
 
 const sqliteDb = usesPostgres ? (null as unknown as Database.Database) : new Database(sqlitePath);
 const postgresPool = usesPostgres ? new Pool({
