@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Password must be at least 8 characters long" }, { status: 400 });
   }
 
-  const user = createCustomer({ name, email, phone, password });
+  const user = await createCustomer({ name, email, phone, password });
   if (!user) {
     return NextResponse.json({ error: "Account already exists with this email" }, { status: 409 });
   }

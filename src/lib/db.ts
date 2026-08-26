@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import Database from "better-sqlite3";
+import { Pool } from "pg";
 import type { Product } from "@/data/products";
 
 const dataDir = path.join(process.cwd(), "data");
@@ -9,11 +10,15 @@ if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-const dbPath = path.join(dataDir, "admire_boutique.db");
-const db = new Database(dbPath);
+const sqlitePath = path.join(dataDir, "admire_boutique.db");
+const databaseUrl = process.env.DATABASE_URL || "";
+const usesPostgres = Boolean(databaseUrl);
 
-db.pragma("journal_mode = WAL");
-db.pragma("synchronous = NORMAL");
+const sqliteDb = usesPostgres ? (null as unknown as Database.Database) : new Database(sqlitePath);
+const postgresPool = usesPostgres ? new Pool({
+  connectionString: databaseUrl,
+  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+}) : null;
 
 const salt = "admire-boutique-v1";
 
@@ -34,6 +39,30 @@ export type CustomerRecord = {
   phone: string;
 };
 
+function parseJsonArray(value: unknown): any[] {
+  if (Array.isArray(value)) return value;
+  if (typeof value !== "string" || !value.trim()) return [];
+
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function parseJsonObject(value: unknown): Record<string, any> {
+  if (value && typeof value === "object") return value as Record<string, any>;
+  if (typeof value !== "string" || !value.trim()) return {};
+
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
 export function normalizeProductRow(row: Record<string, any>): Product {
   return {
     id: row.id,
@@ -49,9 +78,9 @@ export function normalizeProductRow(row: Record<string, any>): Product {
     badge: row.badge ?? undefined,
     fabric: row.fabric,
     description: row.description,
-    images: typeof row.images === "string" ? JSON.parse(row.images) : row.images || [],
-    colors: typeof row.colors === "string" ? JSON.parse(row.colors) : row.colors || [],
-    sizes: typeof row.sizes === "string" ? JSON.parse(row.sizes) : row.sizes || [],
+    images: parseJsonArray(row.images),
+    colors: parseJsonArray(row.colors),
+    sizes: parseJsonArray(row.sizes),
   };
 }
 
@@ -280,9 +309,7 @@ const seedOrders = [
     delivery_partner: "BlueDart",
     tracking_id: "BD123456789",
     estimated_delivery: "Delivered on 12 Aug 2026",
-    items_json: JSON.stringify([
-      { name: "Saffron Silk Kurti", size: "M", qty: 1, price: 1899 },
-    ]),
+    items_json: JSON.stringify([{ name: "Saffron Silk Kurti", size: "M", qty: 1, price: 1899 }]),
   },
   {
     id: "ord-1002",
@@ -298,194 +325,413 @@ const seedOrders = [
     delivery_partner: "Delhivery",
     tracking_id: "DL789012345",
     estimated_delivery: "Arrives by 20 Aug 2026",
-    items_json: JSON.stringify([
-      { name: "Deep Maroon Floral Anarkali", size: "L", qty: 1, price: 2199 },
-    ]),
+    items_json: JSON.stringify([{ name: "Deep Maroon Floral Anarkali", size: "L", qty: 1, price: 2199 }]),
   },
 ];
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS products (
-    id TEXT PRIMARY KEY,
-    slug TEXT UNIQUE NOT NULL,
-    name TEXT NOT NULL,
-    category TEXT NOT NULL,
-    price REAL NOT NULL,
-    originalPrice REAL NOT NULL,
-    discount INTEGER NOT NULL,
-    rating REAL NOT NULL,
-    reviews INTEGER NOT NULL,
-    stock INTEGER NOT NULL,
-    badge TEXT,
-    fabric TEXT NOT NULL,
-    description TEXT NOT NULL,
-    images TEXT NOT NULL,
-    colors TEXT NOT NULL,
-    sizes TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-  );
+if (!usesPostgres) {
+  sqliteDb.exec(`
+    CREATE TABLE IF NOT EXISTS products (
+      id TEXT PRIMARY KEY,
+      slug TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      category TEXT NOT NULL,
+      price REAL NOT NULL,
+      originalPrice REAL NOT NULL,
+      discount INTEGER NOT NULL,
+      rating REAL NOT NULL,
+      reviews INTEGER NOT NULL,
+      stock INTEGER NOT NULL,
+      badge TEXT,
+      fabric TEXT NOT NULL,
+      description TEXT NOT NULL,
+      images TEXT NOT NULL,
+      colors TEXT NOT NULL,
+      sizes TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
 
-  CREATE TABLE IF NOT EXISTS admin_users (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-  );
+    CREATE TABLE IF NOT EXISTS admin_users (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
 
-  CREATE TABLE IF NOT EXISTS customers (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    phone TEXT NOT NULL,
-    password_hash TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-  );
+    CREATE TABLE IF NOT EXISTS customers (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      phone TEXT NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
 
-  CREATE TABLE IF NOT EXISTS addresses (
-    id TEXT PRIMARY KEY,
-    customer_id TEXT NOT NULL,
-    label TEXT NOT NULL,
-    full_name TEXT NOT NULL,
-    phone TEXT NOT NULL,
-    line1 TEXT NOT NULL,
-    line2 TEXT,
-    city TEXT NOT NULL,
-    state TEXT NOT NULL,
-    pincode TEXT NOT NULL,
-    country TEXT NOT NULL DEFAULT 'India',
-    is_default INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customers(id)
-  );
+    CREATE TABLE IF NOT EXISTS addresses (
+      id TEXT PRIMARY KEY,
+      customer_id TEXT NOT NULL,
+      label TEXT NOT NULL,
+      full_name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      line1 TEXT NOT NULL,
+      line2 TEXT,
+      city TEXT NOT NULL,
+      state TEXT NOT NULL,
+      pincode TEXT NOT NULL,
+      country TEXT NOT NULL DEFAULT 'India',
+      is_default INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (customer_id) REFERENCES customers(id)
+    );
 
-  CREATE TABLE IF NOT EXISTS orders (
-    id TEXT PRIMARY KEY,
-    customer_id TEXT NOT NULL,
-    order_number TEXT UNIQUE NOT NULL,
-    status TEXT NOT NULL,
-    sub_total REAL NOT NULL,
-    shipping REAL NOT NULL,
-    discount REAL NOT NULL,
-    total REAL NOT NULL,
-    payment_status TEXT NOT NULL,
-    payment_method TEXT NOT NULL,
-    delivery_partner TEXT,
-    tracking_id TEXT,
-    estimated_delivery TEXT,
-    items_json TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customers(id)
-  );
+    CREATE TABLE IF NOT EXISTS orders (
+      id TEXT PRIMARY KEY,
+      customer_id TEXT NOT NULL,
+      order_number TEXT UNIQUE NOT NULL,
+      status TEXT NOT NULL,
+      sub_total REAL NOT NULL,
+      shipping REAL NOT NULL,
+      discount REAL NOT NULL,
+      total REAL NOT NULL,
+      payment_status TEXT NOT NULL,
+      payment_method TEXT NOT NULL,
+      delivery_partner TEXT,
+      tracking_id TEXT,
+      estimated_delivery TEXT,
+      items_json TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (customer_id) REFERENCES customers(id)
+    );
 
-  CREATE TABLE IF NOT EXISTS faq_items (
-    id TEXT PRIMARY KEY,
-    question TEXT NOT NULL,
-    answer TEXT NOT NULL,
-    category TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-  );
-`);
-
-const productsCount = db.prepare("SELECT COUNT(*) as count FROM products").get() as { count: number };
-if (productsCount.count === 0) {
-  const insertProduct = db.prepare(`
-    INSERT INTO products (
-      id, slug, name, category, price, originalPrice, discount, rating, reviews, stock, badge, fabric, description, images, colors, sizes
-    ) VALUES (
-      @id, @slug, @name, @category, @price, @originalPrice, @discount, @rating, @reviews, @stock, @badge, @fabric, @description, @images, @colors, @sizes
-    )
+    CREATE TABLE IF NOT EXISTS faq_items (
+      id TEXT PRIMARY KEY,
+      question TEXT NOT NULL,
+      answer TEXT NOT NULL,
+      category TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
-  const transaction = db.transaction(() => {
-    for (const product of seedProducts) {
-      insertProduct.run({
-        ...product,
-        images: JSON.stringify(product.images),
-        colors: JSON.stringify(product.colors),
-        sizes: JSON.stringify(product.sizes),
-      });
+  const productsCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM products").get() as { count: number };
+  if (productsCount.count === 0) {
+    const insertProduct = sqliteDb.prepare(`
+      INSERT INTO products (
+        id, slug, name, category, price, originalPrice, discount, rating, reviews, stock, badge, fabric, description, images, colors, sizes
+      ) VALUES (
+        @id, @slug, @name, @category, @price, @originalPrice, @discount, @rating, @reviews, @stock, @badge, @fabric, @description, @images, @colors, @sizes
+      )
+    `);
+
+    const transaction = sqliteDb.transaction(() => {
+      for (const product of seedProducts) {
+        insertProduct.run({
+          ...product,
+          images: JSON.stringify(product.images),
+          colors: JSON.stringify(product.colors),
+          sizes: JSON.stringify(product.sizes),
+        });
+      }
+    });
+
+    transaction();
+  }
+
+  const adminCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM admin_users").get() as { count: number };
+  if (adminCount.count === 0) {
+    sqliteDb.prepare(`
+      INSERT INTO admin_users (id, name, email, password_hash) VALUES (?, ?, ?, ?)
+    `).run("admin-owner-1", "Boutique Owner", "owner@admireboutique.in", hashPassword("admire123"));
+  }
+
+  const customerCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM customers").get() as { count: number };
+  if (customerCount.count === 0) {
+    sqliteDb.prepare(`
+      INSERT INTO customers (id, name, email, phone, password_hash) VALUES (?, ?, ?, ?, ?)
+    `).run(seedCustomer.id, seedCustomer.name, seedCustomer.email, seedCustomer.phone, hashPassword(seedCustomer.password));
+  }
+
+  const addressCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM addresses").get() as { count: number };
+  if (addressCount.count === 0) {
+    const insertAddress = sqliteDb.prepare(`
+      INSERT INTO addresses (id, customer_id, label, full_name, phone, line1, line2, city, state, pincode, country, is_default)
+      VALUES (@id, @customer_id, @label, @full_name, @phone, @line1, @line2, @city, @state, @pincode, @country, @is_default)
+    `);
+
+    for (const address of seedAddresses) {
+      insertAddress.run(address);
     }
-  });
+  }
 
-  transaction();
-}
+  const orderCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM orders").get() as { count: number };
+  if (orderCount.count === 0) {
+    const insertOrder = sqliteDb.prepare(`
+      INSERT INTO orders (
+        id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method, delivery_partner,
+        tracking_id, estimated_delivery, items_json
+      ) VALUES (
+        @id, @customer_id, @order_number, @status, @sub_total, @shipping, @discount, @total, @payment_status, @payment_method,
+        @delivery_partner, @tracking_id, @estimated_delivery, @items_json
+      )
+    `);
 
-const adminCount = db.prepare("SELECT COUNT(*) as count FROM admin_users").get() as { count: number };
-if (adminCount.count === 0) {
-  db.prepare(`
-    INSERT INTO admin_users (id, name, email, password_hash) VALUES (?, ?, ?, ?)
-  `).run("admin-owner-1", "Boutique Owner", "owner@admireboutique.in", hashPassword("admire123"));
-}
+    for (const order of seedOrders) {
+      insertOrder.run(order);
+    }
+  }
 
-const customerCount = db.prepare("SELECT COUNT(*) as count FROM customers").get() as { count: number };
-if (customerCount.count === 0) {
-  db.prepare(`
-    INSERT INTO customers (id, name, email, phone, password_hash) VALUES (?, ?, ?, ?, ?)
-  `).run(seedCustomer.id, seedCustomer.name, seedCustomer.email, seedCustomer.phone, hashPassword(seedCustomer.password));
-}
+  const faqCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM faq_items").get() as { count: number };
+  if (faqCount.count === 0) {
+    const insertFaq = sqliteDb.prepare(`
+      INSERT INTO faq_items (id, question, answer, category) VALUES (@id, @question, @answer, @category)
+    `);
 
-const addressCount = db.prepare("SELECT COUNT(*) as count FROM addresses").get() as { count: number };
-if (addressCount.count === 0) {
-  const insertAddress = db.prepare(`
-    INSERT INTO addresses (id, customer_id, label, full_name, phone, line1, line2, city, state, pincode, country, is_default)
-    VALUES (@id, @customer_id, @label, @full_name, @phone, @line1, @line2, @city, @state, @pincode, @country, @is_default)
-  `);
-
-  for (const address of seedAddresses) {
-    insertAddress.run(address);
+    for (const faq of seedFaqs) {
+      insertFaq.run(faq);
+    }
   }
 }
 
-const orderCount = db.prepare("SELECT COUNT(*) as count FROM orders").get() as { count: number };
-if (orderCount.count === 0) {
-  const insertOrder = db.prepare(`
-    INSERT INTO orders (
-      id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method, delivery_partner,
-      tracking_id, estimated_delivery, items_json
-    ) VALUES (
-      @id, @customer_id, @order_number, @status, @sub_total, @shipping, @discount, @total, @payment_status, @payment_method,
-      @delivery_partner, @tracking_id, @estimated_delivery, @items_json
-    )
+let postgresReady = false;
+
+async function ensurePostgresReady() {
+  if (!postgresPool || postgresReady) return;
+
+  await postgresPool.query(`
+    CREATE TABLE IF NOT EXISTS products (
+      id TEXT PRIMARY KEY,
+      slug TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      category TEXT NOT NULL,
+      price DOUBLE PRECISION NOT NULL,
+      "originalPrice" DOUBLE PRECISION NOT NULL,
+      discount INTEGER NOT NULL,
+      rating DOUBLE PRECISION NOT NULL,
+      reviews INTEGER NOT NULL,
+      stock INTEGER NOT NULL,
+      badge TEXT,
+      fabric TEXT NOT NULL,
+      description TEXT NOT NULL,
+      images TEXT NOT NULL,
+      colors TEXT NOT NULL,
+      sizes TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS admin_users (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS customers (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      phone TEXT NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS addresses (
+      id TEXT PRIMARY KEY,
+      customer_id TEXT NOT NULL,
+      label TEXT NOT NULL,
+      full_name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      line1 TEXT NOT NULL,
+      line2 TEXT,
+      city TEXT NOT NULL,
+      state TEXT NOT NULL,
+      pincode TEXT NOT NULL,
+      country TEXT NOT NULL DEFAULT 'India',
+      is_default INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS orders (
+      id TEXT PRIMARY KEY,
+      customer_id TEXT NOT NULL,
+      order_number TEXT UNIQUE NOT NULL,
+      status TEXT NOT NULL,
+      sub_total DOUBLE PRECISION NOT NULL,
+      shipping DOUBLE PRECISION NOT NULL,
+      discount DOUBLE PRECISION NOT NULL,
+      total DOUBLE PRECISION NOT NULL,
+      payment_status TEXT NOT NULL,
+      payment_method TEXT NOT NULL,
+      delivery_partner TEXT,
+      tracking_id TEXT,
+      estimated_delivery TEXT,
+      items_json TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS faq_items (
+      id TEXT PRIMARY KEY,
+      question TEXT NOT NULL,
+      answer TEXT NOT NULL,
+      category TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
   `);
 
-  for (const order of seedOrders) {
-    insertOrder.run(order);
+  const productCount = await postgresPool.query("SELECT COUNT(*) as count FROM products");
+  if (Number(productCount.rows[0]?.count ?? 0) === 0) {
+    for (const product of seedProducts) {
+      await postgresPool.query(
+        `INSERT INTO products (id, slug, name, category, price, "originalPrice", discount, rating, reviews, stock, badge, fabric, description, images, colors, sizes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+        [
+          product.id,
+          product.slug,
+          product.name,
+          product.category,
+          product.price,
+          product.originalPrice,
+          product.discount,
+          product.rating,
+          product.reviews,
+          product.stock,
+          product.badge ?? null,
+          product.fabric,
+          product.description,
+          JSON.stringify(product.images),
+          JSON.stringify(product.colors),
+          JSON.stringify(product.sizes),
+        ]
+      );
+    }
   }
-}
 
-const faqCount = db.prepare("SELECT COUNT(*) as count FROM faq_items").get() as { count: number };
-if (faqCount.count === 0) {
-  const insertFaq = db.prepare(`
-    INSERT INTO faq_items (id, question, answer, category) VALUES (@id, @question, @answer, @category)
-  `);
-
-  for (const faq of seedFaqs) {
-    insertFaq.run(faq);
+  const adminCount = await postgresPool.query("SELECT COUNT(*) as count FROM admin_users");
+  if (Number(adminCount.rows[0]?.count ?? 0) === 0) {
+    await postgresPool.query(
+      "INSERT INTO admin_users (id, name, email, password_hash) VALUES ($1, $2, $3, $4)",
+      ["admin-owner-1", "Boutique Owner", "owner@admireboutique.in", hashPassword("admire123")]
+    );
   }
+
+  const customerCount = await postgresPool.query("SELECT COUNT(*) as count FROM customers");
+  if (Number(customerCount.rows[0]?.count ?? 0) === 0) {
+    await postgresPool.query(
+      "INSERT INTO customers (id, name, email, phone, password_hash) VALUES ($1, $2, $3, $4, $5)",
+      [seedCustomer.id, seedCustomer.name, seedCustomer.email, seedCustomer.phone, hashPassword(seedCustomer.password)]
+    );
+  }
+
+  const addressCount = await postgresPool.query("SELECT COUNT(*) as count FROM addresses");
+  if (Number(addressCount.rows[0]?.count ?? 0) === 0) {
+    for (const address of seedAddresses) {
+      await postgresPool.query(
+        `INSERT INTO addresses (id, customer_id, label, full_name, phone, line1, line2, city, state, pincode, country, is_default)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+        [
+          address.id,
+          address.customer_id,
+          address.label,
+          address.full_name,
+          address.phone,
+          address.line1,
+          address.line2,
+          address.city,
+          address.state,
+          address.pincode,
+          address.country,
+          address.is_default,
+        ]
+      );
+    }
+  }
+
+  const orderCount = await postgresPool.query("SELECT COUNT(*) as count FROM orders");
+  if (Number(orderCount.rows[0]?.count ?? 0) === 0) {
+    for (const order of seedOrders) {
+      await postgresPool.query(
+        `INSERT INTO orders (id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method, delivery_partner, tracking_id, estimated_delivery, items_json)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+        [
+          order.id,
+          order.customer_id,
+          order.order_number,
+          order.status,
+          order.sub_total,
+          order.shipping,
+          order.discount,
+          order.total,
+          order.payment_status,
+          order.payment_method,
+          order.delivery_partner,
+          order.tracking_id,
+          order.estimated_delivery,
+          order.items_json,
+        ]
+      );
+    }
+  }
+
+  const faqCount = await postgresPool.query("SELECT COUNT(*) as count FROM faq_items");
+  if (Number(faqCount.rows[0]?.count ?? 0) === 0) {
+    for (const faq of seedFaqs) {
+      await postgresPool.query(
+        "INSERT INTO faq_items (id, question, answer, category) VALUES ($1, $2, $3, $4)",
+        [faq.id, faq.question, faq.answer, faq.category]
+      );
+    }
+  }
+
+  postgresReady = true;
 }
 
 export function getDb() {
-  return db;
+  if (sqliteDb) return sqliteDb;
+  return {
+    prepare: () => ({
+      all: () => [],
+      get: () => undefined,
+      run: () => ({ changes: 0 }),
+    }),
+  };
 }
 
-export function listProducts(): Product[] {
-  const rows = db.prepare(`SELECT * FROM products ORDER BY created_at DESC`).all() as Record<string, any>[];
+export async function listProducts(): Promise<Product[]> {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query("SELECT * FROM products ORDER BY created_at DESC");
+    return result.rows.map(normalizeProductRow);
+  }
+
+  const rows = sqliteDb.prepare(`SELECT * FROM products ORDER BY created_at DESC`).all() as Record<string, any>[];
   return rows.map(normalizeProductRow);
 }
 
-export function getProductBySlug(slug: string): Product | undefined {
-  const row = db.prepare(`SELECT * FROM products WHERE slug = ?`).get(slug) as Record<string, any> | undefined;
+export async function getProductBySlug(slug: string): Promise<Product | undefined> {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query("SELECT * FROM products WHERE slug = $1", [slug]);
+    return result.rows[0] ? normalizeProductRow(result.rows[0]) : undefined;
+  }
+
+  const row = sqliteDb.prepare(`SELECT * FROM products WHERE slug = ?`).get(slug) as Record<string, any> | undefined;
   return row ? normalizeProductRow(row) : undefined;
 }
 
-export function getProductById(id: string): Product | undefined {
-  const row = db.prepare(`SELECT * FROM products WHERE id = ?`).get(id) as Record<string, any> | undefined;
+export async function getProductById(id: string): Promise<Product | undefined> {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query("SELECT * FROM products WHERE id = $1", [id]);
+    return result.rows[0] ? normalizeProductRow(result.rows[0]) : undefined;
+  }
+
+  const row = sqliteDb.prepare(`SELECT * FROM products WHERE id = ?`).get(id) as Record<string, any> | undefined;
   return row ? normalizeProductRow(row) : undefined;
 }
 
-export function createProduct(input: {
+export async function createProduct(input: {
   name: string;
   category: string;
   price: number;
@@ -530,7 +776,34 @@ export function createProduct(input: {
     sizes: input.sizes || ["XS", "S", "M", "L", "XL"],
   };
 
-  db.prepare(
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    await postgresPool!.query(
+      `INSERT INTO products (id, slug, name, category, price, "originalPrice", discount, rating, reviews, stock, badge, fabric, description, images, colors, sizes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+      [
+        product.id,
+        product.slug,
+        product.name,
+        product.category,
+        product.price,
+        product.originalPrice,
+        product.discount,
+        product.rating,
+        product.reviews,
+        product.stock,
+        product.badge,
+        product.fabric,
+        product.description,
+        JSON.stringify(product.images),
+        JSON.stringify(product.colors),
+        JSON.stringify(product.sizes),
+      ]
+    );
+    return normalizeProductRow({ ...product, images: JSON.stringify(product.images), colors: JSON.stringify(product.colors), sizes: JSON.stringify(product.sizes) });
+  }
+
+  sqliteDb.prepare(
     `INSERT INTO products (
       id, slug, name, category, price, originalPrice, discount, rating, reviews, stock, badge, fabric, description, images, colors, sizes
     ) VALUES (
@@ -546,10 +819,42 @@ export function createProduct(input: {
   return normalizeProductRow({ ...product, images: JSON.stringify(product.images), colors: JSON.stringify(product.colors), sizes: JSON.stringify(product.sizes) });
 }
 
-export function replaceAllProducts(products: Product[]) {
-  const transaction = db.transaction(() => {
-    db.prepare("DELETE FROM products").run();
-    const insert = db.prepare(`
+export async function replaceAllProducts(products: Product[]) {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    await postgresPool!.query("DELETE FROM products");
+
+    for (const product of products) {
+      await postgresPool!.query(
+        `INSERT INTO products (id, slug, name, category, price, "originalPrice", discount, rating, reviews, stock, badge, fabric, description, images, colors, sizes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+        [
+          product.id,
+          product.slug,
+          product.name,
+          product.category,
+          product.price,
+          product.originalPrice,
+          product.discount,
+          product.rating,
+          product.reviews,
+          product.stock,
+          product.badge ?? null,
+          product.fabric,
+          product.description,
+          JSON.stringify(product.images || []),
+          JSON.stringify(product.colors || []),
+          JSON.stringify(product.sizes || []),
+        ]
+      );
+    }
+
+    return listProducts();
+  }
+
+  const transaction = sqliteDb.transaction(() => {
+    sqliteDb.prepare("DELETE FROM products").run();
+    const insert = sqliteDb.prepare(`
       INSERT INTO products (
         id, slug, name, category, price, originalPrice, discount, rating, reviews, stock, badge, fabric, description, images, colors, sizes
       ) VALUES (
@@ -571,13 +876,28 @@ export function replaceAllProducts(products: Product[]) {
   return listProducts();
 }
 
-export function deleteProductById(id: string) {
-  const result = db.prepare("DELETE FROM products WHERE id = ? OR slug = ?").run(id, id);
+export async function deleteProductById(id: string) {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query("DELETE FROM products WHERE id = $1 OR slug = $2", [id, id]);
+    return Number(result.rowCount ?? 0) > 0;
+  }
+
+  const result = sqliteDb.prepare("DELETE FROM products WHERE id = ? OR slug = ?").run(id, id);
   return result.changes > 0;
 }
 
-export function verifyAdminCredentials(email: string, password: string): AdminUserRecord | null {
-  const user = db.prepare("SELECT * FROM admin_users WHERE email = ?").get(email) as Record<string, any> | undefined;
+export async function verifyAdminCredentials(email: string, password: string): Promise<AdminUserRecord | null> {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query("SELECT * FROM admin_users WHERE email = $1", [email]);
+    const user = result.rows[0];
+    if (!user) return null;
+    if (hashPassword(password) !== user.password_hash) return null;
+    return { id: user.id, name: user.name, email: user.email };
+  }
+
+  const user = sqliteDb.prepare("SELECT * FROM admin_users WHERE email = ?").get(email) as Record<string, any> | undefined;
   if (!user) return null;
 
   const attemptedHash = hashPassword(password);
@@ -590,8 +910,16 @@ export function verifyAdminCredentials(email: string, password: string): AdminUs
   } satisfies AdminUserRecord;
 }
 
-export function getAdminByEmail(email: string): AdminUserRecord | null {
-  const user = db.prepare("SELECT * FROM admin_users WHERE email = ?").get(email) as Record<string, any> | undefined;
+export async function getAdminByEmail(email: string): Promise<AdminUserRecord | null> {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query("SELECT * FROM admin_users WHERE email = $1", [email]);
+    const user = result.rows[0];
+    if (!user) return null;
+    return { id: user.id, name: user.name, email: user.email };
+  }
+
+  const user = sqliteDb.prepare("SELECT * FROM admin_users WHERE email = ?").get(email) as Record<string, any> | undefined;
   if (!user) return null;
 
   return {
@@ -607,14 +935,23 @@ export function storeSessionToken(token: string, email: string) {
   adminSessions.set(token, email);
 }
 
-export function validateSessionToken(token: string) {
+export async function validateSessionToken(token: string): Promise<AdminUserRecord | null> {
   const email = adminSessions.get(token);
   if (!email) return null;
   return getAdminByEmail(email);
 }
 
-export function verifyCustomerCredentials(email: string, password: string): CustomerRecord | null {
-  const user = db.prepare("SELECT * FROM customers WHERE email = ?").get(email) as Record<string, any> | undefined;
+export async function verifyCustomerCredentials(email: string, password: string): Promise<CustomerRecord | null> {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query("SELECT * FROM customers WHERE email = $1", [email]);
+    const user = result.rows[0];
+    if (!user) return null;
+    if (hashPassword(password) !== user.password_hash) return null;
+    return { id: user.id, name: user.name, email: user.email, phone: user.phone };
+  }
+
+  const user = sqliteDb.prepare("SELECT * FROM customers WHERE email = ?").get(email) as Record<string, any> | undefined;
   if (!user) return null;
 
   const attemptedHash = hashPassword(password);
@@ -628,8 +965,16 @@ export function verifyCustomerCredentials(email: string, password: string): Cust
   } satisfies CustomerRecord;
 }
 
-export function getCustomerByEmail(email: string): CustomerRecord | null {
-  const user = db.prepare("SELECT * FROM customers WHERE email = ?").get(email) as Record<string, any> | undefined;
+export async function getCustomerByEmail(email: string): Promise<CustomerRecord | null> {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query("SELECT * FROM customers WHERE email = $1", [email]);
+    const user = result.rows[0];
+    if (!user) return null;
+    return { id: user.id, name: user.name, email: user.email, phone: user.phone };
+  }
+
+  const user = sqliteDb.prepare("SELECT * FROM customers WHERE email = ?").get(email) as Record<string, any> | undefined;
   if (!user) return null;
 
   return {
@@ -640,8 +985,16 @@ export function getCustomerByEmail(email: string): CustomerRecord | null {
   } satisfies CustomerRecord;
 }
 
-export function getCustomerById(id: string): CustomerRecord | null {
-  const user = db.prepare("SELECT * FROM customers WHERE id = ?").get(id) as Record<string, any> | undefined;
+export async function getCustomerById(id: string): Promise<CustomerRecord | null> {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query("SELECT * FROM customers WHERE id = $1", [id]);
+    const user = result.rows[0];
+    if (!user) return null;
+    return { id: user.id, name: user.name, email: user.email, phone: user.phone };
+  }
+
+  const user = sqliteDb.prepare("SELECT * FROM customers WHERE id = ?").get(id) as Record<string, any> | undefined;
   if (!user) return null;
 
   return {
@@ -652,7 +1005,7 @@ export function getCustomerById(id: string): CustomerRecord | null {
   } satisfies CustomerRecord;
 }
 
-export function createCustomer(input: { name: string; email: string; phone: string; password: string }): CustomerRecord | null {
+export async function createCustomer(input: { name: string; email: string; phone: string; password: string }): Promise<CustomerRecord | null> {
   const name = input.name.trim();
   const email = input.email.trim().toLowerCase();
   const phone = input.phone.trim();
@@ -662,32 +1015,48 @@ export function createCustomer(input: { name: string; email: string; phone: stri
     return null;
   }
 
-  const existing = db.prepare("SELECT id FROM customers WHERE email = ?").get(email) as { id?: string } | undefined;
-  if (existing) {
-    return null;
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const existing = await postgresPool!.query("SELECT id FROM customers WHERE email = $1", [email]);
+    if (existing.rows[0]) return null;
+
+    const id = `cust-${Date.now()}`;
+    await postgresPool!.query(
+      "INSERT INTO customers (id, name, email, phone, password_hash) VALUES ($1, $2, $3, $4, $5)",
+      [id, name, email, phone, hashPassword(password)]
+    );
+
+    return { id, name, email, phone };
   }
 
+  const existing = sqliteDb.prepare("SELECT id FROM customers WHERE email = ?").get(email) as { id?: string } | undefined;
+  if (existing) return null;
+
   const id = `cust-${Date.now()}`;
-  db.prepare(`
+  sqliteDb.prepare(`
     INSERT INTO customers (id, name, email, phone, password_hash)
     VALUES (?, ?, ?, ?, ?)
   `).run(id, name, email, phone, hashPassword(password));
 
-  return {
-    id,
-    name,
-    email,
-    phone,
-  } satisfies CustomerRecord;
+  return { id, name, email, phone } satisfies CustomerRecord;
 }
 
-export function listCustomerAddresses(customerId: string) {
-  return db.prepare(`
+export async function listCustomerAddresses(customerId: string) {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query(
+      "SELECT * FROM addresses WHERE customer_id = $1 ORDER BY is_default DESC, created_at DESC",
+      [customerId]
+    );
+    return result.rows;
+  }
+
+  return sqliteDb.prepare(`
     SELECT * FROM addresses WHERE customer_id = ? ORDER BY is_default DESC, created_at DESC
   `).all(customerId) as Record<string, any>[];
 }
 
-export function createAddress(customerId: string, input: {
+export async function createAddress(customerId: string, input: {
   label: string;
   full_name: string;
   phone: string;
@@ -715,7 +1084,30 @@ export function createAddress(customerId: string, input: {
     is_default: input.is_default ? 1 : 0,
   };
 
-  db.prepare(`
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    await postgresPool!.query(
+      `INSERT INTO addresses (id, customer_id, label, full_name, phone, line1, line2, city, state, pincode, country, is_default)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+      [
+        address.id,
+        address.customer_id,
+        address.label,
+        address.full_name,
+        address.phone,
+        address.line1,
+        address.line2,
+        address.city,
+        address.state,
+        address.pincode,
+        address.country,
+        address.is_default,
+      ]
+    );
+    return address;
+  }
+
+  sqliteDb.prepare(`
     INSERT INTO addresses (id, customer_id, label, full_name, phone, line1, line2, city, state, pincode, country, is_default)
     VALUES (@id, @customer_id, @label, @full_name, @phone, @line1, @line2, @city, @state, @pincode, @country, @is_default)
   `).run(address);
@@ -723,18 +1115,30 @@ export function createAddress(customerId: string, input: {
   return address;
 }
 
-export function listCustomerOrders(customerId: string) {
-  const rows = db.prepare(`
+export async function listCustomerOrders(customerId: string) {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query(
+      "SELECT * FROM orders WHERE customer_id = $1 ORDER BY created_at DESC",
+      [customerId]
+    );
+    return result.rows.map((row) => ({
+      ...row,
+      items: parseJsonArray(row.items_json),
+    }));
+  }
+
+  const rows = sqliteDb.prepare(`
     SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC
   `).all(customerId) as Record<string, any>[];
 
   return rows.map((row) => ({
     ...row,
-    items: typeof row.items_json === "string" ? JSON.parse(row.items_json) : row.items_json || [],
+    items: parseJsonArray(row.items_json),
   }));
 }
 
-export function createOrder(customerId: string, input: {
+export async function createOrder(customerId: string, input: {
   order_number: string;
   status: string;
   subtotal: number;
@@ -766,7 +1170,32 @@ export function createOrder(customerId: string, input: {
     items_json: JSON.stringify(input.items),
   };
 
-  db.prepare(`
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    await postgresPool!.query(
+      `INSERT INTO orders (id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method, delivery_partner, tracking_id, estimated_delivery, items_json)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+      [
+        order.id,
+        order.customer_id,
+        order.order_number,
+        order.status,
+        order.sub_total,
+        order.shipping,
+        order.discount,
+        order.total,
+        order.payment_status,
+        order.payment_method,
+        order.delivery_partner,
+        order.tracking_id,
+        order.estimated_delivery,
+        order.items_json,
+      ]
+    );
+    return { ...order, items: input.items };
+  }
+
+  sqliteDb.prepare(`
     INSERT INTO orders (
       id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method,
       delivery_partner, tracking_id, estimated_delivery, items_json
@@ -779,8 +1208,14 @@ export function createOrder(customerId: string, input: {
   return { ...order, items: input.items };
 }
 
-export function listFaqs() {
-  return db.prepare(`SELECT * FROM faq_items ORDER BY created_at DESC`).all() as Record<string, any>[];
+export async function listFaqs() {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query("SELECT * FROM faq_items ORDER BY created_at DESC");
+    return result.rows;
+  }
+
+  return sqliteDb.prepare(`SELECT * FROM faq_items ORDER BY created_at DESC`).all() as Record<string, any>[];
 }
 
 export function getCustomerSessionToken(token: string) {
@@ -793,8 +1228,32 @@ export function storeUserSessionToken(token: string, email: string) {
   userSessions.set(token, email);
 }
 
-export function validateUserSessionToken(token: string): CustomerRecord | null {
+export async function validateUserSessionToken(token: string): Promise<CustomerRecord | null> {
   const email = userSessions.get(token);
   if (!email) return null;
   return getCustomerByEmail(email);
+}
+
+export async function listRecentAdminOrders() {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query(
+      `SELECT o.id, o.order_number, o.status, o.total, o.payment_status, o.payment_method, o.created_at, c.name AS customer_name
+       FROM orders o
+       JOIN customers c ON c.id = o.customer_id
+       ORDER BY o.created_at DESC
+       LIMIT 5`
+    );
+    return result.rows.map((row) => ({ ...row, total: Number(row.total) }));
+  }
+
+  const rows = sqliteDb.prepare(`
+    SELECT o.id, o.order_number, o.status, o.total, o.payment_status, o.payment_method, o.created_at, c.name AS customer_name
+    FROM orders o
+    JOIN customers c ON c.id = o.customer_id
+    ORDER BY o.created_at DESC
+    LIMIT 5
+  `).all() as Array<{ id: string; order_number: string; status: string; total: number; payment_status: string; payment_method: string; created_at: string; customer_name: string }>;
+
+  return rows.map((row) => ({ ...row, total: Number(row.total) }));
 }

@@ -4,7 +4,7 @@ import { createOrder, validateUserSessionToken } from "@/lib/db";
 export async function POST(request: Request) {
   const authHeader = request.headers.get("authorization") || "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.replace("Bearer ", "") : "";
-  const user = token ? validateUserSessionToken(token) : null;
+  const user = token ? await validateUserSessionToken(token) : null;
 
   if (!user) {
     return NextResponse.json({ error: "Please log in to place an order" }, { status: 401 });
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const order = createOrder(user.id, {
+  const order = await createOrder(user.id, {
     order_number: body.order_number || `AB-${Date.now()}`,
     status: "Confirmed",
     subtotal: Number(body.subtotal ?? 0),

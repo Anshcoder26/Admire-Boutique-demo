@@ -1,24 +1,24 @@
 import { NextResponse } from "next/server";
 import { createAddress, listCustomerAddresses, validateUserSessionToken } from "@/lib/db";
 
-function getUserFromRequest(request: Request) {
+async function getUserFromRequest(request: Request) {
   const authHeader = request.headers.get("authorization") || "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.replace("Bearer ", "") : "";
   if (!token) return null;
-  return validateUserSessionToken(token);
+  return await validateUserSessionToken(token);
 }
 
 export async function GET(request: Request) {
-  const user = getUserFromRequest(request);
+  const user = await getUserFromRequest(request);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  return NextResponse.json({ success: true, addresses: listCustomerAddresses(user.id) });
+  return NextResponse.json({ success: true, addresses: await listCustomerAddresses(user.id) });
 }
 
 export async function POST(request: Request) {
-  const user = getUserFromRequest(request);
+  const user = await getUserFromRequest(request);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Incomplete address details" }, { status: 400 });
   }
 
-  const address = createAddress(user.id, {
+  const address = await createAddress(user.id, {
     label: body.label,
     full_name: body.full_name,
     phone: body.phone,

@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Missing token" }, { status: 401 });
   }
 
-  const user = validateSessionToken(token);
+  const user = await validateSessionToken(token);
   if (!user) {
     return NextResponse.json({ error: "Session invalid" }, { status: 401 });
   }
