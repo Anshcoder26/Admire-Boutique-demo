@@ -1,26 +1,392 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --brand-maroon: #4b1f1d;
+  --brand-maroon-deep: #2b1717;
+  --brand-terra: #b76d48;
+  --brand-gold: #c9a366;
+  --brand-beige: #f7efe9;
+  --brand-ivory: #fffaf6;
+  --brand-charcoal: #2a2523;
+  --brand-text: #1d1714;
+  --brand-muted: #685d59;
+  --background: #f9f4f0;
+  --foreground: #1d1714;
+  --panel: #fffaf6;
+  --panel-alt: #f3e7db;
+  --muted: #685d59;
+  --font-display: var(--font-cormorant);
+  --font-body: var(--font-manrope);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --background: #120d0d;
+  --foreground: #f8efe9;
+  --panel: #1c1716;
+  --panel-alt: #261d1a;
+  --muted: #c8b7ad;
+  --brand-maroon: #a16459;
+  --brand-terra: #d38862;
+  --brand-text: #f8efe9;
+  --brand-muted: #f3d9ca;
+  color-scheme: dark;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-display);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(183, 109, 72, 0.09), transparent 22%),
+    radial-gradient(circle at bottom right, rgba(91, 122, 75, 0.08), transparent 24%),
+    var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), sans-serif;
+  position: relative;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+html[data-theme="dark"] body,
+html[data-theme="dark"] p,
+html[data-theme="dark"] span,
+html[data-theme="dark"] li,
+html[data-theme="dark"] a,
+html[data-theme="dark"] label,
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] button,
+html[data-theme="dark"] small,
+html[data-theme="dark"] h1,
+html[data-theme="dark"] h2,
+html[data-theme="dark"] h3,
+html[data-theme="dark"] h4,
+html[data-theme="dark"] h5,
+html[data-theme="dark"] h6 {
+  color: var(--foreground);
+}
+
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::before {
+  background: linear-gradient(135deg, rgba(255,255,255,0.18), transparent 38%, rgba(81,58,48,0.03));
+  opacity: 0.9;
+}
+
+body::after {
+  background: radial-gradient(circle at 20% 16%, rgba(111, 144, 86, 0.08), transparent 18%),
+    radial-gradient(circle at 80% 22%, rgba(180, 112, 74, 0.08), transparent 16%),
+    radial-gradient(circle at 68% 74%, rgba(111, 144, 86, 0.06), transparent 18%);
+  mix-blend-mode: multiply;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display), serif;
+  letter-spacing: -0.02em;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.indian-branch {
+  position: relative;
+  overflow: hidden;
+}
+
+.indian-branch::before,
+.indian-branch::after {
+  content: "";
+  position: absolute;
+  inset: auto auto 12% 6%;
+  width: 180px;
+  height: 180px;
+  border-radius: 70% 30% 60% 40% / 55% 45% 55% 45%;
+  border: 1.5px solid rgba(84, 102, 72, 0.2);
+  transform: rotate(-20deg);
+  pointer-events: none;
+}
+
+.indian-branch::after {
+  inset: 8% auto auto 58%;
+  width: 220px;
+  height: 220px;
+  border-color: rgba(174, 110, 70, 0.2);
+  transform: rotate(16deg);
+}
+
+.leaf-spray {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.botanical-leaf {
+  position: absolute;
+  width: 84px;
+  height: 112px;
+  background: linear-gradient(135deg, rgba(98, 132, 88, 0.95), rgba(151, 179, 127, 0.7));
+  border-radius: 100% 0% 100% 0% / 100% 0% 100% 0%;
+  box-shadow: inset -8px -10px 18px rgba(42, 72, 44, 0.2), 0 8px 18px rgba(63, 82, 52, 0.12);
+  transform: rotate(18deg);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.botanical-leaf::before {
+  content: "";
+  position: absolute;
+  inset: 18% 41% 18% 41%;
+  border-left: 2px solid rgba(255, 255, 255, 0.55);
+  border-radius: 50%;
+}
+
+.botanical-leaf::after {
+  content: "";
+  position: absolute;
+  inset: 18% 50% 18% 50%;
+  border-top: 2px solid rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+}
+
+.botanical-leaf.terracotta {
+  background: linear-gradient(135deg, rgba(181, 108, 77, 0.9), rgba(214, 156, 118, 0.7));
+}
+
+.leaf-cluster {
+  position: absolute;
+  inset: auto auto 40px 10px;
+  width: 180px;
+  height: 160px;
+  pointer-events: none;
+  filter: drop-shadow(0 10px 18px rgba(64, 75, 51, 0.10));
+}
+
+.leaf-cluster .botanical-leaf:nth-child(1) { left: 0; top: 18px; transform: rotate(-22deg) scale(1.05); }
+.leaf-cluster .botanical-leaf:nth-child(2) { left: 44px; top: 0; transform: rotate(18deg) scale(0.96); }
+.leaf-cluster .botanical-leaf:nth-child(3) { left: 84px; top: 34px; transform: rotate(-12deg) scale(1.12); }
+.leaf-cluster .botanical-leaf:nth-child(4) { left: 112px; top: 20px; transform: rotate(20deg) scale(0.82); }
+
+.hero-leaf-cluster {
+  position: absolute;
+  inset: auto 30px 28px auto;
+  width: 170px;
+  height: 160px;
+  pointer-events: none;
+  filter: drop-shadow(0 10px 18px rgba(66, 68, 44, 0.08));
+}
+
+.hero-leaf-cluster .botanical-leaf:nth-child(1) { right: 16px; top: 35px; transform: rotate(26deg) scale(1.1); }
+.hero-leaf-cluster .botanical-leaf:nth-child(2) { right: 70px; top: 0; transform: rotate(-18deg) scale(0.92); }
+.hero-leaf-cluster .botanical-leaf:nth-child(3) { right: 100px; top: 34px; transform: rotate(12deg) scale(1.08); }
+
+.leaf-spray svg {
+  width: 100%;
+  height: 100%;
+}
+
+.leaf-spray path,
+.leaf-spray circle {
+  fill: rgba(111, 137, 88, 0.08);
+  stroke: rgba(84, 102, 72, 0.18);
+  stroke-width: 1.2;
+}
+
+.leaf-spray .accent {
+  fill: rgba(183, 109, 72, 0.08);
+  stroke: rgba(183, 109, 72, 0.2);
+}
+
+.hero-ornament {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-ornament svg {
+  width: 100%;
+  height: 100%;
+}
+
+.hero-ornament path,
+.hero-ornament line,
+.hero-ornament circle {
+  stroke: rgba(106, 129, 93, 0.26);
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hero-ornament .warm {
+  stroke: rgba(180, 107, 60, 0.26);
+}
+
+.branch-ornament {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.9;
+}
+
+.branch-ornament svg {
+  width: 100%;
+  height: 100%;
+}
+
+.branch-ornament .branch {
+  fill: none;
+  stroke: rgba(93, 124, 85, 0.42);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.branch-ornament .branch-warm {
+  stroke: rgba(176, 108, 75, 0.38);
+}
+
+.branch-ornament .leaf-node {
+  fill: rgba(111, 144, 86, 0.3);
+  stroke: rgba(72, 93, 67, 0.42);
+  stroke-width: 1.2;
+}
+
+.branch-ornament .leaf-node-warm {
+  fill: rgba(191, 119, 84, 0.25);
+  stroke: rgba(146, 84, 58, 0.38);
+}
+
+.ornament-branch,
+.ornament-arch,
+.ornament-dot,
+.ornament-leaf {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.global-ornaments svg {
+  opacity: 1;
+  filter: drop-shadow(0 8px 18px rgba(82, 58, 40, 0.08));
+}
+
+.ornament-branch {
+  stroke: rgba(82, 110, 75, 0.9);
+  stroke-width: 3.2;
+  fill: none;
+}
+
+.ornament-branch.warm {
+  stroke: rgba(167, 96, 66, 0.88);
+}
+
+.ornament-leaf {
+  fill: rgba(111, 144, 86, 0.38);
+  stroke: rgba(63, 86, 56, 0.7);
+  stroke-width: 1.5;
+}
+
+.ornament-leaf.warm {
+  fill: rgba(188, 116, 77, 0.35);
+  stroke: rgba(133, 76, 54, 0.7);
+}
+
+.ornament-arch {
+  stroke: rgba(94, 122, 81, 0.9);
+  stroke-width: 2.8;
+  fill: none;
+}
+
+.ornament-arch.warm {
+  stroke: rgba(175, 111, 78, 0.85);
+}
+
+.ornament-dot {
+  fill: rgba(100, 132, 90, 0.8);
+  stroke: rgba(72, 92, 70, 0.42);
+}
+
+.ornament-dot.warm {
+  fill: rgba(180, 118, 82, 0.8);
+  stroke: rgba(138, 82, 60, 0.38);
+}
+
+.lotus-ornament {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 10px 18px rgba(65, 89, 56, 0.08));
+}
+
+.lotus-petal,
+.lotus-center {
+  fill: rgba(111, 144, 86, 0.28);
+  stroke: rgba(72, 94, 66, 0.38);
+  stroke-width: 1.4;
+}
+
+.lotus-petal.warm {
+  fill: rgba(186, 113, 78, 0.25);
+  stroke: rgba(137, 82, 58, 0.38);
+}
+
+.lotus-petal.soft {
+  fill: rgba(140, 165, 109, 0.24);
+  stroke: rgba(91, 114, 73, 0.34);
+}
+
+.lotus-center {
+  fill: rgba(202, 157, 86, 0.32);
+  stroke: rgba(140, 110, 58, 0.38);
+}
+
+.app-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.app-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+.app-shell > .fixed {
+  z-index: 0;
 }
