@@ -9,11 +9,8 @@ export function QuickActionsMenu() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-20 left-4 z-50 md:bottom-8 md:left-8">
+    <div className="fixed bottom-0 left-4 z-50 md:bottom-0 md:left-8">
       <div className={`mb-3 flex flex-col gap-2 transition-all ${open ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0"}`}>
-        <Link href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-[#25D366]/30">
-          <MessageCircle className="h-4 w-4" />
-        </Link>
         <Link href="https://instagram.com" target="_blank" rel="noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full bg-[#E1306C] text-white shadow-lg shadow-[#E1306C]/30">
           <Camera className="h-4 w-4" />
         </Link>

@@ -2,13 +2,13 @@
 
 :root {
   /* Subtle festive palette - warm dusty rose & gold */
-  --brand-primary: #c94a6a;
-  --brand-primary-dark: #a83d55;
+  --brand-primary: #7D1D1D;
+  --brand-primary-dark: #6B1D1D;
   --brand-secondary: #8b6b47;
   --brand-secondary-light: #a67e5f;
   --brand-accent: #00a8cc;
   --brand-accent-light: #4db8d8;
-  --brand-gold: #e6a86a;
+  --brand-gold: #D4AF37;
   --brand-gold-light: #f0c491;
   
   /* Heritage colors */
@@ -59,10 +59,9 @@ html {
 
 body {
   margin: 0;
-  min-height: 100vh;
   background:
     linear-gradient(135deg, rgba(111, 47, 191, 0.02), transparent 40%),
-    linear-gradient(-135deg, rgba(201, 74, 106, 0.02), transparent 40%),
+    linear-gradient(-135deg, rgba(125, 29, 29, 0.02), transparent 40%),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-body), sans-serif;
@@ -143,6 +142,11 @@ a {
   50% { transform: translateY(-6px); }
 }
 
+@keyframes float-elegant {
+  0%, 100% { transform: translateY(0px) rotateZ(0deg); }
+  50% { transform: translateY(-8px) rotateZ(2deg); }
+}
+
 @keyframes shimmer {
   0% { background-position: -1000px 0; }
   100% { background-position: 1000px 0; }
@@ -153,19 +157,34 @@ a {
   50% { opacity: 1; }
 }
 
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.6; filter: drop-shadow(0 0 8px rgba(125, 29, 29, 0.3)); }
+  50% { opacity: 1; filter: drop-shadow(0 0 16px rgba(212, 175, 55, 0.5)); }
+}
+
+@keyframes scale-up {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
 @keyframes pulse-subtle {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.9; }
 }
 
 @keyframes subtle-pulse {
-  0%, 100% { box-shadow: 0 0 20px rgba(201, 74, 106, 0.15); }
-  50% { box-shadow: 0 0 30px rgba(230, 168, 106, 0.2); }
+  0%, 100% { box-shadow: 0 0 20px rgba(125, 29, 29, 0.15); }
+  50% { box-shadow: 0 0 30px rgba(212, 175, 55, 0.2); }
 }
 
 @keyframes spin-slow {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
 }
 
 @keyframes slide-in-right {
@@ -183,11 +202,21 @@ a {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes rotate-gentle {
+  0%, 100% { transform: rotateZ(-3deg); }
+  50% { transform: rotateZ(3deg); }
+}
+
 .animate-float { animation: float-subtle 6s ease-in-out infinite; }
+.animate-float-elegant { animation: float-elegant 7s ease-in-out infinite; }
 .animate-pulse-subtle { animation: pulse-subtle 3s ease-in-out infinite; }
 .animate-spin-slow { animation: spin-slow 20s linear infinite; }
 .animate-shimmer { animation: shimmer-festive 2s ease-in-out infinite; }
 .animate-subtle-pulse { animation: subtle-pulse 2.5s ease-in-out infinite; }
+.animate-glow-pulse { animation: glow-pulse 3s ease-in-out infinite; }
+.animate-bounce-gentle { animation: bounce-gentle 2s ease-in-out infinite; }
+.animate-scale-up { animation: scale-up 2.5s ease-in-out infinite; }
+.animate-rotate-gentle { animation: rotate-gentle 4s ease-in-out infinite; }
 
 /* Respect user motion preferences */
 @media (prefers-reduced-motion: reduce) {
@@ -217,7 +246,7 @@ a {
   width: 180px;
   height: 180px;
   border-radius: 70% 30% 60% 40% / 55% 45% 55% 45%;
-  border: 1.5px solid rgba(201, 74, 106, 0.25);
+  border: 1.5px solid rgba(125, 29, 29, 0.25);
   transform: rotate(-20deg);
   pointer-events: none;
 }
@@ -265,7 +294,7 @@ a {
 }
 
 .botanical-leaf.terracotta {
-  background: linear-gradient(135deg, rgba(255, 107, 53, 0.9), rgba(230, 168, 106, 0.7));
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.9), rgba(212, 175, 55, 0.7));
   box-shadow: inset -8px -10px 18px rgba(180, 50, 0, 0.2), 0 8px 18px rgba(255, 107, 53, 0.12);
 }
 
@@ -275,7 +304,7 @@ a {
   width: 180px;
   height: 160px;
   pointer-events: none;
-  filter: drop-shadow(0 10px 18px rgba(201, 74, 106, 0.10));
+  filter: drop-shadow(0 10px 18px rgba(125, 29, 29, 0.10));
 }
 
 .leaf-cluster .botanical-leaf:nth-child(1) { left: 0; top: 18px; transform: rotate(-22deg) scale(1.05); }
@@ -289,7 +318,7 @@ a {
   width: 170px;
   height: 160px;
   pointer-events: none;
-  filter: drop-shadow(0 10px 18px rgba(201, 74, 106, 0.08));
+  filter: drop-shadow(0 10px 18px rgba(125, 29, 29, 0.08));
 }
 
 .hero-leaf-cluster .botanical-leaf:nth-child(1) { right: 16px; top: 35px; transform: rotate(26deg) scale(1.1); }
@@ -309,8 +338,8 @@ a {
 }
 
 .leaf-spray .accent {
-  fill: rgba(201, 74, 106, 0.08);
-  stroke: rgba(201, 74, 106, 0.2);
+  fill: rgba(125, 29, 29, 0.08);
+  stroke: rgba(125, 29, 29, 0.2);
 }
 
 .hero-ornament {
@@ -335,7 +364,7 @@ a {
 }
 
 .hero-ornament .warm {
-  stroke: rgba(201, 74, 106, 0.26);
+  stroke: rgba(125, 29, 29, 0.26);
 }
 
 .branch-ornament {
@@ -359,7 +388,7 @@ a {
 }
 
 .branch-ornament .branch-warm {
-  stroke: rgba(201, 74, 106, 0.38);
+  stroke: rgba(125, 29, 29, 0.38);
 }
 
 .branch-ornament .leaf-node {
@@ -369,8 +398,8 @@ a {
 }
 
 .branch-ornament .leaf-node-warm {
-  fill: rgba(230, 168, 106, 0.25);
-  stroke: rgba(230, 168, 106, 0.38);
+  fill: rgba(212, 175, 55, 0.25);
+  stroke: rgba(212, 175, 55, 0.38);
 }
 
 .ornament-branch,
@@ -384,7 +413,7 @@ a {
 
 .global-ornaments svg {
   opacity: 1;
-  filter: drop-shadow(0 8px 18px rgba(201, 74, 106, 0.08));
+  filter: drop-shadow(0 8px 18px rgba(125, 29, 29, 0.08));
 }
 
 .ornament-branch {
@@ -394,7 +423,7 @@ a {
 }
 
 .ornament-branch.warm {
-  stroke: rgba(201, 74, 106, 0.88);
+  stroke: rgba(125, 29, 29, 0.88);
 }
 
 .ornament-leaf {
@@ -404,8 +433,8 @@ a {
 }
 
 .ornament-leaf.warm {
-  fill: rgba(230, 168, 106, 0.35);
-  stroke: rgba(230, 168, 106, 0.7);
+  fill: rgba(212, 175, 55, 0.35);
+  stroke: rgba(212, 175, 55, 0.7);
 }
 
 .ornament-arch {
@@ -419,12 +448,12 @@ a {
 }
 
 .ornament-dot {
-  fill: rgba(201, 74, 106, 0.8);
+  fill: rgba(125, 29, 29, 0.8);
   stroke: rgba(111, 47, 191, 0.42);
 }
 
 .ornament-dot.warm {
-  fill: rgba(230, 168, 106, 0.8);
+  fill: rgba(212, 175, 55, 0.8);
   stroke: rgba(255, 107, 53, 0.38);
 }
 
@@ -433,7 +462,7 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 10px 18px rgba(201, 74, 106, 0.08));
+  filter: drop-shadow(0 10px 18px rgba(125, 29, 29, 0.08));
 }
 
 .lotus-petal,
@@ -444,8 +473,8 @@ a {
 }
 
 .lotus-petal.warm {
-  fill: rgba(201, 74, 106, 0.25);
-  stroke: rgba(201, 74, 106, 0.38);
+  fill: rgba(125, 29, 29, 0.25);
+  stroke: rgba(125, 29, 29, 0.38);
 }
 
 .lotus-petal.soft {
@@ -454,8 +483,8 @@ a {
 }
 
 .lotus-center {
-  fill: rgba(230, 168, 106, 0.32);
-  stroke: rgba(230, 168, 106, 0.38);
+  fill: rgba(212, 175, 55, 0.32);
+  stroke: rgba(212, 175, 55, 0.38);
 }
 
 .app-shell {

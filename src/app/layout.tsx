@@ -38,16 +38,14 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${manrope.variable} ${cormorantGaramond.variable} h-full antialiased`}>
-      <body className="min-h-full bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300">
+    <html lang="en" suppressHydrationWarning className={`${manrope.variable} ${cormorantGaramond.variable} antialiased`}>
+      <body className="flex flex-col bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300">
         <AuthProvider>
-          <div className="app-shell min-h-screen pb-20 md:pb-0">
+          <div className="app-shell flex min-h-dvh flex-col">
             <GlobalOrnaments />
             <Header />
-            {children}
+            <div className="flex-1">{children}</div>
             <Footer />
-            <WhatsAppButton />
-            <QuickActionsMenu />
             <BottomNavigation />
           </div>
         </AuthProvider>

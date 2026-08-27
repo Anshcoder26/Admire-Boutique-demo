@@ -42,7 +42,7 @@ export const categories = [
       "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=800&q=80",
   },
   {
-    name: "r",
+    name: "Office Wear",
     subtitle: "Polished essentials",
     image:
       "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80",
