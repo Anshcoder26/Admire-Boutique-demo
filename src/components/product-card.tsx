@@ -76,7 +76,6 @@ export function ProductCard({ product }: { product: Product }) {
          </div>
          <WishlistHeart
            productId={product.id}
-           className="absolute right-3 top-3 h-10 w-10 border border-[#7D1D1D]/30 shadow-md"
          />
          {product.badge ? (
            <span className="absolute left-3 top-3 rounded-full bg-gradient-to-r from-[#7D1D1D] to-[#D4AF37] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-white shadow-md border border-[#7D1D1D]/40 animate-shimmer">

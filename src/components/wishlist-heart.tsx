@@ -8,11 +8,10 @@ interface WishlistHeartProps {
   className?: string;
 }
 
-export function WishlistHeart({ productId, className = "" }: WishlistHeartProps) {
+export function WishlistHeart({ productId }: WishlistHeartProps) {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // Load from localStorage on mount
   useEffect(() => {
     setMounted(true);
     const wishlist = JSON.parse(localStorage.getItem("admire_wishlist") || "[]");
@@ -44,17 +43,41 @@ export function WishlistHeart({ productId, className = "" }: WishlistHeartProps)
       onPointerDown={(e) => e.stopPropagation()}
       onTouchStart={(e) => e.stopPropagation()}
       aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
-      className={`p-2 rounded-full transition-all ${
-        isWishlisted
-          ? "bg-[#7D1D1D]/10 text-[#7D1D1D]"
-          : "bg-white/50 text-[#8a6f5f] hover:bg-white hover:text-[#7D1D1D]"
-      } ${className}`}
-      style={{ position: "relative", zIndex: 50 }}
+      style={{
+        position: "absolute",
+        top: "12px",
+        right: "12px",
+        zIndex: 50,
+        width: "40px",
+        height: "40px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: "50%",
+        border: "none",
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+        backgroundColor: isWishlisted ? "#7D1D1D" : "rgba(255, 255, 255, 0.9)",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+        padding: "0",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.25)";
+        e.currentTarget.style.transform = "scale(1.1)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.15)";
+        e.currentTarget.style.transform = "scale(1)";
+      }}
     >
       <Heart
-        className="h-5 w-5"
-        fill={isWishlisted ? "currentColor" : "none"}
-        strokeWidth={2}
+        size={22}
+        style={{
+          color: isWishlisted ? "#D4AF37" : "#7D1D1D",
+          fill: isWishlisted ? "#D4AF37" : "none",
+          strokeWidth: 2,
+          transition: "all 0.2s ease",
+        }}
       />
     </button>
   );
