@@ -126,9 +126,9 @@ export function Header() {
             >
               <Search className="h-5 w-5" />
             </button>
-            <button className="flex h-12 w-12 items-center justify-center rounded-full border border-[#7D1D1D]/30 bg-white text-[#7D1D1D] hover:bg-[#fff5f0] transition" aria-label="Wishlist">
+            <Link href="/wishlist" className="flex h-12 w-12 items-center justify-center rounded-full border border-[#7D1D1D]/30 bg-white text-[#7D1D1D] hover:bg-[#fff5f0] transition" aria-label="Wishlist">
               <Heart className="h-5 w-5" />
-            </button>
+            </Link>
             <Link href={isAuthenticated ? "/account" : "/login"} className="flex h-12 w-12 items-center justify-center rounded-full border border-[#7D1D1D]/30 bg-white text-[#7D1D1D] hover:bg-[#fff5f0] transition" aria-label="Account">
               <User className="h-5 w-5" />
             </Link>

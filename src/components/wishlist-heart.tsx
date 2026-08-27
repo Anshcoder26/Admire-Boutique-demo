@@ -19,7 +19,10 @@ export function WishlistHeart({ productId, className = "" }: WishlistHeartProps)
     setIsWishlisted(wishlist.includes(productId));
   }, [productId]);
 
-  const toggleWishlist = () => {
+  const toggleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     const wishlist = JSON.parse(localStorage.getItem("admire_wishlist") || "[]");
     
     if (isWishlisted) {
@@ -38,12 +41,15 @@ export function WishlistHeart({ productId, className = "" }: WishlistHeartProps)
   return (
     <button
       onClick={toggleWishlist}
+      onPointerDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
       aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
       className={`p-2 rounded-full transition-all ${
         isWishlisted
           ? "bg-[#7D1D1D]/10 text-[#7D1D1D]"
           : "bg-white/50 text-[#8a6f5f] hover:bg-white hover:text-[#7D1D1D]"
       } ${className}`}
+      style={{ position: "relative", zIndex: 50 }}
     >
       <Heart
         className="h-5 w-5"
