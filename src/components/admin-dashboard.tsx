@@ -29,6 +29,7 @@ export function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [email, setEmail] = useState("owner@admireboutique.in");
   const [password, setPassword] = useState("admire123");
+  const [isPublishing, setIsPublishing] = useState(false);
   const [form, setForm] = useState({
     name: "",
     category: "Premium Cotton",
@@ -144,7 +145,12 @@ export function AdminDashboard() {
 
   const handleAddProduct = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!form.name || !form.price || !form.stock) return;
+    if (!form.name || !form.price || !form.stock) {
+      alert("Please fill in: Product name, price, and stock");
+      return;
+    }
+
+    setIsPublishing(true);
 
     const imageUrls = Array.isArray(form.images)
       ? (form.images as string[]).filter(Boolean)
@@ -191,19 +197,18 @@ export function AdminDashboard() {
           ]);
           
           alert(`✅ Product "${form.name}" published successfully! Customers will receive a notification email.`);
+          setForm({ name: "", category: "Premium Cotton", description: "", price: "", stock: "", fabric: "Cotton", images: [], colors: [] });
         }
       } else {
         const error = (await response.json().catch(() => ({ error: "Unable to create product." }))) as { error?: string };
-        alert(error.error || "Unable to create product.");
-        return;
+        alert(`❌ ${error.error || "Unable to create product."}`);
       }
     } catch (err) {
       console.error("Product creation error:", err);
-      alert("Network error while creating product. Please try again.");
-      return;
+      alert("❌ Network error while creating product. Please try again.");
+    } finally {
+      setIsPublishing(false);
     }
-
-    setForm({ name: "", category: "Premium Cotton", description: "", price: "", stock: "", fabric: "Cotton", images: [], colors: [] });
   };
 
   if (!isAuthenticated) {
@@ -659,9 +664,34 @@ export function AdminDashboard() {
                 </div>
               </div>
 
-              <button type="submit" className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#4b1f1d] px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#4b1f1d]/20">
-                Publish to storefront <ShoppingBag className="h-4 w-4" />
-              </button>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs text-[#7a655d]">
+                  <span className="font-medium">REQUIRED FIELDS:</span>
+                  <span className={`font-semibold ${form.name && form.price && form.stock ? "text-green-600" : "text-red-500"}`}>
+                    {form.name && form.price && form.stock ? "✓ Ready to publish" : "✗ Missing required fields"}
+                  </span>
+                </div>
+                <button 
+                  type="submit" 
+                  disabled={!form.name || !form.price || !form.stock || isPublishing}
+                  className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3.5 text-sm font-semibold text-white shadow-lg transition-all ${
+                    form.name && form.price && form.stock && !isPublishing
+                      ? "bg-[#4b1f1d] shadow-[#4b1f1d]/20 hover:bg-[#3a160f] hover:shadow-lg hover:scale-105 cursor-pointer active:scale-95"
+                      : "bg-[#8b7965] shadow-[#8b7965]/20 cursor-not-allowed opacity-60"
+                  }`}
+                >
+                  {isPublishing ? (
+                    <>
+                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Publishing...
+                    </>
+                  ) : (
+                    <>
+                      Publish to storefront <ShoppingBag className="h-4 w-4" />
+                    </>
+                  )}
+                </button>
+              </div>
             </form>
           </div>
 
