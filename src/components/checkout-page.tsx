@@ -164,6 +164,7 @@ export function CheckoutPage() {
           discount,
           total,
           paymentMethod,
+          address: selectedAddress, // P3: Send address to API
         }),
       });
 

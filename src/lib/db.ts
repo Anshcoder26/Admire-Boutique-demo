@@ -429,6 +429,7 @@ if (!usesPostgres) {
       tracking_id TEXT,
       estimated_delivery TEXT,
       items_json TEXT NOT NULL,
+      address_json TEXT DEFAULT '{}',
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (customer_id) REFERENCES customers(id)
     );
@@ -603,6 +604,7 @@ async function ensurePostgresReady() {
       tracking_id TEXT,
       estimated_delivery TEXT,
       items_json TEXT NOT NULL,
+      address_json TEXT DEFAULT '{}',
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
@@ -772,6 +774,17 @@ export async function getProductById(id: string): Promise<Product | undefined> {
   }
 
   const row = sqliteDb.prepare(`SELECT * FROM products WHERE id = ?`).get(id) as Record<string, any> | undefined;
+  return row ? normalizeProductRow(row) : undefined;
+}
+
+export async function getProductByName(name: string): Promise<Product | undefined> {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query("SELECT * FROM products WHERE name = $1", [name]);
+    return result.rows[0] ? normalizeProductRow(result.rows[0]) : undefined;
+  }
+
+  const row = sqliteDb.prepare(`SELECT * FROM products WHERE name = ?`).get(name) as Record<string, any> | undefined;
   return row ? normalizeProductRow(row) : undefined;
 }
 
@@ -1184,6 +1197,32 @@ export async function listCustomerOrders(customerId: string) {
   }));
 }
 
+export async function getOrderByNumber(orderNumber: string) {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query(
+      "SELECT * FROM orders WHERE order_number = $1",
+      [orderNumber]
+    );
+    if (!result.rows[0]) return null;
+    const row = result.rows[0];
+    return {
+      ...row,
+      items: parseJsonArray(row.items_json),
+    };
+  }
+
+  const row = sqliteDb.prepare(`
+    SELECT * FROM orders WHERE order_number = ?
+  `).get(orderNumber) as Record<string, any> | undefined;
+
+  if (!row) return null;
+  return {
+    ...row,
+    items: parseJsonArray(row.items_json),
+  };
+}
+
 export async function createOrder(customerId: string, input: {
   order_number: string;
   status: string;
@@ -1197,6 +1236,7 @@ export async function createOrder(customerId: string, input: {
   tracking_id: string;
   estimated_delivery: string;
   items: Array<{ name: string; size: string; qty: number; price: number; productId?: string }>;
+  address?: { id?: string; label?: string; full_name?: string; phone?: string; line1?: string; line2?: string; city?: string; state?: string; pincode?: string; country?: string };
 }) {
   const id = `ord-${Date.now()}`;
   const order = {
@@ -1214,6 +1254,7 @@ export async function createOrder(customerId: string, input: {
     tracking_id: input.tracking_id,
     estimated_delivery: input.estimated_delivery,
     items_json: JSON.stringify(input.items),
+    address_json: input.address ? JSON.stringify(input.address) : JSON.stringify({}),
   };
 
   if (usesPostgres) {
@@ -1225,8 +1266,8 @@ export async function createOrder(customerId: string, input: {
       
       // Insert order
       await client.query(
-        `INSERT INTO orders (id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method, delivery_partner, tracking_id, estimated_delivery, items_json)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+        `INSERT INTO orders (id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method, delivery_partner, tracking_id, estimated_delivery, items_json, address_json)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
         [
           order.id,
           order.customer_id,
@@ -1242,6 +1283,7 @@ export async function createOrder(customerId: string, input: {
           order.tracking_id,
           order.estimated_delivery,
           order.items_json,
+          order.address_json,
         ]
       );
       
@@ -1285,10 +1327,10 @@ export async function createOrder(customerId: string, input: {
     sqliteDb.prepare(`
       INSERT INTO orders (
         id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method,
-        delivery_partner, tracking_id, estimated_delivery, items_json
+        delivery_partner, tracking_id, estimated_delivery, items_json, address_json
       ) VALUES (
         @id, @customer_id, @order_number, @status, @sub_total, @shipping, @discount, @total, @payment_status,
-        @payment_method, @delivery_partner, @tracking_id, @estimated_delivery, @items_json
+        @payment_method, @delivery_partner, @tracking_id, @estimated_delivery, @items_json, @address_json
       )
     `).run(order);
     
