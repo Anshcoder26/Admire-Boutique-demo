@@ -117,6 +117,14 @@ export default function LoginPage() {
         // Successful login
         setSuccessMessage(`Welcome back, ${data.user.name}! Redirecting...`);
 
+        // Store auth token for client-side auth checks
+        window.localStorage.setItem("admire-user-token", "authenticated");
+        
+        // For admin, also store admin token
+        if (data.userType === "admin") {
+          window.localStorage.setItem("admire-admin-token", "authenticated");
+        }
+
         // Dispatch auth update event
         window.dispatchEvent(new Event("admire-auth-updated"));
         window.dispatchEvent(new Event("storage"));

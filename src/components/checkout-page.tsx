@@ -16,31 +16,70 @@ type CartItem = {
   quantity: number;
 };
 
+type Customer = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+};
+
+type Address = {
+  id: string;
+  label: string;
+  full_name: string;
+  phone: string;
+  line1: string;
+  line2: string;
+  city: string;
+  state: string;
+  pincode: string;
+  country: string;
+  is_default: number;
+};
+
 export function CheckoutPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [paymentMethod, setPaymentMethod] = useState("Cash on Delivery");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>("");
 
-  // Check authentication
+  // Check authentication and load customer data
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("/api/auth/me", {
-          method: "GET",
-          credentials: "include",
-        });
+        const [meRes, addressesRes] = await Promise.all([
+          fetch("/api/auth/me", { credentials: "include" }),
+          fetch("/api/me/addresses", { credentials: "include" }),
+        ]);
 
-        if (response.ok) {
+        if (meRes.ok) {
           setIsAuthenticated(true);
+          const meData = (await meRes.json()) as { user?: Customer };
+          if (meData.user) {
+            setCustomer(meData.user);
+          }
+          
+          if (addressesRes.ok) {
+            const addressData = (await addressesRes.json()) as { addresses?: Address[] };
+            if (addressData.addresses?.length) {
+              setAddresses(addressData.addresses);
+              // Set default address
+              const defaultAddr = addressData.addresses.find((a) => a.is_default === 1) || addressData.addresses[0];
+              setSelectedAddress(defaultAddr);
+            }
+          }
         } else {
           const token = window.localStorage.getItem("admire-user-token");
           setIsAuthenticated(Boolean(token));
         }
-      } catch {
+      } catch (e) {
+        console.error("[CHECKOUT] Auth check error:", e);
         const token = window.localStorage.getItem("admire-user-token");
         setIsAuthenticated(Boolean(token));
       } finally {
@@ -200,21 +239,74 @@ export function CheckoutPage() {
           <div className="rounded-[30px] border border-[#eadcd3] bg-[#fffaf6] p-5">
             <h2 className="mb-4 font-serif text-3xl text-[#201614]">Customer details</h2>
             <div className="grid gap-4 md:grid-cols-2">
-              <input defaultValue="Ansh" placeholder="First name" className="rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" />
-              <input defaultValue="Agarwal" placeholder="Last name" className="rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" />
-              <input defaultValue="customer@admireboutique.in" placeholder="Email" className="md:col-span-2 rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" />
-              <input defaultValue="+91 98765 43210" placeholder="Phone" className="md:col-span-2 rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" />
+              <input 
+                defaultValue={customer?.name.split(" ")[0] || ""} 
+                placeholder="First name" 
+                className="rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" 
+              />
+              <input 
+                defaultValue={customer?.name.split(" ").slice(1).join(" ") || ""} 
+                placeholder="Last name" 
+                className="rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" 
+              />
+              <input 
+                defaultValue={customer?.email || ""} 
+                placeholder="Email" 
+                className="md:col-span-2 rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" 
+              />
+              <input 
+                defaultValue={customer?.phone || ""} 
+                placeholder="Phone" 
+                className="md:col-span-2 rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" 
+              />
             </div>
           </div>
 
           <div className="rounded-[30px] border border-[#eadcd3] bg-[#fffaf6] p-5">
             <h2 className="mb-4 font-serif text-3xl text-[#201614]">Shipping address</h2>
+            {addresses.length > 0 ? (
+              <>
+                <div className="mb-4 space-y-2">
+                  {addresses.map((addr) => (
+                    <label key={addr.id} className="flex items-center gap-3 rounded-[18px] border border-[#e4d4c9] bg-white px-4 py-3 cursor-pointer">
+                      <input 
+                        type="radio" 
+                        name="address" 
+                        checked={selectedAddress?.id === addr.id}
+                        onChange={() => setSelectedAddress(addr)}
+                      />
+                      <span className="text-sm">{addr.label}: {addr.line1}, {addr.city}, {addr.state} {addr.pincode}</span>
+                    </label>
+                  ))}
+                </div>
+              </>
+            ) : null}
             <div className="grid gap-4 md:grid-cols-2">
-              <input defaultValue="12, Saffron Residency" placeholder="Street address" className="md:col-span-2 rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" />
-              <input defaultValue="Bengaluru" placeholder="City" className="rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" />
-              <input defaultValue="Karnataka" placeholder="State" className="rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" />
-              <input defaultValue="560001" placeholder="ZIP code" className="rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" />
-              <input defaultValue="India" placeholder="Country" className="rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" />
+              <input 
+                defaultValue={selectedAddress?.line1 || ""} 
+                placeholder="Street address" 
+                className="md:col-span-2 rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" 
+              />
+              <input 
+                defaultValue={selectedAddress?.city || ""} 
+                placeholder="City" 
+                className="rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" 
+              />
+              <input 
+                defaultValue={selectedAddress?.state || ""} 
+                placeholder="State" 
+                className="rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" 
+              />
+              <input 
+                defaultValue={selectedAddress?.pincode || ""} 
+                placeholder="ZIP code" 
+                className="rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" 
+              />
+              <input 
+                defaultValue={selectedAddress?.country || "India"} 
+                placeholder="Country" 
+                className="rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" 
+              />
             </div>
           </div>
 
