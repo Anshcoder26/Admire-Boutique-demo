@@ -92,9 +92,33 @@ export function AdminDashboard() {
   };
 
   useEffect(() => {
-    const token = window.localStorage.getItem("admire-admin-token");
-    if (!token) return;
-    void loadAdminData(token);
+    const checkAuth = async () => {
+      // First, try to get token from localStorage
+      let token = window.localStorage.getItem("admire-admin-token");
+      
+      // If no token, check if there's an active session from unified login
+      if (!token) {
+        try {
+          const meRes = await fetch("/api/admin/me-check");
+          if (meRes.ok) {
+            const meData = (await meRes.json()) as { token?: string };
+            if (meData.token) {
+              token = meData.token;
+              window.localStorage.setItem("admire-admin-token", token);
+            }
+          }
+        } catch {
+          // Session check failed, continue
+        }
+      }
+      
+      // If we have a token now, load admin data
+      if (token) {
+        void loadAdminData(token);
+      }
+    };
+    
+    void checkAuth();
   }, []);
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
