@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
       price,
       stock,
       fabric,
+      stitching,
       description,
       images,
       colors,
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
       4.5, // Default rating
       0, // No reviews yet
       Number(stock) || 0,
-      "New", // Default badge
+      stitching || "Stitched", // Use badge field for stitching type
       fabric || "Cotton",
       description || `${name} - Premium piece from Admire Boutique`,
       images ? JSON.stringify(images) : JSON.stringify([]),

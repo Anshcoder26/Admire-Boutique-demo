@@ -37,8 +37,9 @@ export function AdminDashboard() {
     price: "",
     stock: "",
     fabric: "Cotton",
-    images: [] as string[],
-    colors: [] as Array<{ name: string; hex: string }>,
+   stitching: "Stitched", // NEW: Stitched/Unstitched option
+   images: [] as string[],
+   colors: [] as Array<{ name: string; hex: string }>,
   });
   const [catalog, setCatalog] = useState(initialCatalog);
   const [recentOrders, setRecentOrders] = useState<Array<{ id: string; order_number: string; customer_name: string; status: string; total: number }>>([]);
@@ -165,6 +166,7 @@ export function AdminDashboard() {
       price: Number(form.price),
       stock: Number(form.stock),
       fabric: form.fabric,
+      stitching: form.stitching, // NEW: Include stitched/unstitched
       description: form.description || `${form.name} has been added via the owner dashboard.`,
       images: imageUrls.length ? imageUrls : undefined,
       colors: Array.isArray(form.colors) && form.colors.length > 0 
@@ -197,7 +199,7 @@ export function AdminDashboard() {
           ]);
           
           alert(`✅ Product "${form.name}" published successfully! Customers will receive a notification email.`);
-          setForm({ name: "", category: "Premium Cotton", description: "", price: "", stock: "", fabric: "Cotton", images: [], colors: [] });
+          setForm({ name: "", category: "Premium Cotton", description: "", price: "", stock: "", fabric: "Cotton", stitching: "Stitched", images: [], colors: [] });
         }
       } else {
         const error = (await response.json().catch(() => ({ error: "Unable to create product." }))) as { error?: string };
@@ -481,6 +483,18 @@ export function AdminDashboard() {
                     className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
                     placeholder="Cotton"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Stitching Type</label>
+                  <select
+                    value={form.stitching}
+                    onChange={(e) => setForm((current) => ({ ...current, stitching: e.target.value }))}
+                    className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60] cursor-pointer"
+                  >
+                    <option>Stitched</option>
+                    <option>Unstitched</option>
+                  </select>
                 </div>
               </div>
 

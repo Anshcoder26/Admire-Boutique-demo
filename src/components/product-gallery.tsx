@@ -14,7 +14,7 @@ export function ProductGallery({ images, name }: { images: string[]; name: strin
           alt={name}
           width={900}
           height={1200}
-          className="h-[420px] w-full rounded-[24px] object-cover md:h-[560px]"
+          className="h-[420px] w-full rounded-[24px] object-contain md:h-[560px]"
         />
       </div>
       <div className="grid grid-cols-3 gap-2.5">
