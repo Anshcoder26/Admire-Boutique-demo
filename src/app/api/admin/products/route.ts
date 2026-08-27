@@ -1,28 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { getDb, validateSessionToken } from "@/lib/db";
 import { sendEmail, generateNewProductEmail } from "@/lib/mailer";
 import { randomUUID } from "crypto";
 
-// Verify admin auth (basic check)
+// Verify admin auth
 async function verifyAdminAuth(request: NextRequest) {
-  const authCookie = request.cookies.get("admin_auth");
-  const adminToken = request.headers.get("x-admin-token");
+  const authHeader = request.headers.get("authorization") || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.replace("Bearer ", "") : "";
 
-  if (!authCookie && !adminToken) {
-    return false;
+  if (!token) {
+    return null;
   }
 
-  // TODO: Implement proper admin session validation
-  return true;
+  try {
+    const user = await validateSessionToken(token);
+    if (!user) {
+      return null;
+    }
+    return user;
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(request: NextRequest) {
   try {
     // Verify admin authentication
-    const isAdmin = await verifyAdminAuth(request);
-    if (!isAdmin) {
+    const admin = await verifyAdminAuth(request);
+    if (!admin) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: "Unauthorized - Admin token required" },
         { status: 401 }
       );
     }
@@ -32,15 +39,11 @@ export async function POST(request: NextRequest) {
       name,
       category,
       price,
-      discountPrice,
-      description,
-      image,
-      images,
-      material,
-      care,
-      sizes,
-      colors,
       stock,
+      fabric,
+      description,
+      images,
+      colors,
       notifySubscribers = true,
     } = body;
 
@@ -53,29 +56,38 @@ export async function POST(request: NextRequest) {
 
     const db = getDb();
     const productId = randomUUID();
+    
+    // Generate slug from product name
+    const slug = `${name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")}-${Date.now()}`;
 
-    // Insert product
+    // Insert product with all required fields
     const stmt = db.prepare(`
       INSERT INTO products (
-        id, name, category, price, discount_price, description, 
-        image, images, material, care, sizes, colors, stock, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        id, slug, name, category, price, originalPrice, discount, rating, reviews, stock, 
+        badge, fabric, description, images, colors, sizes, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `);
 
     stmt.run(
       productId,
+      slug,
       name,
       category || "Other",
-      price,
-      discountPrice || null,
-      description || null,
-      image || null,
-      images ? JSON.stringify(images) : null,
-      material || null,
-      care || null,
-      sizes ? JSON.stringify(sizes) : null,
-      colors ? JSON.stringify(colors) : null,
-      stock || 0
+      Number(price),
+      Number(price) * 1.2, // Default original price as 20% higher
+      0, // No discount by default
+      4.5, // Default rating
+      0, // No reviews yet
+      Number(stock) || 0,
+      "New", // Default badge
+      fabric || "Cotton",
+      description || `${name} - Premium piece from Admire Boutique`,
+      images ? JSON.stringify(images) : JSON.stringify([]),
+      colors ? JSON.stringify(colors) : JSON.stringify([]),
+      JSON.stringify([]) // Sizes (can be added later)
     );
 
     // Send to all customers (registered users) + newsletter subscribers
@@ -107,7 +119,7 @@ export async function POST(request: NextRequest) {
         const allRecipients = Array.from(emailMap.values());
 
         if (allRecipients.length > 0) {
-          const productUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/products/${productId}`;
+          const productUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/products/${slug}`;
           const emailHtml = generateNewProductEmail(name, productUrl);
 
           // Send emails to all customers and subscribers
@@ -118,7 +130,7 @@ export async function POST(request: NextRequest) {
           });
 
           console.log(
-            `📧 Sent new product notification to ${allRecipients.length} recipients (${customers.length} customers + ${subscribers.length} subscribers)`
+            `📧 Sent new product notification to ${allRecipients.length} recipients`
           );
         }
       } catch (emailError) {
@@ -130,15 +142,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: "Product created successfully",
-        productId,
+        message: "Product created and published successfully",
+        product: {
+          id: productId,
+          slug,
+          name,
+          category: category || "Other",
+          price: Number(price),
+          stock: Number(stock) || 0,
+          description,
+          images,
+          colors,
+          fabric,
+        },
       },
       { status: 201 }
     );
   } catch (error) {
     console.error("Product creation error:", error);
     return NextResponse.json(
-      { error: "Failed to create product" },
+      { error: `Failed to create product: ${error instanceof Error ? error.message : "Unknown error"}` },
       { status: 500 }
     );
   }

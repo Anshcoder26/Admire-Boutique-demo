@@ -159,36 +159,47 @@ export function AdminDashboard() {
       price: Number(form.price),
       stock: Number(form.stock),
       fabric: form.fabric,
-      description: `${form.name} has been added via the owner dashboard and is ready to be published on the storefront.`,
+      description: form.description || `${form.name} has been added via the owner dashboard.`,
       images: imageUrls.length ? imageUrls : undefined,
+      colors: Array.isArray(form.colors) && form.colors.length > 0 
+        ? form.colors.filter(c => c.name && c.hex)
+        : undefined,
     };
 
-    const response = await fetch("/api/products", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch("/api/admin/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${window.localStorage.getItem("admire-admin-token") || ""}` },
+        body: JSON.stringify(payload),
+      });
 
-    if (response.ok) {
-      const data = (await response.json()) as { product?: { id: string; name: string; category: string; price: number; stock: number } };
-      const created = data.product;
+      if (response.ok) {
+        const data = (await response.json()) as { product?: { id: string; name: string; category: string; price: number; stock: number } };
+        const created = data.product;
 
-      if (created) {
-        setCatalog((current) => [
-          {
-            id: Number(created.id?.replace(/\D/g, "") || Date.now()),
-            name: created.name,
-            category: created.category,
-            price: formatCurrency(Number(created.price)),
-            stock: created.stock,
-            status: created.stock < 10 ? "Low stock" : "Live",
-          },
-          ...current,
-        ]);
+        if (created) {
+          setCatalog((current) => [
+            {
+              id: Number(created.id?.replace(/\D/g, "") || Date.now()),
+              name: created.name,
+              category: created.category,
+              price: formatCurrency(Number(created.price)),
+              stock: created.stock,
+              status: created.stock < 10 ? "Low stock" : "Live",
+            },
+            ...current,
+          ]);
+          
+          alert(`✅ Product "${form.name}" published successfully! Customers will receive a notification email.`);
+        }
+      } else {
+        const error = (await response.json().catch(() => ({ error: "Unable to create product." }))) as { error?: string };
+        alert(error.error || "Unable to create product.");
+        return;
       }
-    } else {
-      const error = (await response.json().catch(() => ({ error: "Unable to create product." }))) as { error?: string };
-      alert(error.error || "Unable to create product.");
+    } catch (err) {
+      console.error("Product creation error:", err);
+      alert("Network error while creating product. Please try again.");
       return;
     }
 
