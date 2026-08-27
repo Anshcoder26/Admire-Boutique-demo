@@ -102,7 +102,7 @@ export function ProductCard({ product }: { product: Product }) {
               e.preventDefault();
               handleQuickAdd();
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#d81e8f] to-[#a81566] px-4 py-3 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 active:scale-95 border border-[#d81e8f]/30"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#d81e8f] px-4 py-3.5 md:py-3 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 active:scale-95 border border-[#d81e8f]/30 min-h-[48px] md:min-h-[44px]"
           >
             <ShoppingBag className="h-5 w-5" />
             Quick Add

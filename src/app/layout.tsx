@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { Footer } from "@/components/footer";
@@ -22,6 +22,17 @@ const cormorantGaramond = Cormorant_Garamond({
 export const metadata: Metadata = {
   title: "Admire Boutique | Premium Indian Kurtis",
   description: "Admire Boutique brings premium Indian fashion, elegant kurtis and festive ethnic wear for modern women.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

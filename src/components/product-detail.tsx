@@ -101,13 +101,13 @@ export function ProductDetail({ product }: { product: Product }) {
               <span className="text-base font-bold text-[#1a1612]">🎨 Color</span>
               <span className="px-4 py-1 rounded-full bg-gradient-to-r from-[#d81e8f]/20 to-[#6f2fbf]/20 text-sm font-bold text-[#d81e8f]">{selectedColor}</span>
             </div>
-            <div className="flex gap-4">
+            <div className="flex gap-3 flex-wrap">
               {product.colors.map((color) => (
                 <button
                   key={color.name}
                   onClick={() => setSelectedColor(color.name)}
-                  className={`h-12 w-12 rounded-full border-3 transition-all hover:scale-110 ${
-                    selectedColor === color.name ? "border-[#d81e8f] shadow-lg shadow-[#d81e8f]/50" : "border-[#d81e8f]/30"
+                  className={`h-14 w-14 md:h-12 md:w-12 rounded-full border-3 transition-all hover:scale-110 ${
+                    selectedColor === color.name ? "border-[#d81e8f] shadow-md" : "border-[#d81e8f]/30"
                   }`}
                   style={{ backgroundColor: color.hex }}
                   aria-label={color.name}
@@ -127,9 +127,9 @@ export function ProductDetail({ product }: { product: Product }) {
                 <button
                   key={size}
                   onClick={() => setSelectedSize(size)}
-                  className={`flex h-12 w-12 items-center justify-center rounded-full border-2 text-sm font-bold transition-all ${
+                  className={`flex h-14 w-14 md:h-12 md:w-12 items-center justify-center rounded-full border-2 text-sm font-bold transition-all min-h-[44px] min-w-[44px] ${
                     selectedSize === size
-                      ? "border-[#d81e8f] bg-gradient-to-r from-[#d81e8f] to-[#a81566] text-white shadow-lg shadow-[#d81e8f]/50"
+                      ? "border-[#d81e8f] bg-[#d81e8f] text-white shadow-md"
                       : "border-[#d81e8f]/30 bg-white text-[#1a1612] hover:border-[#d81e8f]/60 hover:scale-105"
                   }`}
                 >
@@ -139,27 +139,29 @@ export function ProductDetail({ product }: { product: Product }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
             <div className="flex items-center gap-3 rounded-full border-2 border-[#d81e8f]/30 bg-white px-4 py-3">
               <button
                 onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-                className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-[#f5e6f0] text-[#d81e8f] font-bold text-lg transition"
+                className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-[#f5e6f0] text-[#d81e8f] font-bold text-lg transition min-h-[44px] min-w-[44px]"
+                aria-label="Decrease quantity"
               >
                 −
               </button>
               <span className="w-8 text-center text-base font-bold text-[#1a1612]">{quantity}</span>
               <button
                 onClick={() => setQuantity((value) => value + 1)}
-                className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-[#f5e6f0] text-[#d81e8f] font-bold text-lg transition"
+                className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-[#f5e6f0] text-[#d81e8f] font-bold text-lg transition min-h-[44px] min-w-[44px]"
+                aria-label="Increase quantity"
               >
                 +
               </button>
             </div>
 
-            <button onClick={() => addProductToCart(false)} className="flex-1 rounded-full bg-[#d81e8f] px-6 py-4 text-base font-bold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 active:scale-95 border border-[#d81e8f]/40">
+            <button onClick={() => addProductToCart(false)} className="flex-1 rounded-full bg-[#d81e8f] px-6 py-4 text-base font-bold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 active:scale-95 border border-[#d81e8f]/40 min-h-[48px]">
               🛍️ Add to Cart
             </button>
-            <button className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#d81e8f]/30 bg-white text-[#d81e8f] hover:border-[#d81e8f]/60 hover:bg-[#fff5f0] transition">
+            <button className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#d81e8f]/30 bg-white text-[#d81e8f] hover:border-[#d81e8f]/60 hover:bg-[#fff5f0] transition min-h-[44px] min-w-[44px]" aria-label="Add to wishlist">
               <Heart className="h-6 w-6 fill-current" />
             </button>
           </div>

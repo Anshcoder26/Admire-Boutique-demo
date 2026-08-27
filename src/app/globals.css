@@ -177,6 +177,21 @@ a {
 .animate-pulse-subtle { animation: pulse-subtle 3s ease-in-out infinite; }
 .animate-spin-slow { animation: spin-slow 20s linear infinite; }
 
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-pulse-subtle,
+  .animate-spin-slow {
+    animation: none;
+  }
+
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 .indian-branch {
   position: relative;
   overflow: hidden;
