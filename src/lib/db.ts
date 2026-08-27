@@ -1,8 +1,8 @@
-import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import Database from "better-sqlite3";
 import { Pool } from "pg";
+import bcryptjs from "bcryptjs";
 import type { Product } from "@/data/products";
 
 const databaseUrl = process.env.DATABASE_URL || "";
@@ -24,12 +24,34 @@ const sqliteDb = usesPostgres ? (null as unknown as Database.Database) : new Dat
 const postgresPool = usesPostgres ? new Pool({
   connectionString: databaseUrl,
   ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
 }) : null;
 
-const salt = "admire-boutique-v1";
+let postgresReady = false;
 
-export function hashPassword(password: string) {
-  return crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
+// Graceful pool shutdown handler
+if (postgresPool) {
+  const gracefulShutdown = async () => {
+    try {
+      await postgresPool.end();
+    } catch (err) {
+      console.error("Error closing PostgreSQL pool:", err);
+    }
+  };
+  
+  process.on("exit", () => gracefulShutdown());
+  process.on("SIGINT", () => gracefulShutdown());
+  process.on("SIGTERM", () => gracefulShutdown());
+}
+
+export async function hashPassword(password: string): Promise<string> {
+  return bcryptjs.hash(password, 12);
+}
+
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return bcryptjs.compare(password, hash);
 }
 
 export type AdminUserRecord = {
@@ -499,8 +521,6 @@ if (!usesPostgres) {
   }
 }
 
-let postgresReady = false;
-
 async function ensurePostgresReady() {
   if (!postgresPool || postgresReady) return;
 
@@ -899,15 +919,15 @@ export async function verifyAdminCredentials(email: string, password: string): P
     const result = await postgresPool!.query("SELECT * FROM admin_users WHERE email = $1", [email]);
     const user = result.rows[0];
     if (!user) return null;
-    if (hashPassword(password) !== user.password_hash) return null;
+    if (!(await verifyPassword(password, user.password_hash))) return null;
     return { id: user.id, name: user.name, email: user.email };
   }
 
   const user = sqliteDb.prepare("SELECT * FROM admin_users WHERE email = ?").get(email) as Record<string, any> | undefined;
   if (!user) return null;
 
-  const attemptedHash = hashPassword(password);
-  if (attemptedHash !== user.password_hash) return null;
+  const isValid = await verifyPassword(password, user.password_hash);
+  if (!isValid) return null;
 
   return {
     id: user.id,
@@ -953,15 +973,15 @@ export async function verifyCustomerCredentials(email: string, password: string)
     const result = await postgresPool!.query("SELECT * FROM customers WHERE email = $1", [email]);
     const user = result.rows[0];
     if (!user) return null;
-    if (hashPassword(password) !== user.password_hash) return null;
+    if (!(await verifyPassword(password, user.password_hash))) return null;
     return { id: user.id, name: user.name, email: user.email, phone: user.phone };
   }
 
   const user = sqliteDb.prepare("SELECT * FROM customers WHERE email = ?").get(email) as Record<string, any> | undefined;
   if (!user) return null;
 
-  const attemptedHash = hashPassword(password);
-  if (attemptedHash !== user.password_hash) return null;
+  const isValid = await verifyPassword(password, user.password_hash);
+  if (!isValid) return null;
 
   return {
     id: user.id,
@@ -1021,6 +1041,8 @@ export async function createCustomer(input: { name: string; email: string; phone
     return null;
   }
 
+  const passwordHash = await hashPassword(password);
+
   if (usesPostgres) {
     await ensurePostgresReady();
     const existing = await postgresPool!.query("SELECT id FROM customers WHERE email = $1", [email]);
@@ -1029,7 +1051,7 @@ export async function createCustomer(input: { name: string; email: string; phone
     const id = `cust-${Date.now()}`;
     await postgresPool!.query(
       "INSERT INTO customers (id, name, email, phone, password_hash) VALUES ($1, $2, $3, $4, $5)",
-      [id, name, email, phone, hashPassword(password)]
+      [id, name, email, phone, passwordHash]
     );
 
     return { id, name, email, phone };
@@ -1042,7 +1064,7 @@ export async function createCustomer(input: { name: string; email: string; phone
   sqliteDb.prepare(`
     INSERT INTO customers (id, name, email, phone, password_hash)
     VALUES (?, ?, ?, ?, ?)
-  `).run(id, name, email, phone, hashPassword(password));
+  `).run(id, name, email, phone, passwordHash);
 
   return { id, name, email, phone } satisfies CustomerRecord;
 }
