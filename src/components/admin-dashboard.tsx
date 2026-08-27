@@ -32,10 +32,12 @@ export function AdminDashboard() {
   const [form, setForm] = useState({
     name: "",
     category: "Premium Cotton",
+    description: "",
     price: "",
     stock: "",
     fabric: "Cotton",
-    images: "",
+    images: [] as string[],
+    colors: [] as Array<{ name: string; hex: string }>,
   });
   const [catalog, setCatalog] = useState(initialCatalog);
   const [recentOrders, setRecentOrders] = useState<Array<{ id: string; order_number: string; customer_name: string; status: string; total: number }>>([]);
@@ -120,10 +122,12 @@ export function AdminDashboard() {
     event.preventDefault();
     if (!form.name || !form.price || !form.stock) return;
 
-    const imageUrls = form.images
-      .split(",")
-      .map((url) => url.trim())
-      .filter(Boolean);
+    const imageUrls = Array.isArray(form.images)
+      ? (form.images as string[]).filter(Boolean)
+      : (form.images as unknown as string)
+          .split(",")
+          .map((url: string) => url.trim())
+          .filter(Boolean);
 
     const payload = {
       name: form.name,
@@ -164,7 +168,7 @@ export function AdminDashboard() {
       return;
     }
 
-    setForm({ name: "", category: "Premium Cotton", price: "", stock: "", fabric: "Cotton", images: "" });
+    setForm({ name: "", category: "Premium Cotton", description: "", price: "", stock: "", fabric: "Cotton", images: [], colors: [] });
   };
 
   if (!isAuthenticated) {
@@ -465,14 +469,103 @@ export function AdminDashboard() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Product photos</label>
-                <input
-                  type="text"
-                  value={form.images}
-                  onChange={(e) => setForm((current) => ({ ...current, images: e.target.value }))}
+                <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Description</label>
+                <textarea
+                  value={form.description}
+                  onChange={(e) => setForm((current) => ({ ...current, description: e.target.value }))}
                   className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
-                  placeholder="Add image URLs separated by commas"
+                  placeholder="Product description..."
+                  rows={3}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Product Photos (Upload)</label>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => {
+                    const files = Array.from(e.currentTarget.files || []);
+                    const imageURLs = files.map((file) => URL.createObjectURL(file));
+                    setForm((current) => ({ ...current, images: [...(current.images as string[]), ...imageURLs] }));
+                  }}
+                  className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
+                />
+              </div>
+
+              {Array.isArray(form.images) && form.images.length > 0 && (
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Uploaded Images</label>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {form.images.map((img, idx) => (
+                      <div key={idx} className="relative">
+                        <img
+                          src={img}
+                          alt={`Preview ${idx}`}
+                          className="h-20 w-full rounded-xl object-cover border border-[#ead9cf]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setForm((current) => ({ ...current, images: (current.images as string[]).filter((_, i) => i !== idx) }))}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Add Colors</label>
+                <div className="space-y-2">
+                  {Array.isArray(form.colors) && form.colors.map((color, idx) => (
+                    <div key={idx} className="flex gap-2 items-center">
+                      <input
+                        type="text"
+                        value={color.name}
+                        onChange={(e) => {
+                          const updatedColors = [...form.colors];
+                          updatedColors[idx].name = e.target.value;
+                          setForm((current) => ({ ...current, colors: updatedColors }));
+                        }}
+                        className="flex-1 rounded-lg border border-[#ead9cf] bg-white px-3 py-2 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
+                        placeholder="Color name (e.g., Saffron)"
+                      />
+                      <input
+                        type="color"
+                        value={color.hex}
+                        onChange={(e) => {
+                          const updatedColors = [...form.colors];
+                          updatedColors[idx].hex = e.target.value;
+                          setForm((current) => ({ ...current, colors: updatedColors }));
+                        }}
+                        className="h-10 w-16 rounded-lg border border-[#ead9cf] cursor-pointer"
+                        title="Pick a color"
+                      />
+                      <div
+                        className="h-10 w-10 rounded-lg border-2 border-[#ead9cf]"
+                        style={{ backgroundColor: color.hex }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setForm((current) => ({ ...current, colors: (current.colors as Array<{ name: string; hex: string }>).filter((_, i) => i !== idx) }))}
+                        className="px-3 py-2 bg-red-500/10 text-red-600 rounded-lg text-sm font-medium hover:bg-red-500/20"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setForm((current) => ({ ...current, colors: [...(current.colors as Array<{ name: string; hex: string }>), { name: "", hex: "#000000" }] }))}
+                    className="w-full px-4 py-2 border border-dashed border-[#b67c60] rounded-lg text-[#b67c60] text-sm font-medium hover:bg-[#f8e9d7]"
+                  >
+                    + Add Color
+                  </button>
+                </div>
               </div>
 
               <button type="submit" className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#4b1f1d] px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#4b1f1d]/20">
