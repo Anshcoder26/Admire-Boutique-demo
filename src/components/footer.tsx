@@ -5,6 +5,7 @@ import { Mail, MapPin, MessageCircleMore, Phone, Camera, Video } from "lucide-re
 import { useState } from "react";
 import { LotusOrnament } from "@/components/lotus-ornament";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { NewsletterSignup } from "@/components/newsletter-signup";
 
 export function Footer() {
   const [open, setOpen] = useState(false);
@@ -34,6 +35,10 @@ export function Footer() {
           <svg viewBox="0 0 100 18" className="h-4 w-16 opacity-70 hover:opacity-100 transition-opacity hover:animate-rotate-gentle" style={{ animationDelay: '0.2s' }}>
             <path d="M8 13 C 18 6, 28 5, 38 9 C 48 14, 58 14, 68 8 C 78 2, 89 3, 92 9" className="ornament-arch warm" />
           </svg>
+        </div>
+
+        <div className="mb-12 max-w-md mx-auto">
+          <NewsletterSignup />
         </div>
 
         <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-5">

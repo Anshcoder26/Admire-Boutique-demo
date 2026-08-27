@@ -440,6 +440,15 @@ if (!usesPostgres) {
       category TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS subscribers (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      name TEXT,
+      subscribed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      unsubscribed_at TEXT,
+      status TEXT DEFAULT 'active'
+    );
   `);
 
   const productsCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM products").get() as { count: number };
@@ -603,6 +612,15 @@ async function ensurePostgresReady() {
       answer TEXT NOT NULL,
       category TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS subscribers (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      name TEXT,
+      subscribed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      unsubscribed_at TIMESTAMPTZ,
+      status TEXT DEFAULT 'active'
     );
   `);
 
