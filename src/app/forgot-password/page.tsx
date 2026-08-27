@@ -106,12 +106,12 @@ export default function ForgotPasswordPage() {
 
   return (
     <main className="relative z-10 mx-auto max-w-2xl px-4 py-8 md:px-8 lg:px-10">
-      <div className="overflow-hidden rounded-[32px] border border-[#d81e8f]/20 bg-[#fffaf6] shadow-[0_22px_60px_rgba(216,30,143,0.08)]">
+      <div className="overflow-hidden rounded-[32px] border border-[#c94a6a]/20 bg-[#fffaf6] shadow-[0_22px_60px_rgba(216,30,143,0.08)]">
         <div className="p-6 md:p-10">
           {/* Header */}
           <Link
             href="/login"
-            className="inline-flex items-center gap-2 text-sm text-[#d81e8f] hover:text-[#a81566] transition mb-6 font-semibold"
+            className="inline-flex items-center gap-2 text-sm text-[#c94a6a] hover:text-[#a81566] transition mb-6 font-semibold"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to login
@@ -148,12 +148,12 @@ export default function ForgotPasswordPage() {
                     className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
                       errors.email
                         ? "border-[#ff6b6b] bg-[#fff0f0]"
-                        : "border-[#d81e8f]/20 bg-[#fff5f0] hover:border-[#d81e8f]/40"
+                        : "border-[#c94a6a]/20 bg-[#fff5f0] hover:border-[#c94a6a]/40"
                     }`}
                   >
                     <Mail
                       className={`h-4 w-4 ${
-                        errors.email ? "text-[#ff6b6b]" : "text-[#d81e8f]"
+                        errors.email ? "text-[#ff6b6b]" : "text-[#c94a6a]"
                       }`}
                     />
                     <input
@@ -180,7 +180,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#d81e8f] px-5 py-3.5 md:py-3 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 border border-[#d81e8f]/40 min-h-[48px] md:min-h-[44px]"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#c94a6a] px-5 py-3.5 md:py-3 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 border border-[#c94a6a]/40 min-h-[48px] md:min-h-[44px]"
                 >
                   {loading ? (
                     <>
@@ -216,7 +216,7 @@ export default function ForgotPasswordPage() {
                     setSubmitted(false);
                     setEmail("");
                   }}
-                  className="text-[#d81e8f] hover:text-[#a81566] font-semibold transition"
+                  className="text-[#c94a6a] hover:text-[#a81566] font-semibold transition"
                 >
                   try another email
                 </button>
@@ -224,7 +224,7 @@ export default function ForgotPasswordPage() {
 
               <Link
                 href="/login"
-                className="inline-flex items-center gap-2 rounded-full bg-[#d81e8f] px-6 py-3 text-sm font-bold text-white hover:bg-[#a81566] transition"
+                className="inline-flex items-center gap-2 rounded-full bg-[#c94a6a] px-6 py-3 text-sm font-bold text-white hover:bg-[#a81566] transition"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to login

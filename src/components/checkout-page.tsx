@@ -146,7 +146,7 @@ export function CheckoutPage() {
     return (
       <main className="mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
         <div className="flex flex-col items-center justify-center gap-4 py-12">
-          <Loader className="h-8 w-8 animate-spin text-[#d81e8f]" />
+          <Loader className="h-8 w-8 animate-spin text-[#c94a6a]" />
           <p className="text-[#665a55]">Loading checkout...</p>
         </div>
       </main>
@@ -169,7 +169,7 @@ export function CheckoutPage() {
           </p>
           <button
             onClick={() => router.push(!isAuthenticated ? "/login" : "/products")}
-            className="rounded-full bg-[#d81e8f] px-6 py-3 text-white font-semibold hover:bg-[#a81566] transition"
+            className="rounded-full bg-[#c94a6a] px-6 py-3 text-white font-semibold hover:bg-[#a81566] transition"
           >
             {!isAuthenticated ? "Go to login" : "Continue shopping"}
           </button>
@@ -253,7 +253,7 @@ export function CheckoutPage() {
           <button
             onClick={handlePlaceOrder}
             disabled={isSubmitting}
-            className="mt-6 block w-full rounded-full bg-[#d81e8f] px-5 py-3.5 text-center text-sm font-bold text-white shadow-md transition hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 border border-[#d81e8f]/40 min-h-[48px]"
+            className="mt-6 block w-full rounded-full bg-[#c94a6a] px-5 py-3.5 text-center text-sm font-bold text-white shadow-md transition hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 border border-[#c94a6a]/40 min-h-[48px]"
           >
             {isSubmitting ? "Processing order..." : "Place order"}
           </button>

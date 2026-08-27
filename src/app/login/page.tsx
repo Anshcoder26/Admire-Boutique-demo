@@ -155,12 +155,12 @@ export default function LoginPage() {
 
   return (
     <main className="relative z-10 mx-auto max-w-5xl px-4 py-8 md:px-8 lg:px-10">
-      <div className="overflow-hidden rounded-[32px] border border-[#d81e8f]/20 bg-[#fffaf6] shadow-[0_22px_60px_rgba(216,30,143,0.08)]">
+      <div className="overflow-hidden rounded-[32px] border border-[#c94a6a]/20 bg-[#fffaf6] shadow-[0_22px_60px_rgba(216,30,143,0.08)]">
         <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
           {/* Left section - Info */}
           <div className="bg-[linear-gradient(135deg,_#f8efe7,_#f3e5d8_40%,_#efe0d0)] p-6 md:p-10">
             <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#d81e8f]/30 bg-white/80 text-[#d81e8f]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#c94a6a]/30 bg-white/80 text-[#c94a6a]">
                 <LockKeyhole className="h-5 w-5" />
               </div>
               <div>
@@ -182,7 +182,7 @@ export default function LoginPage() {
                 <p className="font-semibold mb-2">🔐 New to Admire Boutique?</p>
                 <Link
                   href="/signup"
-                  className="text-[#d81e8f] hover:text-[#a81566] font-semibold transition"
+                  className="text-[#c94a6a] hover:text-[#a81566] font-semibold transition"
                 >
                   Create an account →
                 </Link>
@@ -192,7 +192,7 @@ export default function LoginPage() {
                 <p className="font-semibold mb-2">❓ Forgot password?</p>
                 <Link
                   href="/forgot-password"
-                  className="text-[#d81e8f] hover:text-[#a81566] font-semibold transition"
+                  className="text-[#c94a6a] hover:text-[#a81566] font-semibold transition"
                 >
                   Reset password →
                 </Link>
@@ -238,12 +238,12 @@ export default function LoginPage() {
                   className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
                     errors.email
                       ? "border-[#ff6b6b] bg-[#fff0f0]"
-                      : "border-[#d81e8f]/20 bg-[#fff5f0] hover:border-[#d81e8f]/40"
+                      : "border-[#c94a6a]/20 bg-[#fff5f0] hover:border-[#c94a6a]/40"
                   }`}
                 >
                   <Mail
                     className={`h-4 w-4 ${
-                      errors.email ? "text-[#ff6b6b]" : "text-[#d81e8f]"
+                      errors.email ? "text-[#ff6b6b]" : "text-[#c94a6a]"
                     }`}
                   />
                   <input
@@ -275,12 +275,12 @@ export default function LoginPage() {
                   className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
                     errors.password
                       ? "border-[#ff6b6b] bg-[#fff0f0]"
-                      : "border-[#d81e8f]/20 bg-[#fff5f0] hover:border-[#d81e8f]/40"
+                      : "border-[#c94a6a]/20 bg-[#fff5f0] hover:border-[#c94a6a]/40"
                   }`}
                 >
                   <LockKeyhole
                     className={`h-4 w-4 ${
-                      errors.password ? "text-[#ff6b6b]" : "text-[#d81e8f]"
+                      errors.password ? "text-[#ff6b6b]" : "text-[#c94a6a]"
                     }`}
                   />
                   <input
@@ -298,7 +298,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-[#d81e8f] hover:text-[#a81566] transition p-1"
+                    className="text-[#c94a6a] hover:text-[#a81566] transition p-1"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     disabled={loading}
                   >
@@ -320,7 +320,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading || retryAfterTime !== null}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#d81e8f] px-5 py-3.5 md:py-3 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 border border-[#d81e8f]/40 min-h-[48px] md:min-h-[44px]"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#c94a6a] px-5 py-3.5 md:py-3 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 border border-[#c94a6a]/40 min-h-[48px] md:min-h-[44px]"
               >
                 {loading ? (
                   <>
@@ -338,18 +338,18 @@ export default function LoginPage() {
               <div className="text-center text-sm text-[#665a55]">
                 <Link
                   href="/forgot-password"
-                  className="text-[#d81e8f] hover:text-[#a81566] font-semibold transition"
+                  className="text-[#c94a6a] hover:text-[#a81566] font-semibold transition"
                 >
                   Forgot password?
                 </Link>
               </div>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-[#d81e8f]/10 text-center text-sm text-[#665a55]">
+            <div className="mt-8 pt-6 border-t border-[#c94a6a]/10 text-center text-sm text-[#665a55]">
               New to Admire Boutique?{" "}
               <Link
                 href="/signup"
-                className="font-semibold text-[#d81e8f] hover:text-[#a81566] transition"
+                className="font-semibold text-[#c94a6a] hover:text-[#a81566] transition"
               >
                 Create account
               </Link>

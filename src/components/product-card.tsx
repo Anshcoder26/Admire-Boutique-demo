@@ -41,14 +41,14 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <Link href={`/products/${product.slug}`}>
-      <article className="group overflow-hidden rounded-[28px] border-2 border-[#d81e8f]/40 bg-white/95 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-[#d81e8f]/60 backdrop-blur-sm cursor-pointer h-full flex flex-col relative">
+      <article className="group overflow-hidden rounded-[28px] border-2 border-[#c94a6a]/40 bg-white/95 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-[#c94a6a]/60 backdrop-blur-sm cursor-pointer h-full flex flex-col relative">
         {/* Ornamental corner accent */}
         <div className="absolute top-0 right-0 h-12 w-12 border-t-2 border-r-2 border-[#6f2fbf]/30 rounded-bl-3xl" />
         <div className="absolute bottom-0 left-0 h-12 w-12 border-b-2 border-l-2 border-[#00a8cc]/30 rounded-tr-3xl" />
         
         <div className="relative overflow-hidden rounded-t-[28px] bg-gradient-to-br from-[#fff5f0] to-[#f5e8f5]">
           {/* Subtle gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#d81e8f]/0 via-transparent to-[#6f2fbf]/0 group-hover:from-[#d81e8f]/5 group-hover:to-[#6f2fbf]/5 transition-all duration-300 z-10" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#c94a6a]/0 via-transparent to-[#6f2fbf]/0 group-hover:from-[#c94a6a]/5 group-hover:to-[#6f2fbf]/5 transition-all duration-300 z-10" />
           
           <div className="block relative overflow-hidden">
             <Image
@@ -65,32 +65,32 @@ export function ProductCard({ product }: { product: Product }) {
               e.preventDefault();
             }}
             aria-label={`Add ${product.name} to wishlist`}
-            className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-[#d81e8f] shadow-md backdrop-blur-sm transition-all hover:scale-110 hover:shadow-lg border border-[#d81e8f]/30 group-hover:border-[#d81e8f]/60 hover:bg-white"
+            className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-[#c94a6a] shadow-md backdrop-blur-sm transition-all hover:scale-110 hover:shadow-lg border border-[#c94a6a]/30 group-hover:border-[#c94a6a]/60 hover:bg-white"
           >
             <Heart className="h-5 w-5 fill-current" />
           </button>
           {product.badge ? (
-            <span className="absolute left-3 top-3 rounded-full bg-gradient-to-r from-[#d81e8f] to-[#f4a500] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-white shadow-md border border-[#d81e8f]/40">
+            <span className="absolute left-3 top-3 rounded-full bg-gradient-to-r from-[#c94a6a] to-[#e6a86a] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-white shadow-md border border-[#c94a6a]/40">
               {product.badge}
             </span>
           ) : null}
         </div>
 
-        <div className="space-y-4 p-5 flex-1 flex flex-col border-t border-[#d81e8f]/15">
+        <div className="space-y-4 p-5 flex-1 flex flex-col border-t border-[#c94a6a]/15">
           <div className="flex items-center justify-between gap-2">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#6f2fbf]">{product.category}</p>
-            <div className="flex items-center gap-1 text-[#f4a500] bg-[#f4a500]/10 px-2 py-1 rounded-full">
+            <div className="flex items-center gap-1 text-[#e6a86a] bg-[#e6a86a]/10 px-2 py-1 rounded-full">
               <Star className="h-3.5 w-3.5 fill-current" />
               <span className="text-xs font-bold">{product.rating}</span>
             </div>
           </div>
 
           <div className="block group/link flex-1">
-            <h3 className="text-lg font-bold leading-tight text-[#1a1612] group-hover/link:text-[#d81e8f] transition-colors">{product.name}</h3>
+            <h3 className="text-lg font-bold leading-tight text-[#1a1612] group-hover/link:text-[#c94a6a] transition-colors">{product.name}</h3>
           </div>
 
-          <div className="flex items-end gap-2 border-t border-[#d81e8f]/15 pt-3">
-            <span className="text-2xl font-bold text-[#d81e8f]">₹{product.price}</span>
+          <div className="flex items-end gap-2 border-t border-[#c94a6a]/15 pt-3">
+            <span className="text-2xl font-bold text-[#c94a6a]">₹{product.price}</span>
             <span className="text-sm text-[#999] line-through">₹{product.originalPrice}</span>
             <span className="text-xs font-bold text-[#6f2fbf]">({product.discount}% off)</span>
           </div>
@@ -102,7 +102,7 @@ export function ProductCard({ product }: { product: Product }) {
               e.preventDefault();
               handleQuickAdd();
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#d81e8f] px-4 py-3.5 md:py-3 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 active:scale-95 border border-[#d81e8f]/30 min-h-[48px] md:min-h-[44px]"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#c94a6a] px-4 py-3.5 md:py-3 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 active:scale-95 border border-[#c94a6a]/30 min-h-[48px] md:min-h-[44px]"
           >
             <ShoppingBag className="h-5 w-5" />
             Quick Add

@@ -215,12 +215,12 @@ export default function SignupPage() {
 
   return (
     <main className="relative z-10 mx-auto max-w-5xl px-4 py-8 md:px-8 lg:px-10">
-      <div className="overflow-hidden rounded-[32px] border border-[#d81e8f]/20 bg-[#fffaf6] shadow-[0_22px_60px_rgba(216,30,143,0.08)]">
+      <div className="overflow-hidden rounded-[32px] border border-[#c94a6a]/20 bg-[#fffaf6] shadow-[0_22px_60px_rgba(216,30,143,0.08)]">
         <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
           {/* Left section */}
           <div className="bg-[linear-gradient(135deg,_#f8efe7,_#f3e5d8_40%,_#efe0d0)] p-6 md:p-10">
             <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#d81e8f]/30 bg-white/80 text-[#d81e8f]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#c94a6a]/30 bg-white/80 text-[#c94a6a]">
                 <UserRound className="h-5 w-5" />
               </div>
               <div>
@@ -280,12 +280,12 @@ export default function SignupPage() {
                   className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
                     errors.name
                       ? "border-[#ff6b6b] bg-[#fff0f0]"
-                      : "border-[#d81e8f]/20 bg-[#fff5f0]"
+                      : "border-[#c94a6a]/20 bg-[#fff5f0]"
                   }`}
                 >
                   <UserRound
                     className={`h-4 w-4 ${
-                      errors.name ? "text-[#ff6b6b]" : "text-[#d81e8f]"
+                      errors.name ? "text-[#ff6b6b]" : "text-[#c94a6a]"
                     }`}
                   />
                   <input
@@ -314,12 +314,12 @@ export default function SignupPage() {
                   className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
                     errors.email
                       ? "border-[#ff6b6b] bg-[#fff0f0]"
-                      : "border-[#d81e8f]/20 bg-[#fff5f0]"
+                      : "border-[#c94a6a]/20 bg-[#fff5f0]"
                   }`}
                 >
                   <Mail
                     className={`h-4 w-4 ${
-                      errors.email ? "text-[#ff6b6b]" : "text-[#d81e8f]"
+                      errors.email ? "text-[#ff6b6b]" : "text-[#c94a6a]"
                     }`}
                   />
                   <input
@@ -349,12 +349,12 @@ export default function SignupPage() {
                   className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
                     errors.phone
                       ? "border-[#ff6b6b] bg-[#fff0f0]"
-                      : "border-[#d81e8f]/20 bg-[#fff5f0]"
+                      : "border-[#c94a6a]/20 bg-[#fff5f0]"
                   }`}
                 >
                   <Phone
                     className={`h-4 w-4 ${
-                      errors.phone ? "text-[#ff6b6b]" : "text-[#d81e8f]"
+                      errors.phone ? "text-[#ff6b6b]" : "text-[#c94a6a]"
                     }`}
                   />
                   <input
@@ -384,12 +384,12 @@ export default function SignupPage() {
                   className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
                     errors.password
                       ? "border-[#ff6b6b] bg-[#fff0f0]"
-                      : "border-[#d81e8f]/20 bg-[#fff5f0]"
+                      : "border-[#c94a6a]/20 bg-[#fff5f0]"
                   }`}
                 >
                   <LockKeyhole
                     className={`h-4 w-4 ${
-                      errors.password ? "text-[#ff6b6b]" : "text-[#d81e8f]"
+                      errors.password ? "text-[#ff6b6b]" : "text-[#c94a6a]"
                     }`}
                   />
                   <input
@@ -407,7 +407,7 @@ export default function SignupPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-[#d81e8f] hover:text-[#a81566] transition p-1"
+                    className="text-[#c94a6a] hover:text-[#a81566] transition p-1"
                     disabled={loading}
                   >
                     {showPassword ? (
@@ -431,14 +431,14 @@ export default function SignupPage() {
                   className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
                     errors.confirmPassword
                       ? "border-[#ff6b6b] bg-[#fff0f0]"
-                      : "border-[#d81e8f]/20 bg-[#fff5f0]"
+                      : "border-[#c94a6a]/20 bg-[#fff5f0]"
                   }`}
                 >
                   <LockKeyhole
                     className={`h-4 w-4 ${
                       errors.confirmPassword
                         ? "text-[#ff6b6b]"
-                        : "text-[#d81e8f]"
+                        : "text-[#c94a6a]"
                     }`}
                   />
                   <input
@@ -456,7 +456,7 @@ export default function SignupPage() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="text-[#d81e8f] hover:text-[#a81566] transition p-1"
+                    className="text-[#c94a6a] hover:text-[#a81566] transition p-1"
                     disabled={loading}
                   >
                     {showConfirmPassword ? (
@@ -482,7 +482,7 @@ export default function SignupPage() {
                     onChange={(e) =>
                       setForm({ ...form, agreeToTerms: e.target.checked })
                     }
-                    className="w-4 h-4 rounded border-2 border-[#d81e8f] accent-[#d81e8f] mt-1 cursor-pointer"
+                    className="w-4 h-4 rounded border-2 border-[#c94a6a] accent-[#c94a6a] mt-1 cursor-pointer"
                     disabled={loading}
                     aria-invalid={!!errors.agreeToTerms}
                   />
@@ -490,14 +490,14 @@ export default function SignupPage() {
                     I agree to the{" "}
                     <Link
                       href="/terms"
-                      className="text-[#d81e8f] hover:text-[#a81566] font-semibold"
+                      className="text-[#c94a6a] hover:text-[#a81566] font-semibold"
                     >
                       Terms & Conditions
                     </Link>{" "}
                     and{" "}
                     <Link
                       href="/privacy"
-                      className="text-[#d81e8f] hover:text-[#a81566] font-semibold"
+                      className="text-[#c94a6a] hover:text-[#a81566] font-semibold"
                     >
                       Privacy Policy
                     </Link>
@@ -514,7 +514,7 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#d81e8f] px-5 py-3.5 md:py-3 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 border border-[#d81e8f]/40 min-h-[48px] md:min-h-[44px] mt-2"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#c94a6a] px-5 py-3.5 md:py-3 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 border border-[#c94a6a]/40 min-h-[48px] md:min-h-[44px] mt-2"
               >
                 {loading ? (
                   <>
@@ -529,11 +529,11 @@ export default function SignupPage() {
               </button>
             </form>
 
-            <div className="mt-6 pt-6 border-t border-[#d81e8f]/10 text-center text-sm text-[#665a55]">
+            <div className="mt-6 pt-6 border-t border-[#c94a6a]/10 text-center text-sm text-[#665a55]">
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="font-semibold text-[#d81e8f] hover:text-[#a81566] transition"
+                className="font-semibold text-[#c94a6a] hover:text-[#a81566] transition"
               >
                 Sign in
               </Link>
