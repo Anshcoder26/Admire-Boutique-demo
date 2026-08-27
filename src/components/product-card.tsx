@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, ShoppingBag, Star } from "lucide-react";
+import { ShoppingBag, Star } from "lucide-react";
+import { WishlistHeart } from "@/components/wishlist-heart";
 import type { Product } from "@/data/products";
 
 export function ProductCard({ product }: { product: Product }) {
@@ -73,16 +74,10 @@ export function ProductCard({ product }: { product: Product }) {
              className="h-72 w-full object-cover transition-transform duration-500 group-hover:scale-110"
            />
          </div>
-         <button
-           onClick={(e) => {
-             e.stopPropagation();
-             e.preventDefault();
-           }}
-           aria-label={`Add ${product.name} to wishlist`}
-           className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-[#7D1D1D] shadow-md backdrop-blur-sm transition-all hover:scale-125 hover:shadow-xl border border-[#7D1D1D]/30 group-hover:border-[#7D1D1D]/60 hover:bg-white hover:animate-pulse-subtle"
-         >
-           <Heart className="h-5 w-5 fill-current" />
-         </button>
+         <WishlistHeart
+           productId={product.id}
+           className="absolute right-3 top-3 h-10 w-10 border border-[#7D1D1D]/30 shadow-md"
+         />
          {product.badge ? (
            <span className="absolute left-3 top-3 rounded-full bg-gradient-to-r from-[#7D1D1D] to-[#D4AF37] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-white shadow-md border border-[#7D1D1D]/40 animate-shimmer">
              {product.badge}
