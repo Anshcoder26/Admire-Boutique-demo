@@ -14,6 +14,7 @@ interface FormErrors {
 interface LoginResponse {
   success?: boolean;
   user?: { id: string; name: string; email: string };
+  userType?: "admin" | "customer";
   error?: string;
   retryAfter?: number;
   nextRetryIn?: string;
@@ -120,9 +121,12 @@ export default function LoginPage() {
         window.dispatchEvent(new Event("admire-auth-updated"));
         window.dispatchEvent(new Event("storage"));
 
+        // Redirect based on user type
+        const redirectPath = data.userType === "admin" ? "/admin" : "/account";
+        
         // Small delay for UX feedback
         setTimeout(() => {
-          router.push("/account");
+          router.push(redirectPath);
           router.refresh();
         }, 500);
       } catch (error) {

@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { verifyCustomerCredentials, storeUserSessionToken } from "@/lib/db";
+import { verifyCustomerCredentials, verifyAdminCredentials, storeUserSessionToken, storeSessionToken } from "@/lib/db";
 import {
   generateSessionToken,
   generateRefreshToken,
@@ -60,60 +60,96 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify credentials
-    const user = await verifyCustomerCredentials(email, password);
-    if (!user) {
-      // Log failed attempt (in production: log to security monitoring)
-      console.warn(`[AUTH] Failed login attempt for email: ${email}`);
+    // Try admin login first
+    const adminUser = await verifyAdminCredentials(email, password);
+    if (adminUser) {
+      resetRateLimit(email);
+      
+      const sessionToken = generateSessionToken();
+      const refreshToken = generateRefreshToken();
+      const sessionExpiry = getSessionExpiryTime();
+      const refreshTokenExpiry = getRefreshTokenExpiryTime();
 
+      // Store session for admin
+      storeSessionToken(sessionToken, email);
+
+      console.log(`[AUTH] Successful admin login for user: ${adminUser.id}`);
+
+      const response = NextResponse.json(
+        {
+          success: true,
+          user: {
+            id: adminUser.id,
+            name: adminUser.name,
+            email: adminUser.email,
+          },
+          userType: "admin",
+          sessionExpiry: sessionExpiry.toISOString(),
+        },
+        { status: 200 }
+      );
+
+      const cookieOptions = getSecureCookieOptions();
+      response.cookies.set("admire-session", sessionToken, cookieOptions);
+      response.cookies.set("admire-refresh", refreshToken, {
+        ...cookieOptions,
+        maxAge: Math.floor(refreshTokenExpiry.getTime() / 1000),
+      });
+      response.cookies.set("user-type", "admin", cookieOptions);
+
+      response.headers.set("X-Content-Type-Options", "nosniff");
+      response.headers.set("X-Frame-Options", "DENY");
+      response.headers.set("X-XSS-Protection", "1; mode=block");
+
+      return response;
+    }
+
+    // Try customer login
+    const customer = await verifyCustomerCredentials(email, password);
+    if (!customer) {
+      console.warn(`[AUTH] Failed login attempt for email: ${email}`);
       return NextResponse.json(
         {
           error: "Invalid email or password",
-          // Generic message to prevent email enumeration
         },
         { status: 401 }
       );
     }
 
-    // Reset rate limit on successful login
     resetRateLimit(email);
 
-    // Generate secure tokens
     const sessionToken = generateSessionToken();
     const refreshToken = generateRefreshToken();
     const sessionExpiry = getSessionExpiryTime();
     const refreshTokenExpiry = getRefreshTokenExpiryTime();
 
-    // Store session in database
     storeUserSessionToken(sessionToken, email);
-    // TODO: Store refresh token in database for token rotation
 
-    // Log successful login (in production: log to audit trail)
-    console.log(`[AUTH] Successful login for user: ${user.id}`);
+    console.log(`[AUTH] Successful customer login for user: ${customer.id}`);
 
     const response = NextResponse.json(
       {
         success: true,
         user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone || undefined,
+          id: customer.id,
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone || undefined,
         },
+        userType: "customer",
         sessionExpiry: sessionExpiry.toISOString(),
       },
       { status: 200 }
     );
 
-    // Set secure HTTP-only cookie with session token
     const cookieOptions = getSecureCookieOptions();
     response.cookies.set("admire-session", sessionToken, cookieOptions);
     response.cookies.set("admire-refresh", refreshToken, {
       ...cookieOptions,
       maxAge: Math.floor(refreshTokenExpiry.getTime() / 1000),
     });
+    response.cookies.set("user-type", "customer", cookieOptions);
 
-    // Additional security headers
     response.headers.set("X-Content-Type-Options", "nosniff");
     response.headers.set("X-Frame-Options", "DENY");
     response.headers.set("X-XSS-Protection", "1; mode=block");
