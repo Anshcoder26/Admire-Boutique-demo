@@ -78,9 +78,19 @@ export async function POST(request: NextRequest) {
       stock || 0
     );
 
-    // Get all active subscribers
+    // Send to all customers (registered users) + newsletter subscribers
     if (notifySubscribers) {
       try {
+        // Get all customers
+        const customersStmt = db.prepare(
+          "SELECT email, name FROM customers"
+        );
+        const customers = customersStmt.all() as Array<{
+          email: string;
+          name?: string;
+        }>;
+
+        // Get all active newsletter subscribers
         const subscribersStmt = db.prepare(
           "SELECT email, name FROM subscribers WHERE status = 'active'"
         );
@@ -89,21 +99,30 @@ export async function POST(request: NextRequest) {
           name?: string;
         }>;
 
-        if (subscribers.length > 0) {
+        // Combine and deduplicate by email
+        const emailMap = new Map<string, { email: string; name?: string }>();
+        customers.forEach((c) => emailMap.set(c.email.toLowerCase(), c));
+        subscribers.forEach((s) => emailMap.set(s.email.toLowerCase(), s));
+
+        const allRecipients = Array.from(emailMap.values());
+
+        if (allRecipients.length > 0) {
           const productUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/products/${productId}`;
           const emailHtml = generateNewProductEmail(name, productUrl);
 
-          // Send emails to all subscribers
+          // Send emails to all customers and subscribers
           await sendEmail({
-            to: subscribers.map((s) => s.email),
+            to: allRecipients.map((r) => r.email),
             subject: `✨ New Arrival: ${name} - Exclusive from Admire Boutique`,
             html: emailHtml,
           });
 
-          console.log(`📧 Sent new product notification to ${subscribers.length} subscribers`);
+          console.log(
+            `📧 Sent new product notification to ${allRecipients.length} recipients (${customers.length} customers + ${subscribers.length} subscribers)`
+          );
         }
       } catch (emailError) {
-        console.error("Failed to send subscriber notifications:", emailError);
+        console.error("Failed to send notifications:", emailError);
         // Don't fail the product creation if email fails
       }
     }
