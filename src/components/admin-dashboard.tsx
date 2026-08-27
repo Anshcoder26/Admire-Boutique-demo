@@ -5,9 +5,9 @@ import { ArrowRight, Bell, CheckCircle2, LogOut, Package, Plus, Search, ShieldCh
 import { LotusOrnament } from "@/components/lotus-ornament";
 
 const initialCatalog = [
-  { id: 1, name: "Saffron Grace Kurti", category: "Cotton Kurtis", price: "₹1,999", stock: 24, status: "Live" },
-  { id: 2, name: "Lotus Bloom Anarkali", category: "Festive Kurtis", price: "₹2,799", stock: 12, status: "Low stock" },
-  { id: 3, name: "Ivory Calm Straight Kurti", category: "Office Wear", price: "₹2,299", stock: 18, status: "Live" },
+  { id: 1, name: "Saffron Grace Kurti", category: "Premium Cotton", price: "₹1,999", stock: 24, status: "Live" },
+  { id: 2, name: "Lotus Bloom Anarkali", category: "Parsi Work", price: "₹2,799", stock: 12, status: "Low stock" },
+  { id: 3, name: "Ivory Calm Straight Kurti", category: "Maheshwari Suits", price: "₹2,299", stock: 18, status: "Live" },
 ];
 
 const formatCurrency = (value: number) => `₹${value.toLocaleString("en-IN")}`;
@@ -31,7 +31,7 @@ export function AdminDashboard() {
   const [password, setPassword] = useState("admire123");
   const [form, setForm] = useState({
     name: "",
-    category: "Cotton Kurtis",
+    category: "Premium Cotton",
     price: "",
     stock: "",
     fabric: "Cotton",
@@ -164,7 +164,7 @@ export function AdminDashboard() {
       return;
     }
 
-    setForm({ name: "", category: "Cotton Kurtis", price: "", stock: "", fabric: "Cotton", images: "" });
+    setForm({ name: "", category: "Premium Cotton", price: "", stock: "", fabric: "Cotton", images: "" });
   };
 
   if (!isAuthenticated) {
@@ -419,12 +419,12 @@ export function AdminDashboard() {
                     onChange={(e) => setForm((current) => ({ ...current, category: e.target.value }))}
                     className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
                   >
-                    <option>Cotton Kurtis</option>
-                    <option>Printed Kurtis</option>
-                    <option>Anarkali Kurtis</option>
-                    <option>Straight Kurtis</option>
-                    <option>Festive Kurtis</option>
-                    <option>Office Wear</option>
+                    <option>Premium Cotton</option>
+                    <option>Pure Mul</option>
+                    <option>Georgette</option>
+                    <option>Maheshwari Suits</option>
+                    <option>Parsi Work</option>
+                    <option>Muslins</option>
                   </select>
                 </div>
 
