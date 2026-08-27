@@ -480,38 +480,94 @@ export function AdminDashboard() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Product Photos (Upload)</label>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={(e) => {
-                    const files = Array.from(e.currentTarget.files || []);
-                    const imageURLs = files.map((file) => URL.createObjectURL(file));
-                    setForm((current) => ({ ...current, images: [...(current.images as string[]), ...imageURLs] }));
-                  }}
-                  className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
-                />
+                <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Product Photos</label>
+                <div className="space-y-3">
+                  {/* Drag & Drop + File Input Zone */}
+                  <div
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                      const imageURLs = files.map((file) => URL.createObjectURL(file));
+                      setForm((current) => ({ ...current, images: [...(current.images as string[]), ...imageURLs] }));
+                    }}
+                    onDragOver={(e) => e.preventDefault()}
+                    className="relative rounded-2xl border-2 border-dashed border-[#d4c4b8] bg-gradient-to-br from-[#faf7f3] to-[#f5ede6] p-6 transition-all hover:border-[#b67c60] hover:from-[#fff9f6] cursor-pointer"
+                  >
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={(e) => {
+                        const files = Array.from(e.currentTarget.files || []);
+                        const imageURLs = files.map((file) => URL.createObjectURL(file));
+                        setForm((current) => ({ ...current, images: [...(current.images as string[]), ...imageURLs] }));
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <div className="flex flex-col items-center justify-center text-center py-4">
+                      <div className="text-3xl mb-2">📷</div>
+                      <p className="text-sm font-medium text-[#5e3228]">Drag images here or click to browse</p>
+                      <p className="text-xs text-[#8b7965] mt-1">You can also paste images (Ctrl+V)</p>
+                    </div>
+                  </div>
+
+                  {/* Paste Handler */}
+                  <div
+                    onPaste={(e) => {
+                      const items = e.clipboardData?.items;
+                      if (!items) return;
+                      const imageURLs: string[] = [];
+                      for (let i = 0; i < items.length; i++) {
+                        if (items[i].type.startsWith('image/')) {
+                          const file = items[i].getAsFile();
+                          if (file) {
+                            imageURLs.push(URL.createObjectURL(file));
+                          }
+                        }
+                      }
+                      if (imageURLs.length > 0) {
+                        setForm((current) => ({ ...current, images: [...(current.images as string[]), ...imageURLs] }));
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </div>
               </div>
 
               {Array.isArray(form.images) && form.images.length > 0 && (
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Uploaded Images</label>
-                  <div className="grid gap-3 sm:grid-cols-3">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">
+                      Uploaded Images ({form.images.length})
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setForm((current) => ({ ...current, images: [] }))}
+                      className="text-xs text-[#b67c60] hover:text-[#8b4513] transition-colors"
+                    >
+                      Clear all
+                    </button>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                     {form.images.map((img, idx) => (
-                      <div key={idx} className="relative">
+                      <div key={idx} className="group relative overflow-hidden rounded-xl border-2 border-[#ead9cf] bg-white shadow-sm hover:shadow-md transition-all">
                         <img
                           src={img}
                           alt={`Preview ${idx}`}
-                          className="h-20 w-full rounded-xl object-cover border border-[#ead9cf]"
+                          className="h-32 w-full object-cover group-hover:scale-105 transition-transform duration-200"
                         />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
                         <button
                           type="button"
                           onClick={() => setForm((current) => ({ ...current, images: (current.images as string[]).filter((_, i) => i !== idx) }))}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold"
+                          className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shadow-md transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
+                          title="Remove image"
                         >
-                          ×
+                          ✕
                         </button>
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/40 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <p className="text-white text-xs truncate">Image {idx + 1}</p>
+                        </div>
                       </div>
                     ))}
                   </div>
