@@ -1,35 +1,48 @@
 @import "tailwindcss";
 
 :root {
-  --brand-maroon: #4b1f1d;
-  --brand-maroon-deep: #2b1717;
-  --brand-terra: #b76d48;
-  --brand-gold: #c9a366;
-  --brand-beige: #f7efe9;
-  --brand-ivory: #fffaf6;
-  --brand-charcoal: #2a2523;
-  --brand-text: #1d1714;
-  --brand-muted: #685d59;
-  --background: #f9f4f0;
-  --foreground: #1d1714;
-  --panel: #fffaf6;
-  --panel-alt: #f3e7db;
-  --muted: #685d59;
+  /* Festival bright vibrant palette */
+  --brand-primary: #d81e8f;
+  --brand-primary-dark: #a81566;
+  --brand-secondary: #6f2fbf;
+  --brand-secondary-light: #9d5dd4;
+  --brand-accent: #00a8cc;
+  --brand-accent-light: #4db8d8;
+  --brand-gold: #f4a500;
+  --brand-gold-light: #ffc857;
+  
+  /* Heritage colors */
+  --brand-saffron: #ff6b35;
+  --brand-emerald: #1ba098;
+  --brand-ruby: #8b1a1a;
+  
+  /* Neutrals with warmth */
+  --brand-cream: #fef9f5;
+  --brand-ivory: #fffbf8;
+  --brand-text: #1a1612;
+  --brand-muted: #6b5d5a;
+  
+  --background: #faf8f6;
+  --foreground: #1a1612;
+  --panel: #fffbf8;
+  --panel-alt: #f5e6f0;
+  --muted: #6b5d5a;
   --font-display: var(--font-cormorant);
   --font-body: var(--font-manrope);
   color-scheme: light;
 }
 
 :root[data-theme="dark"] {
-  --background: #120d0d;
-  --foreground: #f8efe9;
-  --panel: #1c1716;
-  --panel-alt: #261d1a;
-  --muted: #c8b7ad;
-  --brand-maroon: #a16459;
-  --brand-terra: #d38862;
-  --brand-text: #f8efe9;
-  --brand-muted: #f3d9ca;
+  --background: #0d0b0a;
+  --foreground: #fef9f5;
+  --panel: #1a1612;
+  --panel-alt: #2a1f2f;
+  --muted: #d9ccc8;
+  --brand-primary: #ff4db8;
+  --brand-secondary: #c74bff;
+  --brand-accent: #4dd9ff;
+  --brand-gold: #ffd700;
+  --brand-text: #fef9f5;
   color-scheme: dark;
 }
 
@@ -48,8 +61,8 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(183, 109, 72, 0.09), transparent 22%),
-    radial-gradient(circle at bottom right, rgba(91, 122, 75, 0.08), transparent 24%),
+    radial-gradient(circle at top left, rgba(215, 30, 143, 0.08), transparent 22%),
+    radial-gradient(circle at bottom right, rgba(111, 47, 191, 0.07), transparent 24%),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-body), sans-serif;
@@ -88,7 +101,7 @@ body::after {
 }
 
 body::before {
-  background: linear-gradient(135deg, rgba(255,255,255,0.18), transparent 38%, rgba(81,58,48,0.03));
+  background: linear-gradient(135deg, rgba(255,255,255,0.18), transparent 38%, rgba(26,22,18,0.03));
   opacity: 0.9;
 }
 
@@ -124,6 +137,46 @@ a {
   box-sizing: border-box;
 }
 
+/* Vibrant animations */
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(2deg); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; box-shadow: 0 0 20px rgba(216, 30, 143, 0.3); }
+  50% { opacity: 0.8; box-shadow: 0 0 40px rgba(216, 30, 143, 0.5); }
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-float { animation: float-gentle 6s ease-in-out infinite; }
+.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+.animate-spin-slow { animation: spin-slow 20s linear infinite; }
+
 .indian-branch {
   position: relative;
   overflow: hidden;
@@ -137,7 +190,7 @@ a {
   width: 180px;
   height: 180px;
   border-radius: 70% 30% 60% 40% / 55% 45% 55% 45%;
-  border: 1.5px solid rgba(84, 102, 72, 0.2);
+  border: 1.5px solid rgba(216, 30, 143, 0.25);
   transform: rotate(-20deg);
   pointer-events: none;
 }
@@ -146,7 +199,7 @@ a {
   inset: 8% auto auto 58%;
   width: 220px;
   height: 220px;
-  border-color: rgba(174, 110, 70, 0.2);
+  border-color: rgba(111, 47, 191, 0.25);
   transform: rotate(16deg);
 }
 
@@ -161,9 +214,9 @@ a {
   position: absolute;
   width: 84px;
   height: 112px;
-  background: linear-gradient(135deg, rgba(98, 132, 88, 0.95), rgba(151, 179, 127, 0.7));
+  background: linear-gradient(135deg, rgba(27, 160, 152, 0.95), rgba(77, 184, 216, 0.7));
   border-radius: 100% 0% 100% 0% / 100% 0% 100% 0%;
-  box-shadow: inset -8px -10px 18px rgba(42, 72, 44, 0.2), 0 8px 18px rgba(63, 82, 52, 0.12);
+  box-shadow: inset -8px -10px 18px rgba(6, 100, 92, 0.2), 0 8px 18px rgba(27, 160, 152, 0.12);
   transform: rotate(18deg);
   border: 1px solid rgba(255, 255, 255, 0.4);
 }
@@ -185,7 +238,8 @@ a {
 }
 
 .botanical-leaf.terracotta {
-  background: linear-gradient(135deg, rgba(181, 108, 77, 0.9), rgba(214, 156, 118, 0.7));
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.9), rgba(244, 165, 0, 0.7));
+  box-shadow: inset -8px -10px 18px rgba(180, 50, 0, 0.2), 0 8px 18px rgba(255, 107, 53, 0.12);
 }
 
 .leaf-cluster {
@@ -194,7 +248,7 @@ a {
   width: 180px;
   height: 160px;
   pointer-events: none;
-  filter: drop-shadow(0 10px 18px rgba(64, 75, 51, 0.10));
+  filter: drop-shadow(0 10px 18px rgba(216, 30, 143, 0.10));
 }
 
 .leaf-cluster .botanical-leaf:nth-child(1) { left: 0; top: 18px; transform: rotate(-22deg) scale(1.05); }
@@ -208,7 +262,7 @@ a {
   width: 170px;
   height: 160px;
   pointer-events: none;
-  filter: drop-shadow(0 10px 18px rgba(66, 68, 44, 0.08));
+  filter: drop-shadow(0 10px 18px rgba(216, 30, 143, 0.08));
 }
 
 .hero-leaf-cluster .botanical-leaf:nth-child(1) { right: 16px; top: 35px; transform: rotate(26deg) scale(1.1); }
@@ -222,14 +276,14 @@ a {
 
 .leaf-spray path,
 .leaf-spray circle {
-  fill: rgba(111, 137, 88, 0.08);
-  stroke: rgba(84, 102, 72, 0.18);
+  fill: rgba(27, 160, 152, 0.08);
+  stroke: rgba(27, 160, 152, 0.18);
   stroke-width: 1.2;
 }
 
 .leaf-spray .accent {
-  fill: rgba(183, 109, 72, 0.08);
-  stroke: rgba(183, 109, 72, 0.2);
+  fill: rgba(216, 30, 143, 0.08);
+  stroke: rgba(216, 30, 143, 0.2);
 }
 
 .hero-ornament {
@@ -247,14 +301,14 @@ a {
 .hero-ornament path,
 .hero-ornament line,
 .hero-ornament circle {
-  stroke: rgba(106, 129, 93, 0.26);
+  stroke: rgba(111, 47, 191, 0.26);
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .hero-ornament .warm {
-  stroke: rgba(180, 107, 60, 0.26);
+  stroke: rgba(216, 30, 143, 0.26);
 }
 
 .branch-ornament {
@@ -272,24 +326,24 @@ a {
 
 .branch-ornament .branch {
   fill: none;
-  stroke: rgba(93, 124, 85, 0.42);
+  stroke: rgba(111, 47, 191, 0.42);
   stroke-width: 2.2;
   stroke-linecap: round;
 }
 
 .branch-ornament .branch-warm {
-  stroke: rgba(176, 108, 75, 0.38);
+  stroke: rgba(216, 30, 143, 0.38);
 }
 
 .branch-ornament .leaf-node {
-  fill: rgba(111, 144, 86, 0.3);
-  stroke: rgba(72, 93, 67, 0.42);
+  fill: rgba(27, 160, 152, 0.3);
+  stroke: rgba(27, 160, 152, 0.42);
   stroke-width: 1.2;
 }
 
 .branch-ornament .leaf-node-warm {
-  fill: rgba(191, 119, 84, 0.25);
-  stroke: rgba(146, 84, 58, 0.38);
+  fill: rgba(244, 165, 0, 0.25);
+  stroke: rgba(244, 165, 0, 0.38);
 }
 
 .ornament-branch,
@@ -303,48 +357,48 @@ a {
 
 .global-ornaments svg {
   opacity: 1;
-  filter: drop-shadow(0 8px 18px rgba(82, 58, 40, 0.08));
+  filter: drop-shadow(0 8px 18px rgba(216, 30, 143, 0.08));
 }
 
 .ornament-branch {
-  stroke: rgba(82, 110, 75, 0.9);
+  stroke: rgba(111, 47, 191, 0.9);
   stroke-width: 3.2;
   fill: none;
 }
 
 .ornament-branch.warm {
-  stroke: rgba(167, 96, 66, 0.88);
+  stroke: rgba(216, 30, 143, 0.88);
 }
 
 .ornament-leaf {
-  fill: rgba(111, 144, 86, 0.38);
-  stroke: rgba(63, 86, 56, 0.7);
+  fill: rgba(27, 160, 152, 0.38);
+  stroke: rgba(27, 160, 152, 0.7);
   stroke-width: 1.5;
 }
 
 .ornament-leaf.warm {
-  fill: rgba(188, 116, 77, 0.35);
-  stroke: rgba(133, 76, 54, 0.7);
+  fill: rgba(244, 165, 0, 0.35);
+  stroke: rgba(244, 165, 0, 0.7);
 }
 
 .ornament-arch {
-  stroke: rgba(94, 122, 81, 0.9);
+  stroke: rgba(77, 184, 216, 0.9);
   stroke-width: 2.8;
   fill: none;
 }
 
 .ornament-arch.warm {
-  stroke: rgba(175, 111, 78, 0.85);
+  stroke: rgba(255, 107, 53, 0.85);
 }
 
 .ornament-dot {
-  fill: rgba(100, 132, 90, 0.8);
-  stroke: rgba(72, 92, 70, 0.42);
+  fill: rgba(216, 30, 143, 0.8);
+  stroke: rgba(111, 47, 191, 0.42);
 }
 
 .ornament-dot.warm {
-  fill: rgba(180, 118, 82, 0.8);
-  stroke: rgba(138, 82, 60, 0.38);
+  fill: rgba(244, 165, 0, 0.8);
+  stroke: rgba(255, 107, 53, 0.38);
 }
 
 .lotus-ornament {
@@ -352,29 +406,29 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 10px 18px rgba(65, 89, 56, 0.08));
+  filter: drop-shadow(0 10px 18px rgba(216, 30, 143, 0.08));
 }
 
 .lotus-petal,
 .lotus-center {
-  fill: rgba(111, 144, 86, 0.28);
-  stroke: rgba(72, 94, 66, 0.38);
+  fill: rgba(27, 160, 152, 0.28);
+  stroke: rgba(27, 160, 152, 0.38);
   stroke-width: 1.4;
 }
 
 .lotus-petal.warm {
-  fill: rgba(186, 113, 78, 0.25);
-  stroke: rgba(137, 82, 58, 0.38);
+  fill: rgba(216, 30, 143, 0.25);
+  stroke: rgba(216, 30, 143, 0.38);
 }
 
 .lotus-petal.soft {
-  fill: rgba(140, 165, 109, 0.24);
-  stroke: rgba(91, 114, 73, 0.34);
+  fill: rgba(111, 47, 191, 0.24);
+  stroke: rgba(111, 47, 191, 0.34);
 }
 
 .lotus-center {
-  fill: rgba(202, 157, 86, 0.32);
-  stroke: rgba(140, 110, 58, 0.38);
+  fill: rgba(244, 165, 0, 0.32);
+  stroke: rgba(244, 165, 0, 0.38);
 }
 
 .app-shell {
