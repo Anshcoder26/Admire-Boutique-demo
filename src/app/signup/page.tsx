@@ -193,6 +193,9 @@ export default function SignupPage() {
           `Welcome to Admire Boutique, ${data.user.name}! Redirecting...`
         );
 
+        // Store auth token for client-side auth checks
+        window.localStorage.setItem("admire-user-token", "authenticated");
+
         // Dispatch auth update event
         window.dispatchEvent(new Event("admire-auth-updated"));
         window.dispatchEvent(new Event("storage"));

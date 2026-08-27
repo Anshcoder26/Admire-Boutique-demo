@@ -14,6 +14,7 @@ interface FormErrors {
 interface LoginResponse {
   success?: boolean;
   user?: { id: string; name: string; email: string };
+  userType?: "admin" | "customer";
   error?: string;
   retryAfter?: number;
   nextRetryIn?: string;
@@ -116,13 +117,24 @@ export default function LoginPage() {
         // Successful login
         setSuccessMessage(`Welcome back, ${data.user.name}! Redirecting...`);
 
+        // Store auth token for client-side auth checks
+        window.localStorage.setItem("admire-user-token", "authenticated");
+        
+        // For admin, also store admin token
+        if (data.userType === "admin") {
+          window.localStorage.setItem("admire-admin-token", "authenticated");
+        }
+
         // Dispatch auth update event
         window.dispatchEvent(new Event("admire-auth-updated"));
         window.dispatchEvent(new Event("storage"));
 
+        // Redirect based on user type
+        const redirectPath = data.userType === "admin" ? "/admin" : "/account";
+        
         // Small delay for UX feedback
         setTimeout(() => {
-          router.push("/account");
+          router.push(redirectPath);
           router.refresh();
         }, 500);
       } catch (error) {

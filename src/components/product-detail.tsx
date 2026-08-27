@@ -97,25 +97,38 @@ export function ProductDetail({ product }: { product: Product }) {
           </div>
 
           <div>
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex items-center justify-between gap-2">
               <span className="text-base font-bold text-[#1a1612]">🎨 Color</span>
               <span className="px-4 py-1 rounded-full bg-gradient-to-r from-[#7D1D1D]/20 to-[#6f2fbf]/20 text-sm font-bold text-[#7D1D1D]">{selectedColor}</span>
             </div>
-            <div className="flex gap-3 flex-wrap">
-              {product.colors.map((color) => (
-                <button
-                  key={color.name}
-                  onClick={() => setSelectedColor(color.name)}
-                  className={`h-14 w-14 md:h-12 md:w-12 rounded-full border-3 transition-all hover:scale-110 ${
-                    selectedColor === color.name ? "border-[#7D1D1D] shadow-md" : "border-[#7D1D1D]/30"
-                  }`}
-                  style={{ backgroundColor: color.hex }}
-                  aria-label={color.name}
-                  title={color.name}
-                />
-              ))}
+            <div className="flex gap-3 flex-wrap items-center">
+              {product.colors && product.colors.length > 0 ? (
+                product.colors.map((color) => (
+                  <button
+                    key={color.name}
+                    onClick={() => setSelectedColor(color.name)}
+                    className={`h-14 w-14 md:h-12 md:w-12 rounded-full border-3 transition-all hover:scale-110 ${
+                      selectedColor === color.name ? "border-[#7D1D1D] shadow-md" : "border-[#7D1D1D]/30"
+                    }`}
+                    style={{ backgroundColor: color.hex || "#cccccc" }}
+                    aria-label={color.name}
+                    title={color.name}
+                  />
+                ))
+              ) : (
+                <span className="text-sm text-[#8b7965]">No colors available</span>
+              )}
             </div>
           </div>
+
+          {/* Stitching Badge */}
+          {product.badge && (product.badge === "Stitched" || product.badge === "Unstitched") && (
+            <div className="mt-4 p-3 bg-[#f8e9d7] border border-[#d7a46c] rounded-lg">
+              <span className="text-sm font-semibold text-[#5e3228]">
+                {product.badge === "Stitched" ? "✂️ Stitched" : "🧵 Unstitched Cloth"}
+              </span>
+            </div>
+          )}
 
           <div>
             <div className="mb-4 flex items-center justify-between">

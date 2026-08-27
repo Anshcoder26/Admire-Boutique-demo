@@ -440,6 +440,15 @@ if (!usesPostgres) {
       category TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS subscribers (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      name TEXT,
+      subscribed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      unsubscribed_at TEXT,
+      status TEXT DEFAULT 'active'
+    );
   `);
 
   const productsCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM products").get() as { count: number };
@@ -470,14 +479,14 @@ if (!usesPostgres) {
   if (adminCount.count === 0) {
     sqliteDb.prepare(`
       INSERT INTO admin_users (id, name, email, password_hash) VALUES (?, ?, ?, ?)
-    `).run("admin-owner-1", "Boutique Owner", "owner@admireboutique.in", hashPassword("admire123"));
+    `).run("admin-owner-1", "Boutique Owner", "owner@admireboutique.in", bcryptjs.hashSync("admire123", 12));
   }
 
   const customerCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM customers").get() as { count: number };
   if (customerCount.count === 0) {
     sqliteDb.prepare(`
       INSERT INTO customers (id, name, email, phone, password_hash) VALUES (?, ?, ?, ?, ?)
-    `).run(seedCustomer.id, seedCustomer.name, seedCustomer.email, seedCustomer.phone, hashPassword(seedCustomer.password));
+    `).run(seedCustomer.id, seedCustomer.name, seedCustomer.email, seedCustomer.phone, bcryptjs.hashSync(seedCustomer.password, 12));
   }
 
   const addressCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM addresses").get() as { count: number };
@@ -604,6 +613,15 @@ async function ensurePostgresReady() {
       category TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+
+    CREATE TABLE IF NOT EXISTS subscribers (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      name TEXT,
+      subscribed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      unsubscribed_at TIMESTAMPTZ,
+      status TEXT DEFAULT 'active'
+    );
   `);
 
   const productCount = await postgresPool.query("SELECT COUNT(*) as count FROM products");
@@ -638,7 +656,7 @@ async function ensurePostgresReady() {
   if (Number(adminCount.rows[0]?.count ?? 0) === 0) {
     await postgresPool.query(
       "INSERT INTO admin_users (id, name, email, password_hash) VALUES ($1, $2, $3, $4)",
-      ["admin-owner-1", "Boutique Owner", "owner@admireboutique.in", hashPassword("admire123")]
+      ["admin-owner-1", "Boutique Owner", "owner@admireboutique.in", await hashPassword("admire123")]
     );
   }
 
@@ -646,7 +664,7 @@ async function ensurePostgresReady() {
   if (Number(customerCount.rows[0]?.count ?? 0) === 0) {
     await postgresPool.query(
       "INSERT INTO customers (id, name, email, phone, password_hash) VALUES ($1, $2, $3, $4, $5)",
-      [seedCustomer.id, seedCustomer.name, seedCustomer.email, seedCustomer.phone, hashPassword(seedCustomer.password)]
+      [seedCustomer.id, seedCustomer.name, seedCustomer.email, seedCustomer.phone, await hashPassword(seedCustomer.password)]
     );
   }
 

@@ -59,12 +59,13 @@ export function AccountDashboard() {
     }
 
     Promise.all([
-      fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } }),
-      fetch("/api/me/orders", { headers: { Authorization: `Bearer ${token}` } }),
-      fetch("/api/me/addresses", { headers: { Authorization: `Bearer ${token}` } }),
+      fetch("/api/auth/me", { credentials: "include" }),
+      fetch("/api/me/orders", { credentials: "include" }),
+      fetch("/api/me/addresses", { credentials: "include" }),
     ])
       .then(async ([meRes, ordersRes, addressesRes]) => {
         if (!meRes.ok) {
+          console.error("[ACCOUNT] Me endpoint failed:", meRes.status);
           window.localStorage.removeItem("admire-user-token");
           window.dispatchEvent(new Event("admire-auth-updated"));
           window.location.href = "/login";
@@ -78,6 +79,11 @@ export function AccountDashboard() {
         setCustomer(meData.user || null);
         setOrders(ordersData.orders || []);
         setAddresses(addressesData.addresses || []);
+      })
+      .catch((err) => {
+        console.error("[ACCOUNT] Error loading account data:", err);
+        window.localStorage.removeItem("admire-user-token");
+        window.location.href = "/login";
       })
       .finally(() => setLoading(false));
   }, []);
