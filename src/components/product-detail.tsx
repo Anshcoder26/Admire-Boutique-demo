@@ -51,63 +51,63 @@ export function ProductDetail({ product }: { product: Product }) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-24 pt-8 md:px-8 lg:px-10">
-      <div className="mb-5 flex items-center gap-2 text-sm text-[#76665f]">
-        <Link href="/" className="hover:text-[#402320]">Home</Link>
+      <div className="mb-8 flex items-center gap-2 text-sm font-bold text-[#6f2fbf]">
+        <Link href="/" className="hover:text-[#d81e8f] transition">Home</Link>
         <span>/</span>
-        <Link href="/products" className="hover:text-[#402320]">Kurtis</Link>
+        <Link href="/products" className="hover:text-[#d81e8f] transition">Kurtis</Link>
         <span>/</span>
-        <span className="text-[#201614]">{product.name}</span>
+        <span className="text-[#d81e8f]">{product.name}</span>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         <ProductGallery images={product.images} name={product.name} />
 
         <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <LotusOrnament className="h-12 w-12 rounded-full border border-[#d7c1af] bg-white/80 p-2" />
+          <div className="flex items-center gap-4">
+            <LotusOrnament className="h-14 w-14 rounded-full border-2 border-gradient-to-r from-[#d81e8f] to-[#6f2fbf] bg-gradient-to-br from-[#d81e8f]/10 to-[#6f2fbf]/10 p-3 animate-pulse" />
             <div>
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#8a6f5f]">{product.category}</p>
-              <h1 className="mt-1 font-serif text-4xl leading-none text-[#201614] md:text-5xl">{product.name}</h1>
+              <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#d81e8f]">✨ {product.category}</p>
+              <h1 className="mt-2 font-serif text-5xl leading-tight text-transparent bg-clip-text bg-gradient-to-r from-[#d81e8f] to-[#6f2fbf] md:text-6xl">{product.name}</h1>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1 rounded-full bg-[#f9f1e8] px-2.5 py-1 text-[#b4872b]">
-              <Star className="h-3.5 w-3.5 fill-current" />
-              <span className="text-sm font-semibold text-[#563f39]">{product.rating}</span>
+            <div className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#f4a500]/10 to-[#ff6b35]/10 px-4 py-2 text-[#f4a500]">
+              <Star className="h-5 w-5 fill-current" />
+              <span className="text-sm font-bold">{product.rating}</span>
             </div>
-            <span className="text-sm text-[#7c6760]">{product.reviews} reviews</span>
+            <span className="text-base font-semibold text-[#6f2fbf]">{product.reviews} verified reviews</span>
           </div>
 
-          <div className="flex items-end gap-3">
-            <span className="text-4xl font-semibold text-[#271a17]">₹{product.price}</span>
-            <span className="text-lg text-[#8c786f] line-through">₹{product.originalPrice}</span>
-            <span className="rounded-full bg-[#f5d9c9] px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#7c3f35]">{product.discount}% off</span>
+          <div className="flex items-end gap-4">
+            <span className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#d81e8f] to-[#f4a500]">₹{product.price}</span>
+            <span className="text-xl text-[#999] line-through">₹{product.originalPrice}</span>
+            <span className="rounded-full bg-gradient-to-r from-[#d81e8f] to-[#f4a500] px-4 py-1.5 text-sm font-bold text-white">{product.discount}% off 🎉</span>
           </div>
 
-          <div className="rounded-[28px] border border-[#eadbd0] bg-[#fffaf6] p-4">
-            <div className="mb-3 flex items-center gap-2 text-sm font-medium text-[#4a2d27]">
-              <ShieldCheck className="h-4 w-4 text-[#6f4b6b]" />
-              Easy return within 7 days. Cash on delivery available.
+          <div className="rounded-[28px] border border-[#d81e8f]/20 bg-gradient-to-br from-[#fff5f0] to-[#f5e8f5] p-5 shadow-lg">
+            <div className="mb-3 flex items-center gap-3 text-base font-bold text-[#d81e8f]">
+              <ShieldCheck className="h-5 w-5" />
+              ✓ Easy return within 7 days
             </div>
-            <div className="flex items-center gap-2 text-sm text-[#5c4f49]">
-              <Truck className="h-4 w-4 text-[#5d4037]" />
-              Estimated delivery: 3-5 days.
+            <div className="flex items-center gap-3 text-base font-bold text-[#6f2fbf]">
+              <Truck className="h-5 w-5" />
+              🚚 Delivery: 3-5 days | Cash on Delivery
             </div>
           </div>
 
           <div>
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-medium text-[#3b2824]">Color</span>
-              <span className="text-xs uppercase tracking-[0.18em] text-[#8c705d]">{selectedColor}</span>
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-base font-bold text-[#1a1612]">🎨 Color</span>
+              <span className="px-4 py-1 rounded-full bg-gradient-to-r from-[#d81e8f]/20 to-[#6f2fbf]/20 text-sm font-bold text-[#d81e8f]">{selectedColor}</span>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               {product.colors.map((color) => (
                 <button
                   key={color.name}
                   onClick={() => setSelectedColor(color.name)}
-                  className={`h-10 w-10 rounded-full border-2 ${
-                    selectedColor === color.name ? "border-[#4b1f1d]" : "border-[#d8b9a5]"
+                  className={`h-12 w-12 rounded-full border-3 transition-all hover:scale-110 ${
+                    selectedColor === color.name ? "border-[#d81e8f] shadow-lg shadow-[#d81e8f]/50" : "border-[#d81e8f]/30"
                   }`}
                   style={{ backgroundColor: color.hex }}
                   aria-label={color.name}
@@ -118,19 +118,19 @@ export function ProductDetail({ product }: { product: Product }) {
           </div>
 
           <div>
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-medium text-[#3b2824]">Size</span>
-              <Link href="#" className="text-xs uppercase tracking-[0.18em] text-[#7d5b4d]">Size guide</Link>
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-base font-bold text-[#1a1612]">📏 Size</span>
+              <Link href="#" className="text-sm font-bold text-[#00a8cc] hover:text-[#6f2fbf] transition">Size guide</Link>
             </div>
-            <div className="flex flex-wrap gap-2.5">
+            <div className="flex flex-wrap gap-3">
               {product.sizes.map((size) => (
                 <button
                   key={size}
                   onClick={() => setSelectedSize(size)}
-                  className={`flex h-11 w-11 items-center justify-center rounded-full border text-sm font-medium transition ${
+                  className={`flex h-12 w-12 items-center justify-center rounded-full border-2 text-sm font-bold transition-all ${
                     selectedSize === size
-                      ? "border-[#4b1f1d] bg-[#4b1f1d] text-white"
-                      : "border-[#e5d0c1] bg-white text-[#4b2d28]"
+                      ? "border-[#d81e8f] bg-gradient-to-r from-[#d81e8f] to-[#a81566] text-white shadow-lg shadow-[#d81e8f]/50"
+                      : "border-[#d81e8f]/30 bg-white text-[#1a1612] hover:border-[#d81e8f]/60 hover:scale-105"
                   }`}
                 >
                   {size}
@@ -139,94 +139,101 @@ export function ProductDetail({ product }: { product: Product }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 rounded-full border border-[#e7d7cd] bg-[#fffaf6] px-2.5 py-2.5">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 rounded-full border-2 border-[#d81e8f]/30 bg-white px-4 py-3">
               <button
                 onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-[#f5e9e4]"
+                className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-[#f5e6f0] text-[#d81e8f] font-bold text-lg"
               >
-                <Minus className="h-3.5 w-3.5" />
+                −
               </button>
-              <span className="w-7 text-center text-sm font-medium text-[#2a1d1a]">{quantity}</span>
+              <span className="w-8 text-center text-base font-bold text-[#1a1612]">{quantity}</span>
               <button
                 onClick={() => setQuantity((value) => value + 1)}
-                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-[#f5e9e4]"
+                className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-[#f5e6f0] text-[#d81e8f] font-bold text-lg"
               >
-                <Plus className="h-3.5 w-3.5" />
+                +
               </button>
             </div>
 
-            <button onClick={() => addProductToCart(false)} className="flex-1 rounded-full bg-[#4b1f1d] px-5 py-3.5 text-sm font-medium text-white shadow-lg shadow-[#4b1f1d]/15 transition hover:bg-[#341514]">
-              Add to cart
+            <button onClick={() => addProductToCart(false)} className="flex-1 rounded-full bg-gradient-to-r from-[#d81e8f] to-[#a81566] px-6 py-4 text-base font-bold text-white shadow-lg shadow-[#d81e8f]/40 transition-all hover:shadow-xl hover:scale-105 active:scale-95">
+              🛍️ Add to Cart
             </button>
-            <button className="flex h-12 w-12 items-center justify-center rounded-full border border-[#e5d2c3] bg-white text-[#4f2f2a]">
-              <Heart className="h-4 w-4" />
+            <button className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#d81e8f]/30 bg-white text-[#d81e8f] hover:border-[#d81e8f] hover:bg-[#fff5f0] transition">
+              <Heart className="h-6 w-6 fill-current" />
             </button>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <button onClick={() => addProductToCart(true)} className="rounded-full border border-[#4b1f1d] bg-[#f7efe9] px-5 py-3 text-sm font-medium text-[#381d1a] transition hover:bg-[#f1e4dc]">
-              Buy now
+          <div className="grid gap-4 sm:grid-cols-2">
+            <button onClick={() => addProductToCart(true)} className="rounded-full border-2 border-[#d81e8f] bg-white px-6 py-4 text-base font-bold text-[#d81e8f] transition-all hover:bg-[#d81e8f] hover:text-white hover:scale-105 active:scale-95">
+              💳 Buy Now
             </button>
-            <button className="rounded-full bg-[#f2d8b5] px-5 py-3 text-sm font-medium text-[#3a2b26] transition hover:bg-[#e9c58f]">
-              Try on at home
+            <button className="rounded-full bg-gradient-to-r from-[#f4a500] to-[#ff6b35] px-6 py-4 text-base font-bold text-white shadow-lg shadow-[#f4a500]/30 transition-all hover:shadow-xl hover:scale-105 active:scale-95">
+              👗 Try On at Home
             </button>
           </div>
         </div>
       </div>
 
-      <div className="mt-12 grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
-        <div className="rounded-[30px] border border-[#ead8cc] bg-[#fffaf6] p-6">
-          <h2 className="mb-4 font-serif text-3xl text-[#201614]">Product details</h2>
-          <p className="text-base leading-8 text-[#584942]">{product.description}</p>
+      <div className="mt-16 grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">
+        <div className="rounded-[32px] border-2 border-[#d81e8f]/20 bg-gradient-to-br from-[#fff5f0] via-[#f5e8f5] to-[#f0e8f5] p-8 shadow-lg">
+          <h2 className="mb-6 font-serif text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#d81e8f] to-[#6f2fbf]">📦 Product Details</h2>
+          <p className="text-lg leading-8 text-[#584942]">{product.description}</p>
 
-          <div className="mt-6 grid gap-4 border-t border-[#ead8cc] pt-5 md:grid-cols-2">
-            <div>
-              <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-[#7d645a]">Fabric</h3>
-              <p className="mt-2 text-base text-[#463832]">{product.fabric}</p>
+          <div className="mt-8 grid gap-6 border-t-2 border-[#d81e8f]/20 pt-6 md:grid-cols-2">
+            <div className="rounded-[20px] bg-white/80 p-5 border border-[#d81e8f]/20">
+              <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-[#d81e8f]">🧵 Fabric</h3>
+              <p className="mt-3 text-base font-semibold text-[#1a1612]">{product.fabric}</p>
             </div>
-            <div>
-              <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-[#7d645a]">Care</h3>
-              <p className="mt-2 text-base text-[#463832]">Cold wash, line dry, minimal ironing</p>
+            <div className="rounded-[20px] bg-white/80 p-5 border border-[#6f2fbf]/20">
+              <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-[#6f2fbf]">🧺 Care</h3>
+              <p className="mt-3 text-base font-semibold text-[#1a1612]">Cold wash, line dry, minimal ironing</p>
             </div>
           </div>
         </div>
 
-        <div className="space-y-4 rounded-[30px] border border-[#ead8cc] bg-white p-6 shadow-[0_12px_30px_rgba(84,58,45,0.04)]">
-          <div className="flex items-center justify-between">
-            <span className="text-[#43332d]">Stock</span>
-            <span className="font-medium text-[#1f1715]">{product.stock} left</span>
+        <div className="space-y-4 rounded-[32px] border-2 border-[#f4a500]/20 bg-gradient-to-br from-[#fffbf8] to-[#fff5f0] p-8 shadow-lg">
+          <div className="rounded-[16px] bg-white/80 border border-[#f4a500]/20 p-4">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-[#1a1612]">📊 Stock</span>
+              <span className="px-3 py-1 rounded-full bg-gradient-to-r from-[#f4a500]/20 to-[#ff6b35]/20 font-bold text-[#ff6b35]">{product.stock} left</span>
+            </div>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-[#43332d]">Shipping</span>
-            <span className="font-medium text-[#1f1715]">Free</span>
+          <div className="rounded-[16px] bg-white/80 border border-[#00a8cc]/20 p-4">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-[#1a1612]">🚚 Shipping</span>
+              <span className="px-3 py-1 rounded-full bg-gradient-to-r from-[#00a8cc]/20 to-[#d81e8f]/20 font-bold text-[#00a8cc]">Free</span>
+            </div>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-[#43332d]">Returns</span>
-            <span className="font-medium text-[#1f1715]">7 days</span>
+          <div className="rounded-[16px] bg-white/80 border border-[#6f2fbf]/20 p-4">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-[#1a1612]">✅ Returns</span>
+              <span className="px-3 py-1 rounded-full bg-gradient-to-r from-[#6f2fbf]/20 to-[#00a8cc]/20 font-bold text-[#6f2fbf]">7 days</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="mt-12 rounded-[30px] border border-[#ead8cc] bg-[#fffaf6] p-6">
-        <h2 className="mb-5 font-serif text-3xl text-[#201614]">Why shoppers love it</h2>
-        <div className="grid gap-4 md:grid-cols-3">
+      <div className="mt-16 rounded-[32px] border-2 border-[#d81e8f]/20 bg-gradient-to-br from-[#fff5f0] via-[#f0e8f5] to-[#e8f8f9] p-8 shadow-lg">
+        <h2 className="mb-8 font-serif text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#d81e8f] via-[#6f2fbf] to-[#00a8cc]">⭐ Why Shoppers Love It</h2>
+        <div className="grid gap-6 md:grid-cols-3">
           {[
-            "Premium fabric feel with breathable comfort",
-            "Tailored silhouettes that flatter various body types",
-            "Elegant colors designed for modern Indian wardrobes",
+            { icon: "✨", text: "Premium fabric feel with breathable comfort" },
+            { icon: "👗", text: "Tailored silhouettes that flatter various body types" },
+            { icon: "🎨", text: "Elegant colors designed for modern Indian wardrobes" },
           ].map((item) => (
-            <div key={item} className="rounded-[20px] bg-white p-4 text-sm leading-7 text-[#584942] shadow-[0_10px_20px_rgba(84,58,45,0.04)]">
-              {item}
+            <div key={item.text} className="rounded-[24px] bg-white/90 border border-[#d81e8f]/20 p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105">
+              <div className="text-3xl mb-3">{item.icon}</div>
+              <p className="text-base leading-7 font-semibold text-[#584942]">{item.text}</p>
             </div>
           ))}
         </div>
       </div>
 
       <div className="mt-12 flex gap-4 justify-end md:hidden">
-        <button onClick={() => addProductToCart(false)} className="flex-1 rounded-full bg-[#4b1f1d] px-5 py-3.5 text-sm font-medium text-white">Add to cart</button>
-        <button className="flex h-12 w-12 items-center justify-center rounded-full border border-[#e5d2c3] bg-white text-[#4f2f2a]">
-          <Heart className="h-4 w-4" />
+        <button onClick={() => addProductToCart(false)} className="flex-1 rounded-full bg-gradient-to-r from-[#d81e8f] to-[#a81566] px-5 py-3.5 text-sm font-bold text-white">🛍️ Add to cart</button>
+        <button className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#d81e8f]/30 bg-white text-[#d81e8f]">
+          <Heart className="h-5 w-5 fill-current" />
         </button>
       </div>
     </div>
