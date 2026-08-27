@@ -1,0 +1,256 @@
+export type ProductColor = {
+  name: string;
+  hex: string;
+};
+
+export type Product = {
+  id: string;
+  slug: string;
+  name: string;
+  category: string;
+  price: number;
+  originalPrice: number;
+  discount: number;
+  rating: number;
+  reviews: number;
+  stock: number;
+  badge?: string;
+  fabric: string;
+  description: string;
+  images: string[];
+  colors: ProductColor[];
+  sizes: string[];
+};
+
+export const categories = [
+  {
+    name: "Cotton Kurtis",
+    subtitle: "Everyday lightwear",
+    image:
+      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80",
+  },
+  {
+    name: "Printed Kurtis",
+    subtitle: "Artful florals",
+    image:
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=800&q=80",
+  },
+  {
+    name: "Anarkali Kurtis",
+    subtitle: "Statement elegance",
+    image:
+      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=800&q=80",
+  },
+  {
+    name: "r",
+    subtitle: "Polished essentials",
+    image:
+      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80",
+  },
+];
+
+export const products: Product[] = [
+  {
+    id: "prod-1",
+    slug: "saffron-silk-kurti",
+    name: "Saffron Silk Kurti",
+    category: "Festive Kurtis",
+    price: 1899,
+    originalPrice: 2599,
+    discount: 27,
+    rating: 4.8,
+    reviews: 214,
+    stock: 18,
+    badge: "Bestseller",
+    fabric: "Pure silk blend",
+    description:
+      "A softly draped festive kurti with a refined sheen and elegant neckline, made for celebrations and evening transitions.",
+    images: [
+      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
+    ],
+    colors: [
+      { name: "Saffron", hex: "#c96b2d" },
+      { name: "Ivory", hex: "#f3eadb" },
+      { name: "Deep Maroon", hex: "#5e1a1b" },
+    ],
+    sizes: ["XS", "S", "M", "L", "XL"],
+  },
+  {
+    id: "prod-2",
+    slug: "ivory-cotton-straight-kurti",
+    name: "Ivory Cotton Straight Kurti",
+    category: "Cotton Kurtis",
+    price: 1299,
+    originalPrice: 1699,
+    discount: 24,
+    rating: 4.7,
+    reviews: 182,
+    stock: 26,
+    badge: "New",
+    fabric: "Premium cotton",
+    description:
+      "Minimal, breathable and tailored for all-day comfort. A classic straight silhouette that keeps your wardrobe refined and versatile.",
+    images: [
+      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
+    ],
+    colors: [
+      { name: "Ivory", hex: "#f7efe5" },
+      { name: "Peach", hex: "#d78d6d" },
+      { name: "Brown", hex: "#5d4037" },
+    ],
+    sizes: ["S", "M", "L", "XL"],
+  },
+  {
+    id: "prod-3",
+    slug: "terracotta-printed-a-line-kurti",
+    name: "Terracotta Printed A-line Kurti",
+    category: "Printed Kurtis",
+    price: 1499,
+    originalPrice: 2099,
+    discount: 29,
+    rating: 4.9,
+    reviews: 286,
+    stock: 15,
+    fabric: "Cotton rayon",
+    description:
+      "Flattering A-line cut with a modern print story and airy fit, ideal for both day errands and relaxed festive evenings.",
+    images: [
+      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
+    ],
+    colors: [
+      { name: "Terracotta", hex: "#b75b42" },
+      { name: "Rust", hex: "#8d4a3a" },
+      { name: "Blush", hex: "#d8a88d" },
+    ],
+    sizes: ["XS", "S", "M", "L", "XL"],
+  },
+  {
+    id: "prod-4",
+    slug: "deep-maroon-floral-anarkali",
+    name: "Deep Maroon Floral Anarkali",
+    category: "Anarkali Kurtis",
+    price: 2199,
+    originalPrice: 2999,
+    discount: 27,
+    rating: 4.8,
+    reviews: 141,
+    stock: 12,
+    fabric: "Georgette with satin lining",
+    description:
+      "An elegant flared silhouette with a contemporary floral palette, designed to feel festive without being ostentatious.",
+    images: [
+      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80",
+    ],
+    colors: [
+      { name: "Maroon", hex: "#4d1d21" },
+      { name: "Rose", hex: "#c47473" },
+      { name: "Gold", hex: "#b68a3f" },
+    ],
+    sizes: ["S", "M", "L", "XL"],
+  },
+  {
+    id: "prod-5",
+    slug: "charcoal-office-cotton-kurti",
+    name: "Charcoal Office Cotton Kurti",
+    category: "Office Wear",
+    price: 1599,
+    originalPrice: 2299,
+    discount: 30,
+    rating: 4.6,
+    reviews: 95,
+    stock: 20,
+    fabric: "Cotton twill",
+    description:
+      "Built for polished mornings and effortless transitions, this sharp kurti balances comfort and professionalism.",
+    images: [
+      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
+    ],
+    colors: [
+      { name: "Charcoal", hex: "#2a2c2f" },
+      { name: "Taupe", hex: "#b29a86" },
+      { name: "Mushroom", hex: "#d6c8be" },
+    ],
+    sizes: ["XS", "S", "M", "L", "XL"],
+  },
+  {
+    id: "prod-6",
+    slug: "rose-gold-festive-kurti",
+    name: "Rose Gold Festive Kurti",
+    category: "Festive Kurtis",
+    price: 1999,
+    originalPrice: 2699,
+    discount: 26,
+    rating: 4.9,
+    reviews: 176,
+    stock: 14,
+    badge: "Top Rated",
+    fabric: "Silk-touch viscose",
+    description:
+      "A celebratory silhouette with a luxe finish and warm metallic undertone for family gatherings and weddings.",
+    images: [
+      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
+    ],
+    colors: [
+      { name: "Rose Gold", hex: "#dcb09f" },
+      { name: "Lotus", hex: "#c17362" },
+      { name: "Champagne", hex: "#e9ddc9" },
+    ],
+    sizes: ["S", "M", "L", "XL"],
+  },
+  {
+    id: "prod-7",
+    slug: "sand-beige-linen-kurti",
+    name: "Sand Beige Linen Kurti",
+    category: "New Arrivals",
+    price: 1399,
+    originalPrice: 1899,
+    discount: 26,
+    rating: 4.7,
+    reviews: 110,
+    stock: 32,
+    fabric: "Handloom linen blend",
+    description:
+      "Airy and sculpted, this warm neutral kurti brings effortless structure and ease to everyday wear.",
+    images: [
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
+    ],
+    colors: [
+      { name: "Sand", hex: "#c8b49b" },
+      { name: "Pearl", hex: "#efe3d1" },
+      { name: "Mocha", hex: "#6f4e3c" },
+    ],
+    sizes: ["XS", "S", "M", "L", "XL"],
+  },
+];
+
+export const reviews = [
+  {
+    name: "Megha S.",
+    title: "Soft, elegant and premium feeling",
+    text: "The fit is flattering and the fabric feels premium without being stiff. The color looked exactly like the photos and the kurti arrived promptly.",
+  },
+  {
+    name: "Nisha R.",
+    title: "Perfect for work and family wear",
+    text: "I bought the charcoal office kurti and wore it to a client dinner. It looks polished and still comfortable enough to sit in for hours.",
+  },
+  {
+    name: "Aditi P.",
+    title: "Loved the quality",
+    text: "Every detail feels considered, from the finish to the stitching. It feels like a boutique find rather than a mass-market fast-fashion piece.",
+  },
+];

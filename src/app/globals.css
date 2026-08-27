@@ -1,0 +1,461 @@
+@import "tailwindcss";
+
+:root {
+  /* Festival bright vibrant palette */
+  --brand-primary: #d81e8f;
+  --brand-primary-dark: #a81566;
+  --brand-secondary: #6f2fbf;
+  --brand-secondary-light: #9d5dd4;
+  --brand-accent: #00a8cc;
+  --brand-accent-light: #4db8d8;
+  --brand-gold: #f4a500;
+  --brand-gold-light: #ffc857;
+  
+  /* Heritage colors */
+  --brand-saffron: #ff6b35;
+  --brand-emerald: #1ba098;
+  --brand-ruby: #8b1a1a;
+  
+  /* Neutrals with warmth */
+  --brand-cream: #fef9f5;
+  --brand-ivory: #fffbf8;
+  --brand-text: #1a1612;
+  --brand-muted: #6b5d5a;
+  
+  --background: #faf8f6;
+  --foreground: #1a1612;
+  --panel: #fffbf8;
+  --panel-alt: #f5e6f0;
+  --muted: #6b5d5a;
+  --font-display: var(--font-cormorant);
+  --font-body: var(--font-manrope);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --background: #0d0b0a;
+  --foreground: #fef9f5;
+  --panel: #1a1612;
+  --panel-alt: #2a1f2f;
+  --muted: #d9ccc8;
+  --brand-primary: #ff4db8;
+  --brand-secondary: #c74bff;
+  --brand-accent: #4dd9ff;
+  --brand-gold: #ffd700;
+  --brand-text: #fef9f5;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-display);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    linear-gradient(135deg, rgba(111, 47, 191, 0.02), transparent 40%),
+    linear-gradient(-135deg, rgba(216, 30, 143, 0.02), transparent 40%),
+    var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), sans-serif;
+  position: relative;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+html[data-theme="dark"] body,
+html[data-theme="dark"] p,
+html[data-theme="dark"] span,
+html[data-theme="dark"] li,
+html[data-theme="dark"] a,
+html[data-theme="dark"] label,
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] button,
+html[data-theme="dark"] small,
+html[data-theme="dark"] h1,
+html[data-theme="dark"] h2,
+html[data-theme="dark"] h3,
+html[data-theme="dark"] h4,
+html[data-theme="dark"] h5,
+html[data-theme="dark"] h6 {
+  color: var(--foreground);
+}
+
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::before {
+  background: linear-gradient(135deg, rgba(255,255,255,0.18), transparent 38%, rgba(26,22,18,0.03));
+  opacity: 0.9;
+}
+
+body::after {
+  background: radial-gradient(circle at 20% 16%, rgba(111, 144, 86, 0.08), transparent 18%),
+    radial-gradient(circle at 80% 22%, rgba(180, 112, 74, 0.08), transparent 16%),
+    radial-gradient(circle at 68% 74%, rgba(111, 144, 86, 0.06), transparent 18%);
+  mix-blend-mode: multiply;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display), serif;
+  letter-spacing: -0.02em;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Subtle elegant animations (less glittery) */
+@keyframes float-subtle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.9; }
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-float { animation: float-subtle 6s ease-in-out infinite; }
+.animate-pulse-subtle { animation: pulse-subtle 3s ease-in-out infinite; }
+.animate-spin-slow { animation: spin-slow 20s linear infinite; }
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-pulse-subtle,
+  .animate-spin-slow {
+    animation: none;
+  }
+
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.indian-branch {
+  position: relative;
+  overflow: hidden;
+}
+
+.indian-branch::before,
+.indian-branch::after {
+  content: "";
+  position: absolute;
+  inset: auto auto 12% 6%;
+  width: 180px;
+  height: 180px;
+  border-radius: 70% 30% 60% 40% / 55% 45% 55% 45%;
+  border: 1.5px solid rgba(216, 30, 143, 0.25);
+  transform: rotate(-20deg);
+  pointer-events: none;
+}
+
+.indian-branch::after {
+  inset: 8% auto auto 58%;
+  width: 220px;
+  height: 220px;
+  border-color: rgba(111, 47, 191, 0.25);
+  transform: rotate(16deg);
+}
+
+.leaf-spray {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.botanical-leaf {
+  position: absolute;
+  width: 84px;
+  height: 112px;
+  background: linear-gradient(135deg, rgba(27, 160, 152, 0.95), rgba(77, 184, 216, 0.7));
+  border-radius: 100% 0% 100% 0% / 100% 0% 100% 0%;
+  box-shadow: inset -8px -10px 18px rgba(6, 100, 92, 0.2), 0 8px 18px rgba(27, 160, 152, 0.12);
+  transform: rotate(18deg);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.botanical-leaf::before {
+  content: "";
+  position: absolute;
+  inset: 18% 41% 18% 41%;
+  border-left: 2px solid rgba(255, 255, 255, 0.55);
+  border-radius: 50%;
+}
+
+.botanical-leaf::after {
+  content: "";
+  position: absolute;
+  inset: 18% 50% 18% 50%;
+  border-top: 2px solid rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+}
+
+.botanical-leaf.terracotta {
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.9), rgba(244, 165, 0, 0.7));
+  box-shadow: inset -8px -10px 18px rgba(180, 50, 0, 0.2), 0 8px 18px rgba(255, 107, 53, 0.12);
+}
+
+.leaf-cluster {
+  position: absolute;
+  inset: auto auto 40px 10px;
+  width: 180px;
+  height: 160px;
+  pointer-events: none;
+  filter: drop-shadow(0 10px 18px rgba(216, 30, 143, 0.10));
+}
+
+.leaf-cluster .botanical-leaf:nth-child(1) { left: 0; top: 18px; transform: rotate(-22deg) scale(1.05); }
+.leaf-cluster .botanical-leaf:nth-child(2) { left: 44px; top: 0; transform: rotate(18deg) scale(0.96); }
+.leaf-cluster .botanical-leaf:nth-child(3) { left: 84px; top: 34px; transform: rotate(-12deg) scale(1.12); }
+.leaf-cluster .botanical-leaf:nth-child(4) { left: 112px; top: 20px; transform: rotate(20deg) scale(0.82); }
+
+.hero-leaf-cluster {
+  position: absolute;
+  inset: auto 30px 28px auto;
+  width: 170px;
+  height: 160px;
+  pointer-events: none;
+  filter: drop-shadow(0 10px 18px rgba(216, 30, 143, 0.08));
+}
+
+.hero-leaf-cluster .botanical-leaf:nth-child(1) { right: 16px; top: 35px; transform: rotate(26deg) scale(1.1); }
+.hero-leaf-cluster .botanical-leaf:nth-child(2) { right: 70px; top: 0; transform: rotate(-18deg) scale(0.92); }
+.hero-leaf-cluster .botanical-leaf:nth-child(3) { right: 100px; top: 34px; transform: rotate(12deg) scale(1.08); }
+
+.leaf-spray svg {
+  width: 100%;
+  height: 100%;
+}
+
+.leaf-spray path,
+.leaf-spray circle {
+  fill: rgba(27, 160, 152, 0.08);
+  stroke: rgba(27, 160, 152, 0.18);
+  stroke-width: 1.2;
+}
+
+.leaf-spray .accent {
+  fill: rgba(216, 30, 143, 0.08);
+  stroke: rgba(216, 30, 143, 0.2);
+}
+
+.hero-ornament {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-ornament svg {
+  width: 100%;
+  height: 100%;
+}
+
+.hero-ornament path,
+.hero-ornament line,
+.hero-ornament circle {
+  stroke: rgba(111, 47, 191, 0.26);
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hero-ornament .warm {
+  stroke: rgba(216, 30, 143, 0.26);
+}
+
+.branch-ornament {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.9;
+}
+
+.branch-ornament svg {
+  width: 100%;
+  height: 100%;
+}
+
+.branch-ornament .branch {
+  fill: none;
+  stroke: rgba(111, 47, 191, 0.42);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.branch-ornament .branch-warm {
+  stroke: rgba(216, 30, 143, 0.38);
+}
+
+.branch-ornament .leaf-node {
+  fill: rgba(27, 160, 152, 0.3);
+  stroke: rgba(27, 160, 152, 0.42);
+  stroke-width: 1.2;
+}
+
+.branch-ornament .leaf-node-warm {
+  fill: rgba(244, 165, 0, 0.25);
+  stroke: rgba(244, 165, 0, 0.38);
+}
+
+.ornament-branch,
+.ornament-arch,
+.ornament-dot,
+.ornament-leaf {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.global-ornaments svg {
+  opacity: 1;
+  filter: drop-shadow(0 8px 18px rgba(216, 30, 143, 0.08));
+}
+
+.ornament-branch {
+  stroke: rgba(111, 47, 191, 0.9);
+  stroke-width: 3.2;
+  fill: none;
+}
+
+.ornament-branch.warm {
+  stroke: rgba(216, 30, 143, 0.88);
+}
+
+.ornament-leaf {
+  fill: rgba(27, 160, 152, 0.38);
+  stroke: rgba(27, 160, 152, 0.7);
+  stroke-width: 1.5;
+}
+
+.ornament-leaf.warm {
+  fill: rgba(244, 165, 0, 0.35);
+  stroke: rgba(244, 165, 0, 0.7);
+}
+
+.ornament-arch {
+  stroke: rgba(77, 184, 216, 0.9);
+  stroke-width: 2.8;
+  fill: none;
+}
+
+.ornament-arch.warm {
+  stroke: rgba(255, 107, 53, 0.85);
+}
+
+.ornament-dot {
+  fill: rgba(216, 30, 143, 0.8);
+  stroke: rgba(111, 47, 191, 0.42);
+}
+
+.ornament-dot.warm {
+  fill: rgba(244, 165, 0, 0.8);
+  stroke: rgba(255, 107, 53, 0.38);
+}
+
+.lotus-ornament {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 10px 18px rgba(216, 30, 143, 0.08));
+}
+
+.lotus-petal,
+.lotus-center {
+  fill: rgba(27, 160, 152, 0.28);
+  stroke: rgba(27, 160, 152, 0.38);
+  stroke-width: 1.4;
+}
+
+.lotus-petal.warm {
+  fill: rgba(216, 30, 143, 0.25);
+  stroke: rgba(216, 30, 143, 0.38);
+}
+
+.lotus-petal.soft {
+  fill: rgba(111, 47, 191, 0.24);
+  stroke: rgba(111, 47, 191, 0.34);
+}
+
+.lotus-center {
+  fill: rgba(244, 165, 0, 0.32);
+  stroke: rgba(244, 165, 0, 0.38);
+}
+
+.app-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.app-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+.app-shell > .fixed {
+  z-index: 0;
+}
