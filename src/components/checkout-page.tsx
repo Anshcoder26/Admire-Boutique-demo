@@ -60,6 +60,7 @@ export function CheckoutPage() {
 
         if (meRes.ok) {
           setIsAuthenticated(true);
+          setError(""); // Clear any error when authenticated
           const meData = (await meRes.json()) as { user?: Customer };
           if (meData.user) {
             setCustomer(meData.user);
@@ -76,12 +77,24 @@ export function CheckoutPage() {
           }
         } else {
           const token = window.localStorage.getItem("admire-user-token");
-          setIsAuthenticated(Boolean(token));
+          if (token) {
+            setIsAuthenticated(true);
+            setError("");
+          } else {
+            setIsAuthenticated(false);
+            setError("Please log in to place an order");
+          }
         }
       } catch (e) {
         console.error("[CHECKOUT] Auth check error:", e);
         const token = window.localStorage.getItem("admire-user-token");
-        setIsAuthenticated(Boolean(token));
+        if (token) {
+          setIsAuthenticated(true);
+          setError("");
+        } else {
+          setIsAuthenticated(false);
+          setError("Please log in to place an order");
+        }
       } finally {
         setAuthLoading(false);
       }
@@ -140,6 +153,7 @@ export function CheckoutPage() {
         body: JSON.stringify({
           order_number: `AB-${Date.now()}`,
           items: cartItems.map((item) => ({
+            productId: item.productId,
             name: item.name,
             size: item.size,
             qty: item.quantity,
@@ -156,7 +170,12 @@ export function CheckoutPage() {
       const data = (await response.json()) as { success?: boolean; order?: { id: string }; error?: string };
 
       if (!response.ok) {
-        setError(data.error || "Failed to place order. Please try again.");
+        if (response.status === 409) {
+          // Stock conflict
+          setError(data.error || "Some items are out of stock. Please update your cart.");
+        } else {
+          setError(data.error || "Failed to place order. Please try again.");
+        }
         setIsSubmitting(false);
         return;
       }

@@ -1196,7 +1196,7 @@ export async function createOrder(customerId: string, input: {
   delivery_partner: string;
   tracking_id: string;
   estimated_delivery: string;
-  items: Array<{ name: string; size: string; qty: number; price: number }>;
+  items: Array<{ name: string; size: string; qty: number; price: number; productId?: string }>;
 }) {
   const id = `ord-${Date.now()}`;
   const order = {
@@ -1218,39 +1218,99 @@ export async function createOrder(customerId: string, input: {
 
   if (usesPostgres) {
     await ensurePostgresReady();
-    await postgresPool!.query(
-      `INSERT INTO orders (id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method, delivery_partner, tracking_id, estimated_delivery, items_json)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
-      [
-        order.id,
-        order.customer_id,
-        order.order_number,
-        order.status,
-        order.sub_total,
-        order.shipping,
-        order.discount,
-        order.total,
-        order.payment_status,
-        order.payment_method,
-        order.delivery_partner,
-        order.tracking_id,
-        order.estimated_delivery,
-        order.items_json,
-      ]
-    );
-    return { ...order, items: input.items };
+    const client = await postgresPool!.connect();
+    try {
+      // Start transaction for atomicity (prevents race conditions)
+      await client.query('BEGIN');
+      
+      // Insert order
+      await client.query(
+        `INSERT INTO orders (id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method, delivery_partner, tracking_id, estimated_delivery, items_json)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+        [
+          order.id,
+          order.customer_id,
+          order.order_number,
+          order.status,
+          order.sub_total,
+          order.shipping,
+          order.discount,
+          order.total,
+          order.payment_status,
+          order.payment_method,
+          order.delivery_partner,
+          order.tracking_id,
+          order.estimated_delivery,
+          order.items_json,
+        ]
+      );
+      
+      // Reduce stock for each item
+      for (const item of input.items) {
+        if (item.productId) {
+          const checkResult = await client.query(
+            `SELECT stock FROM products WHERE id = $1 FOR UPDATE`,
+            [item.productId]
+          );
+          
+          if (!checkResult.rows.length) {
+            throw new Error(`Product ${item.productId} not found`);
+          }
+          
+          const currentStock = checkResult.rows[0].stock;
+          if (currentStock < item.qty) {
+            throw new Error(`Insufficient stock for product ${item.productId}. Available: ${currentStock}, Requested: ${item.qty}`);
+          }
+          
+          await client.query(
+            `UPDATE products SET stock = stock - $1 WHERE id = $2`,
+            [item.qty, item.productId]
+          );
+        }
+      }
+      
+      await client.query('COMMIT');
+      return { ...order, items: input.items };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
-  sqliteDb.prepare(`
-    INSERT INTO orders (
-      id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method,
-      delivery_partner, tracking_id, estimated_delivery, items_json
-    ) VALUES (
-      @id, @customer_id, @order_number, @status, @sub_total, @shipping, @discount, @total, @payment_status,
-      @payment_method, @delivery_partner, @tracking_id, @estimated_delivery, @items_json
-    )
-  `).run(order);
-
+  // SQLite transaction for stock reduction with locking
+  const transaction = sqliteDb.transaction(() => {
+    // Insert order
+    sqliteDb.prepare(`
+      INSERT INTO orders (
+        id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method,
+        delivery_partner, tracking_id, estimated_delivery, items_json
+      ) VALUES (
+        @id, @customer_id, @order_number, @status, @sub_total, @shipping, @discount, @total, @payment_status,
+        @payment_method, @delivery_partner, @tracking_id, @estimated_delivery, @items_json
+      )
+    `).run(order);
+    
+    // Reduce stock for each item
+    for (const item of input.items) {
+      if (item.productId) {
+        const product = sqliteDb.prepare(`SELECT stock FROM products WHERE id = ?`).get(item.productId) as any;
+        
+        if (!product) {
+          throw new Error(`Product ${item.productId} not found`);
+        }
+        
+        if (product.stock < item.qty) {
+          throw new Error(`Insufficient stock for product ${item.productId}. Available: ${product.stock}, Requested: ${item.qty}`);
+        }
+        
+        sqliteDb.prepare(`UPDATE products SET stock = stock - ? WHERE id = ?`).run(item.qty, item.productId);
+      }
+    }
+  });
+  
+  transaction();
   return { ...order, items: input.items };
 }
 

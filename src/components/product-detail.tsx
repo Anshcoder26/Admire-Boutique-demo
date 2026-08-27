@@ -42,7 +42,13 @@ export function ProductDetail({ product }: { product: Product }) {
     window.dispatchEvent(new CustomEvent("admire-cart-updated"));
 
     if (redirectToCheckout) {
-      window.location.href = "/checkout";
+      // Check if authenticated, if not redirect to login with cart intact
+      const isAuthenticated = window.localStorage.getItem("admire-user-token");
+      if (!isAuthenticated) {
+        window.location.href = "/login?redirect=/checkout";
+      } else {
+        window.location.href = "/checkout";
+      }
       return;
     }
 

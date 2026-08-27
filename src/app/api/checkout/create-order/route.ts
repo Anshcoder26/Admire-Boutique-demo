@@ -1,10 +1,26 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createOrder, validateUserSessionToken } from "@/lib/db";
 
-export async function POST(request: Request) {
+async function getUserFromRequest(request: Request) {
+  // Try Authorization header first
   const authHeader = request.headers.get("authorization") || "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.replace("Bearer ", "") : "";
-  const user = token ? await validateUserSessionToken(token) : null;
+  if (token) {
+    return await validateUserSessionToken(token);
+  }
+  
+  // Fall back to HTTP-only cookie
+  const nextRequest = request as NextRequest;
+  const cookieToken = nextRequest.cookies.get("admire-session")?.value || "";
+  if (cookieToken) {
+    return await validateUserSessionToken(cookieToken);
+  }
+  
+  return null;
+}
+
+export async function POST(request: Request) {
+  const user = await getUserFromRequest(request);
 
   if (!user) {
     return NextResponse.json({ error: "Please log in to place an order" }, { status: 401 });
@@ -12,7 +28,7 @@ export async function POST(request: Request) {
 
   const body = (await request.json()) as {
     order_number?: string;
-    items?: Array<{ name: string; size: string; qty: number; price: number }>; 
+    items?: Array<{ productId?: string; name: string; size: string; qty: number; price: number }>; 
     subtotal?: number;
     shipping?: number;
     discount?: number;
@@ -33,20 +49,29 @@ export async function POST(request: Request) {
     );
   }
 
-  const order = await createOrder(user.id, {
-    order_number: body.order_number || `AB-${Date.now()}`,
-    status: "Confirmed",
-    subtotal: Number(body.subtotal ?? 0),
-    shipping: Number(body.shipping ?? 0),
-    discount: Number(body.discount ?? 0),
-    total: Number(body.total ?? 0),
-    payment_status: paymentMethod === "Cash on Delivery" ? "Pending" : "Paid",
-    payment_method: paymentMethod,
-    delivery_partner: "BlueDart",
-    tracking_id: `BD-${Date.now()}`,
-    estimated_delivery: "Estimated arrival in 4–7 business days",
-    items: body.items,
-  });
+  try {
+    const order = await createOrder(user.id, {
+      order_number: body.order_number || `AB-${Date.now()}`,
+      status: "Confirmed",
+      subtotal: Number(body.subtotal ?? 0),
+      shipping: Number(body.shipping ?? 0),
+      discount: Number(body.discount ?? 0),
+      total: Number(body.total ?? 0),
+      payment_status: paymentMethod === "Cash on Delivery" ? "Pending" : "Paid",
+      payment_method: paymentMethod,
+      delivery_partner: "BlueDart",
+      tracking_id: `BD-${Date.now()}`,
+      estimated_delivery: "Estimated arrival in 4–7 business days",
+      items: body.items,
+    });
 
-  return NextResponse.json({ success: true, order });
+    return NextResponse.json({ success: true, order });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to create order";
+    // Check if it's a stock error
+    if (message.includes("Insufficient stock")) {
+      return NextResponse.json({ error: message }, { status: 409 });
+    }
+    return NextResponse.json({ error: message || "Failed to create order" }, { status: 500 });
+  }
 }

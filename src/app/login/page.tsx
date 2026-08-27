@@ -129,8 +129,17 @@ export default function LoginPage() {
         window.dispatchEvent(new Event("admire-auth-updated"));
         window.dispatchEvent(new Event("storage"));
 
-        // Redirect based on user type
-        const redirectPath = data.userType === "admin" ? "/admin" : "/account";
+        // Check if there's a redirect param or if we came from checkout
+        const params = new URLSearchParams(window.location.search);
+        let redirectPath = params.get("redirect") || (data.userType === "admin" ? "/admin" : "/account");
+        
+        // If user has cart items and no specific redirect, go to checkout
+        if (redirectPath === "/account" && !params.get("redirect")) {
+          const cart = JSON.parse(window.localStorage.getItem("admire-cart") || "[]");
+          if (cart.length > 0) {
+            redirectPath = "/checkout";
+          }
+        }
         
         // Small delay for UX feedback
         setTimeout(() => {
