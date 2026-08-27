@@ -24,28 +24,40 @@ export type Product = {
 
 export const categories = [
   {
-    name: "Cotton Kurtis",
-    subtitle: "Everyday lightwear",
+    name: "Premium Cotton",
+    subtitle: "Comfort meets elegance",
     image:
       "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80",
   },
   {
-    name: "Printed Kurtis",
-    subtitle: "Artful florals",
+    name: "Pure Mul",
+    subtitle: "Lightweight luxury",
     image:
       "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=800&q=80",
   },
   {
-    name: "Anarkali Kurtis",
-    subtitle: "Statement elegance",
+    name: "Georgette",
+    subtitle: "Fluid sophistication",
     image:
       "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=800&q=80",
   },
   {
-    name: "Office Wear",
-    subtitle: "Polished essentials",
+    name: "Maheshwari Suits",
+    subtitle: "Timeless heritage",
     image:
       "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80",
+  },
+  {
+    name: "Parsi Work",
+    subtitle: "Intricate craftsmanship",
+    image:
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=800&q=80",
+  },
+  {
+    name: "Muslins",
+    subtitle: "Pure elegance",
+    image:
+      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=800&q=80",
   },
 ];
 
@@ -54,7 +66,7 @@ export const products: Product[] = [
     id: "prod-1",
     slug: "saffron-silk-kurti",
     name: "Saffron Silk Kurti",
-    category: "Festive Kurtis",
+    category: "Parsi Work",
     price: 1899,
     originalPrice: 2599,
     discount: 27,
@@ -81,7 +93,7 @@ export const products: Product[] = [
     id: "prod-2",
     slug: "ivory-cotton-straight-kurti",
     name: "Ivory Cotton Straight Kurti",
-    category: "Cotton Kurtis",
+    category: "Premium Cotton",
     price: 1299,
     originalPrice: 1699,
     discount: 24,
@@ -108,7 +120,7 @@ export const products: Product[] = [
     id: "prod-3",
     slug: "terracotta-printed-a-line-kurti",
     name: "Terracotta Printed A-line Kurti",
-    category: "Printed Kurtis",
+    category: "Georgette",
     price: 1499,
     originalPrice: 2099,
     discount: 29,
@@ -134,7 +146,7 @@ export const products: Product[] = [
     id: "prod-4",
     slug: "deep-maroon-floral-anarkali",
     name: "Deep Maroon Floral Anarkali",
-    category: "Anarkali Kurtis",
+    category: "Pure Mul",
     price: 2199,
     originalPrice: 2999,
     discount: 27,
@@ -160,7 +172,7 @@ export const products: Product[] = [
     id: "prod-5",
     slug: "charcoal-office-cotton-kurti",
     name: "Charcoal Office Cotton Kurti",
-    category: "Office Wear",
+    category: "Maheshwari Suits",
     price: 1599,
     originalPrice: 2299,
     discount: 30,
@@ -186,7 +198,7 @@ export const products: Product[] = [
     id: "prod-6",
     slug: "rose-gold-festive-kurti",
     name: "Rose Gold Festive Kurti",
-    category: "Festive Kurtis",
+    category: "Muslins",
     price: 1999,
     originalPrice: 2699,
     discount: 26,
@@ -213,7 +225,7 @@ export const products: Product[] = [
     id: "prod-7",
     slug: "sand-beige-linen-kurti",
     name: "Sand Beige Linen Kurti",
-    category: "New Arrivals",
+    category: "Parsi Work",
     price: 1399,
     originalPrice: 1899,
     discount: 26,
