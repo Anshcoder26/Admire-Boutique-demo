@@ -6,6 +6,7 @@ import { GlobalOrnaments } from "@/components/global-ornaments";
 import { Header } from "@/components/header";
 import { QuickActionsMenu } from "@/components/quick-actions";
 import { WhatsAppButton } from "@/components/whatsapp-button";
+import { AuthProvider } from "@/providers/auth-provider";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -39,15 +40,17 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" suppressHydrationWarning className={`${manrope.variable} ${cormorantGaramond.variable} h-full antialiased`}>
       <body className="min-h-full bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300">
-        <div className="app-shell min-h-screen pb-20 md:pb-0">
-          <GlobalOrnaments />
-          <Header />
-          {children}
-          <Footer />
-          <WhatsAppButton />
-          <QuickActionsMenu />
-          <BottomNavigation />
-        </div>
+        <AuthProvider>
+          <div className="app-shell min-h-screen pb-20 md:pb-0">
+            <GlobalOrnaments />
+            <Header />
+            {children}
+            <Footer />
+            <WhatsAppButton />
+            <QuickActionsMenu />
+            <BottomNavigation />
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );

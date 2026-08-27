@@ -1,22 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Heart, Menu, Search, ShoppingBag, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { LotusOrnament } from "@/components/lotus-ornament";
 
 export function Header() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [cartCount, setCartCount] = useState(0);
-  const pathname = usePathname();
 
   useEffect(() => {
-    const syncHeader = () => {
+    const syncHeader = async () => {
       try {
-        const token = window.localStorage.getItem("admire-user-token");
-        setIsAuthenticated(Boolean(token));
+        // Try to validate session with server
+        const response = await fetch("/api/auth/me", {
+          method: "GET",
+          credentials: "include",
+        });
 
+        if (response.ok) {
+          const data = (await response.json()) as { user?: { name: string } };
+          setIsAuthenticated(!!data.user);
+        } else {
+          // Check localStorage as fallback
+          const token = window.localStorage.getItem("admire-user-token");
+          setIsAuthenticated(Boolean(token));
+        }
+
+        // Sync cart
         const rawCart = window.localStorage.getItem("admire-cart");
         const cart = rawCart ? JSON.parse(rawCart) : [];
         setCartCount(
@@ -25,8 +37,10 @@ export function Header() {
             : 0
         );
       } catch {
-        setIsAuthenticated(false);
-        setCartCount(0);
+        const token = window.localStorage.getItem("admire-user-token");
+        setIsAuthenticated(Boolean(token));
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -42,7 +56,7 @@ export function Header() {
         window.removeEventListener(eventName, syncHeader);
       }
     };
-  }, [pathname]);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#d81e8f]/20 bg-[#fffaf6]/95 backdrop-blur-sm">
@@ -76,7 +90,7 @@ export function Header() {
           <Link href="/products" className="hover:text-[#d81e8f] transition">Sale</Link>
           <Link href="/faq" className="hover:text-[#d81e8f] transition">FAQ</Link>
           <Link href={isAuthenticated ? "/account" : "/login"} className="rounded-full bg-[#d81e8f] px-4 py-2 text-white hover:bg-[#a81566] transition font-semibold">
-            {isAuthenticated ? "Account" : "Sign in"}
+            {isLoading ? "..." : isAuthenticated ? "Account" : "Sign in"}
           </Link>
         </nav>
 

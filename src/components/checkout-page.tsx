@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { LotusOrnament } from "@/components/lotus-ornament";
+import { AlertCircle, Loader } from "lucide-react";
 
 type CartItem = {
   productId: string;
@@ -17,25 +18,59 @@ type CartItem = {
 
 export function CheckoutPage() {
   const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [paymentMethod, setPaymentMethod] = useState("Cash on Delivery");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string>("");
 
+  // Check authentication
   useEffect(() => {
-    const token = window.localStorage.getItem("admire-user-token");
-    if (!token) {
-      window.location.href = "/login";
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/auth/me", {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          setIsAuthenticated(true);
+        } else {
+          const token = window.localStorage.getItem("admire-user-token");
+          setIsAuthenticated(Boolean(token));
+        }
+      } catch {
+        const token = window.localStorage.getItem("admire-user-token");
+        setIsAuthenticated(Boolean(token));
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  // Load cart when auth is checked
+  useEffect(() => {
+    if (authLoading) return;
+
+    // If not authenticated, redirect to login
+    if (!isAuthenticated) {
+      router.push("/login?redirect=/checkout");
       return;
     }
 
+    // Load cart items
     const stored = JSON.parse(window.localStorage.getItem("admire-cart") || "[]") as CartItem[];
     if (!stored.length) {
-      router.push("/products");
+      setError("Your cart is empty");
+      setTimeout(() => router.push("/products"), 2000);
       return;
     }
 
     setCartItems(stored);
-  }, [router]);
+  }, [isAuthenticated, authLoading, router]);
 
   const subtotal = useMemo(() => cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0), [cartItems]);
   const shipping = subtotal > 2499 ? 0 : cartItems.length ? 149 : 0;
@@ -43,61 +78,108 @@ export function CheckoutPage() {
   const total = subtotal + shipping - discount;
 
   const handlePlaceOrder = async () => {
-    const token = window.localStorage.getItem("admire-user-token");
-    if (!token) {
-      router.push("/login");
+    if (!isAuthenticated) {
+      setError("Please log in to place an order");
       return;
     }
 
     if (!cartItems.length) {
-      alert("Your cart is empty.");
-      return;
-    }
-
-    if (paymentMethod === "Razorpay" && !(process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID)) {
-      alert("Razorpay is not configured for this environment. Add the live keys to .env.local before enabling Razorpay.");
+      setError("Your cart is empty");
       return;
     }
 
     setIsSubmitting(true);
+    setError("");
 
-    const response = await fetch("/api/checkout/create-order", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        order_number: `AB-${Date.now()}`,
-        items: cartItems.map((item) => ({
-          name: item.name,
-          size: item.size,
-          qty: item.quantity,
-          price: item.price,
-        })),
-        subtotal,
-        shipping,
-        discount,
-        total,
-        payment_method: paymentMethod,
-      }),
-    });
+    try {
+      const response = await fetch("/api/checkout/create-order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          order_number: `AB-${Date.now()}`,
+          items: cartItems.map((item) => ({
+            name: item.name,
+            size: item.size,
+            qty: item.quantity,
+            price: item.price,
+          })),
+          subtotal,
+          shipping,
+          discount,
+          total,
+          paymentMethod,
+        }),
+      });
 
-    const data = (await response.json()) as { success?: boolean; error?: string };
-    setIsSubmitting(false);
+      const data = (await response.json()) as { success?: boolean; order?: { id: string }; error?: string };
 
-    if (!response.ok || !data.success) {
-      alert(data.error || "Unable to place order");
-      return;
+      if (!response.ok) {
+        setError(data.error || "Failed to place order. Please try again.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!data.success || !data.order) {
+        setError("Order creation failed. Please try again.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Clear cart
+      window.localStorage.removeItem("admire-cart");
+      window.dispatchEvent(new Event("admire-cart-updated"));
+
+      // Redirect to confirmation
+      router.push(`/order-confirmation?orderId=${data.order.id}`);
+    } catch (error) {
+      console.error("[CHECKOUT] Error:", error);
+      setError("Connection error. Please try again.");
+      setIsSubmitting(false);
     }
-
-    window.localStorage.removeItem("admire-cart");
-    window.dispatchEvent(new CustomEvent("admire-cart-updated"));
-    router.push("/order-confirmation");
   };
 
+  // Show loading state while checking auth
+  if (authLoading) {
+    return (
+      <main className="mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
+        <div className="flex flex-col items-center justify-center gap-4 py-12">
+          <Loader className="h-8 w-8 animate-spin text-[#d81e8f]" />
+          <p className="text-[#665a55]">Loading checkout...</p>
+        </div>
+      </main>
+    );
+  }
+
+  // Show error if not authenticated or cart is empty
+  if (!isAuthenticated || (error && !cartItems.length)) {
+    return (
+      <main className="mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
+        <div className="rounded-[24px] border-2 border-[#ff6b6b] bg-[#fff0f0] p-6 text-center">
+          <AlertCircle className="h-12 w-12 text-[#ff6b6b] mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-[#ff6b6b] mb-2">
+            {!isAuthenticated ? "Please log in" : "Cart is empty"}
+          </h2>
+          <p className="text-[#5a4b45] mb-6">
+            {!isAuthenticated
+              ? "You need to be logged in to proceed with checkout."
+              : "Your cart is empty. Please add items before checking out."}
+          </p>
+          <button
+            onClick={() => router.push(!isAuthenticated ? "/login" : "/products")}
+            className="rounded-full bg-[#d81e8f] px-6 py-3 text-white font-semibold hover:bg-[#a81566] transition"
+          >
+            {!isAuthenticated ? "Go to login" : "Continue shopping"}
+          </button>
+        </div>
+      </main>
+    );
+  }
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
+    <main className="mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
       <div className="mb-6 flex items-center gap-3">
         <LotusOrnament className="h-11 w-11 rounded-full border border-[#d7c1af] bg-white/80 p-2" />
         <div>
@@ -105,6 +187,13 @@ export function CheckoutPage() {
           <h1 className="mt-1 font-serif text-4xl text-[#201614]">Checkout</h1>
         </div>
       </div>
+
+      {error && (
+        <div className="mb-6 rounded-[24px] border-2 border-[#ff6b6b] bg-[#fff0f0] p-4 flex gap-3">
+          <AlertCircle className="h-5 w-5 text-[#ff6b6b] flex-shrink-0 mt-0.5" />
+          <p className="text-sm font-semibold text-[#ff6b6b]">{error}</p>
+        </div>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-5">
@@ -133,7 +222,7 @@ export function CheckoutPage() {
             <h2 className="mb-4 font-serif text-3xl text-[#201614]">Payment</h2>
             <div className="space-y-3 text-sm text-[#4c362f]">
               {['Cash on Delivery', 'UPI', 'Credit / Debit Card', 'Net Banking', 'Razorpay'].map((method) => (
-                <label key={method} className="flex items-center gap-3 rounded-[18px] border border-[#e4d4c9] bg-white px-4 py-3">
+                <label key={method} className="flex items-center gap-3 rounded-[18px] border border-[#e4d4c9] bg-white px-4 py-3 cursor-pointer">
                   <input type="radio" name="payment" checked={paymentMethod === method} onChange={() => setPaymentMethod(method)} />
                   <span>{method}</span>
                 </label>
@@ -161,11 +250,15 @@ export function CheckoutPage() {
             <span className="text-2xl font-semibold text-[#201614]">₹{total}</span>
           </div>
 
-          <button onClick={handlePlaceOrder} disabled={isSubmitting} className="mt-6 block w-full rounded-full bg-[#4b1f1d] px-5 py-3.5 text-center text-sm font-medium text-white shadow-lg shadow-[#4b1f1d]/15 transition hover:bg-[#341514] disabled:opacity-70">
-            {isSubmitting ? "Processing..." : "Place order"}
+          <button
+            onClick={handlePlaceOrder}
+            disabled={isSubmitting}
+            className="mt-6 block w-full rounded-full bg-[#d81e8f] px-5 py-3.5 text-center text-sm font-bold text-white shadow-md transition hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 border border-[#d81e8f]/40 min-h-[48px]"
+          >
+            {isSubmitting ? "Processing order..." : "Place order"}
           </button>
         </aside>
       </div>
-    </div>
+    </main>
   );
 }
