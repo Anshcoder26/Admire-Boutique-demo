@@ -5,9 +5,9 @@ import { ArrowRight, Bell, CheckCircle2, LogOut, Package, Plus, Search, ShieldCh
 import { LotusOrnament } from "@/components/lotus-ornament";
 
 const initialCatalog = [
-  { id: 1, name: "Saffron Grace Kurti", category: "Premium Cotton", price: "₹1,999", stock: 24, status: "Live" },
-  { id: 2, name: "Lotus Bloom Anarkali", category: "Parsi Work", price: "₹2,799", stock: 12, status: "Low stock" },
-  { id: 3, name: "Ivory Calm Straight Kurti", category: "Maheshwari Suits", price: "₹2,299", stock: 18, status: "Live" },
+  { id: 1, name: "Saffron Grace Kurti", category: "Cotton Kurtis", price: "₹1,999", stock: 24, status: "Live" },
+  { id: 2, name: "Lotus Bloom Anarkali", category: "Festive Kurtis", price: "₹2,799", stock: 12, status: "Low stock" },
+  { id: 3, name: "Ivory Calm Straight Kurti", category: "Office Wear", price: "₹2,299", stock: 18, status: "Live" },
 ];
 
 const formatCurrency = (value: number) => `₹${value.toLocaleString("en-IN")}`;
@@ -29,17 +29,13 @@ export function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [email, setEmail] = useState("owner@admireboutique.in");
   const [password, setPassword] = useState("admire123");
-  const [isPublishing, setIsPublishing] = useState(false);
   const [form, setForm] = useState({
     name: "",
-    category: "Premium Cotton",
-    description: "",
+    category: "Cotton Kurtis",
     price: "",
     stock: "",
     fabric: "Cotton",
-   stitching: "Stitched", // NEW: Stitched/Unstitched option
-   images: [] as string[],
-   colors: [] as Array<{ name: string; hex: string }>,
+    images: "",
   });
   const [catalog, setCatalog] = useState(initialCatalog);
   const [recentOrders, setRecentOrders] = useState<Array<{ id: string; order_number: string; customer_name: string; status: string; total: number }>>([]);
@@ -94,33 +90,9 @@ export function AdminDashboard() {
   };
 
   useEffect(() => {
-    const checkAuth = async () => {
-      // First, try to get token from localStorage
-      let token = window.localStorage.getItem("admire-admin-token");
-      
-      // If no token, check if there's an active session from unified login
-      if (!token) {
-        try {
-          const meRes = await fetch("/api/admin/me-check");
-          if (meRes.ok) {
-            const meData = (await meRes.json()) as { token?: string };
-            if (meData.token) {
-              token = meData.token;
-              window.localStorage.setItem("admire-admin-token", token);
-            }
-          }
-        } catch {
-          // Session check failed, continue
-        }
-      }
-      
-      // If we have a token now, load admin data
-      if (token) {
-        void loadAdminData(token);
-      }
-    };
-    
-    void checkAuth();
+    const token = window.localStorage.getItem("admire-admin-token");
+    if (!token) return;
+    void loadAdminData(token);
   }, []);
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -146,19 +118,12 @@ export function AdminDashboard() {
 
   const handleAddProduct = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!form.name || !form.price || !form.stock) {
-      alert("Please fill in: Product name, price, and stock");
-      return;
-    }
+    if (!form.name || !form.price || !form.stock) return;
 
-    setIsPublishing(true);
-
-    const imageUrls = Array.isArray(form.images)
-      ? (form.images as string[]).filter(Boolean)
-      : (form.images as unknown as string)
-          .split(",")
-          .map((url: string) => url.trim())
-          .filter(Boolean);
+    const imageUrls = form.images
+      .split(",")
+      .map((url) => url.trim())
+      .filter(Boolean);
 
     const payload = {
       name: form.name,
@@ -166,51 +131,40 @@ export function AdminDashboard() {
       price: Number(form.price),
       stock: Number(form.stock),
       fabric: form.fabric,
-      stitching: form.stitching, // NEW: Include stitched/unstitched
-      description: form.description || `${form.name} has been added via the owner dashboard.`,
+      description: `${form.name} has been added via the owner dashboard and is ready to be published on the storefront.`,
       images: imageUrls.length ? imageUrls : undefined,
-      colors: Array.isArray(form.colors) && form.colors.length > 0 
-        ? form.colors.filter(c => c.name && c.hex)
-        : undefined,
     };
 
-    try {
-      const response = await fetch("/api/admin/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${window.localStorage.getItem("admire-admin-token") || ""}` },
-        body: JSON.stringify(payload),
-      });
+    const response = await fetch("/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-      if (response.ok) {
-        const data = (await response.json()) as { product?: { id: string; name: string; category: string; price: number; stock: number } };
-        const created = data.product;
+    if (response.ok) {
+      const data = (await response.json()) as { product?: { id: string; name: string; category: string; price: number; stock: number } };
+      const created = data.product;
 
-        if (created) {
-          setCatalog((current) => [
-            {
-              id: Number(created.id?.replace(/\D/g, "") || Date.now()),
-              name: created.name,
-              category: created.category,
-              price: formatCurrency(Number(created.price)),
-              stock: created.stock,
-              status: created.stock < 10 ? "Low stock" : "Live",
-            },
-            ...current,
-          ]);
-          
-          alert(`✅ Product "${form.name}" published successfully! Customers will receive a notification email.`);
-          setForm({ name: "", category: "Premium Cotton", description: "", price: "", stock: "", fabric: "Cotton", stitching: "Stitched", images: [], colors: [] });
-        }
-      } else {
-        const error = (await response.json().catch(() => ({ error: "Unable to create product." }))) as { error?: string };
-        alert(`❌ ${error.error || "Unable to create product."}`);
+      if (created) {
+        setCatalog((current) => [
+          {
+            id: Number(created.id?.replace(/\D/g, "") || Date.now()),
+            name: created.name,
+            category: created.category,
+            price: formatCurrency(Number(created.price)),
+            stock: created.stock,
+            status: created.stock < 10 ? "Low stock" : "Live",
+          },
+          ...current,
+        ]);
       }
-    } catch (err) {
-      console.error("Product creation error:", err);
-      alert("❌ Network error while creating product. Please try again.");
-    } finally {
-      setIsPublishing(false);
+    } else {
+      const error = (await response.json().catch(() => ({ error: "Unable to create product." }))) as { error?: string };
+      alert(error.error || "Unable to create product.");
+      return;
     }
+
+    setForm({ name: "", category: "Cotton Kurtis", price: "", stock: "", fabric: "Cotton", images: "" });
   };
 
   if (!isAuthenticated) {
@@ -465,12 +419,12 @@ export function AdminDashboard() {
                     onChange={(e) => setForm((current) => ({ ...current, category: e.target.value }))}
                     className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
                   >
-                    <option>Premium Cotton</option>
-                    <option>Pure Mul</option>
-                    <option>Georgette</option>
-                    <option>Maheshwari Suits</option>
-                    <option>Parsi Work</option>
-                    <option>Muslins</option>
+                    <option>Cotton Kurtis</option>
+                    <option>Printed Kurtis</option>
+                    <option>Anarkali Kurtis</option>
+                    <option>Straight Kurtis</option>
+                    <option>Festive Kurtis</option>
+                    <option>Office Wear</option>
                   </select>
                 </div>
 
@@ -483,18 +437,6 @@ export function AdminDashboard() {
                     className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
                     placeholder="Cotton"
                   />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Stitching Type</label>
-                  <select
-                    value={form.stitching}
-                    onChange={(e) => setForm((current) => ({ ...current, stitching: e.target.value }))}
-                    className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60] cursor-pointer"
-                  >
-                    <option>Stitched</option>
-                    <option>Unstitched</option>
-                  </select>
                 </div>
               </div>
 
@@ -523,189 +465,125 @@ export function AdminDashboard() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Description</label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) => setForm((current) => ({ ...current, description: e.target.value }))}
-                  className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
-                  placeholder="Product description..."
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Product Photos</label>
-                <div className="space-y-3">
-                  {/* Drag & Drop + File Input Zone */}
-                  <div
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-                      const imageURLs = files.map((file) => URL.createObjectURL(file));
-                      setForm((current) => ({ ...current, images: [...(current.images as string[]), ...imageURLs] }));
-                    }}
-                    onDragOver={(e) => e.preventDefault()}
-                    className="relative rounded-2xl border-2 border-dashed border-[#d4c4b8] bg-gradient-to-br from-[#faf7f3] to-[#f5ede6] p-6 transition-all hover:border-[#b67c60] hover:from-[#fff9f6] cursor-pointer"
-                  >
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={(e) => {
-                        const files = Array.from(e.currentTarget.files || []);
-                        const imageURLs = files.map((file) => URL.createObjectURL(file));
-                        setForm((current) => ({ ...current, images: [...(current.images as string[]), ...imageURLs] }));
-                      }}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
-                    <div className="flex flex-col items-center justify-center text-center py-4">
-                      <div className="text-3xl mb-2">📷</div>
-                      <p className="text-sm font-medium text-[#5e3228]">Drag images here or click to browse</p>
-                      <p className="text-xs text-[#8b7965] mt-1">You can also paste images (Ctrl+V)</p>
-                    </div>
-                  </div>
-
-                  {/* Paste Handler */}
-                  <div
-                    onPaste={(e) => {
-                      const items = e.clipboardData?.items;
-                      if (!items) return;
-                      const imageURLs: string[] = [];
-                      for (let i = 0; i < items.length; i++) {
-                        if (items[i].type.startsWith('image/')) {
-                          const file = items[i].getAsFile();
-                          if (file) {
-                            imageURLs.push(URL.createObjectURL(file));
-                          }
+                <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Product photos</label>
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.add("border-[#8a6f5f]", "bg-[#f5ede5]");
+                  }}
+                  onDragLeave={(e) => {
+                    e.currentTarget.classList.remove("border-[#8a6f5f]", "bg-[#f5ede5]");
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove("border-[#8a6f5f]", "bg-[#f5ede5]");
+                    const files = Array.from(e.dataTransfer.files);
+                    files.forEach((file) => {
+                      if (file.type.startsWith("image/")) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          const base64 = event.target?.result as string;
+                          setForm((current) => ({
+                            ...current,
+                            images: current.images ? `${current.images},${base64}` : base64,
+                          }));
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    });
+                  }}
+                  onPaste={(e) => {
+                    const items = e.clipboardData?.items;
+                    if (!items) return;
+                    Array.from(items).forEach((item) => {
+                      if (item.type.startsWith("image/")) {
+                        const file = item.getAsFile();
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            const base64 = event.target?.result as string;
+                            setForm((current) => ({
+                              ...current,
+                              images: current.images ? `${current.images},${base64}` : base64,
+                            }));
+                          };
+                          reader.readAsDataURL(file);
                         }
                       }
-                      if (imageURLs.length > 0) {
-                        setForm((current) => ({ ...current, images: [...(current.images as string[]), ...imageURLs] }));
-                      }
+                    });
+                  }}
+                  className="relative rounded-2xl border-2 border-dashed border-[#d9cabe] bg-[#fffaf7] p-6 text-center transition-colors cursor-pointer"
+                >
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => {
+                      Array.from(e.currentTarget.files || []).forEach((file) => {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          const base64 = event.target?.result as string;
+                          setForm((current) => ({
+                            ...current,
+                            images: current.images ? `${current.images},${base64}` : base64,
+                          }));
+                        };
+                        reader.readAsDataURL(file);
+                      });
                     }}
-                    className="hidden"
+                    className="absolute inset-0 h-full w-full opacity-0 cursor-pointer"
                   />
-                </div>
-              </div>
-
-              {Array.isArray(form.images) && form.images.length > 0 && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">
-                      Uploaded Images ({form.images.length})
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setForm((current) => ({ ...current, images: [] }))}
-                      className="text-xs text-[#b67c60] hover:text-[#8b4513] transition-colors"
-                    >
-                      Clear all
-                    </button>
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium text-[#5a4b45]">Drag & drop images here</div>
+                    <div className="text-xs text-[#8a6f5f]">or click to browse, paste (Ctrl+V), or drag files</div>
                   </div>
-                  <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                    {form.images.map((img, idx) => (
-                      <div key={idx} className="group relative overflow-hidden rounded-xl border-2 border-[#ead9cf] bg-white shadow-sm hover:shadow-md transition-all">
-                        <img
-                          src={img}
-                          alt={`Preview ${idx}`}
-                          className="h-32 w-full object-cover group-hover:scale-105 transition-transform duration-200"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-                        <button
-                          type="button"
-                          onClick={() => setForm((current) => ({ ...current, images: (current.images as string[]).filter((_, i) => i !== idx) }))}
-                          className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shadow-md transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
-                          title="Remove image"
-                        >
-                          ✕
-                        </button>
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/40 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <p className="text-white text-xs truncate">Image {idx + 1}</p>
-                        </div>
+                </div>
+                
+                {form.images && (
+                  <div className="mt-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-medium uppercase tracking-[0.15em] text-[#7a655d]">
+                        {form.images.split(",").length} image{form.images.split(",").length !== 1 ? "s" : ""} added
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-3">
-                <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Add Colors</label>
-                <div className="space-y-2">
-                  {Array.isArray(form.colors) && form.colors.map((color, idx) => (
-                    <div key={idx} className="flex gap-2 items-center">
-                      <input
-                        type="text"
-                        value={color.name}
-                        onChange={(e) => {
-                          const updatedColors = [...form.colors];
-                          updatedColors[idx].name = e.target.value;
-                          setForm((current) => ({ ...current, colors: updatedColors }));
-                        }}
-                        className="flex-1 rounded-lg border border-[#ead9cf] bg-white px-3 py-2 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
-                        placeholder="Color name (e.g., Saffron)"
-                      />
-                      <input
-                        type="color"
-                        value={color.hex}
-                        onChange={(e) => {
-                          const updatedColors = [...form.colors];
-                          updatedColors[idx].hex = e.target.value;
-                          setForm((current) => ({ ...current, colors: updatedColors }));
-                        }}
-                        className="h-10 w-16 rounded-lg border border-[#ead9cf] cursor-pointer"
-                        title="Pick a color"
-                      />
-                      <div
-                        className="h-10 w-10 rounded-lg border-2 border-[#ead9cf]"
-                        style={{ backgroundColor: color.hex }}
-                      />
                       <button
                         type="button"
-                        onClick={() => setForm((current) => ({ ...current, colors: (current.colors as Array<{ name: string; hex: string }>).filter((_, i) => i !== idx) }))}
-                        className="px-3 py-2 bg-red-500/10 text-red-600 rounded-lg text-sm font-medium hover:bg-red-500/20"
+                        onClick={() => setForm((current) => ({ ...current, images: "" }))}
+                        className="text-xs text-[#c85a4d] hover:text-[#a84640]"
                       >
-                        Remove
+                        Clear all
                       </button>
                     </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => setForm((current) => ({ ...current, colors: [...(current.colors as Array<{ name: string; hex: string }>), { name: "", hex: "#000000" }] }))}
-                    className="w-full px-4 py-2 border border-dashed border-[#b67c60] rounded-lg text-[#b67c60] text-sm font-medium hover:bg-[#f8e9d7]"
-                  >
-                    + Add Color
-                  </button>
-                </div>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+                      {form.images.split(",").map((img, idx) => (
+                        img && (
+                          <div key={idx} className="relative group">
+                            <img
+                              src={img}
+                              alt={`Preview ${idx}`}
+                              className="h-20 w-20 rounded-lg object-cover border border-[#e0d0c3]"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const imgs = form.images.split(",");
+                                imgs.splice(idx, 1);
+                                setForm((current) => ({ ...current, images: imgs.join(",") }));
+                              }}
+                              className="absolute -top-2 -right-2 bg-[#c85a4d] text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs text-[#7a655d]">
-                  <span className="font-medium">REQUIRED FIELDS:</span>
-                  <span className={`font-semibold ${form.name && form.price && form.stock ? "text-green-600" : "text-red-500"}`}>
-                    {form.name && form.price && form.stock ? "✓ Ready to publish" : "✗ Missing required fields"}
-                  </span>
-                </div>
-                <button 
-                  type="submit" 
-                  disabled={!form.name || !form.price || !form.stock || isPublishing}
-                  className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3.5 text-sm font-semibold text-white shadow-lg transition-all ${
-                    form.name && form.price && form.stock && !isPublishing
-                      ? "bg-[#4b1f1d] shadow-[#4b1f1d]/20 hover:bg-[#3a160f] hover:shadow-lg hover:scale-105 cursor-pointer active:scale-95"
-                      : "bg-[#8b7965] shadow-[#8b7965]/20 cursor-not-allowed opacity-60"
-                  }`}
-                >
-                  {isPublishing ? (
-                    <>
-                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Publishing...
-                    </>
-                  ) : (
-                    <>
-                      Publish to storefront <ShoppingBag className="h-4 w-4" />
-                    </>
-                  )}
-                </button>
-              </div>
+              <button type="submit" className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#4b1f1d] px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#4b1f1d]/20">
+                Publish to storefront <ShoppingBag className="h-4 w-4" />
+              </button>
             </form>
           </div>
 
