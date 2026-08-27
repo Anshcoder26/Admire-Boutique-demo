@@ -5,6 +5,7 @@ import { LotusOrnament } from "@/components/lotus-ornament";
 import { Heart, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { ProductGrid } from "@/components/product-grid";
+import { products } from "@/data/products";
 import type { Product } from "@/data/products";
 
 export function WishlistPage() {
@@ -13,22 +14,16 @@ export function WishlistPage() {
 
   useEffect(() => {
     setMounted(true);
+    
     const wishlistIds = JSON.parse(localStorage.getItem("admire_wishlist") || "[]");
+    console.log("Wishlist IDs from localStorage:", wishlistIds);
     
     if (wishlistIds.length > 0) {
-      // Fetch all products and filter
-      fetch("/api/products")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && Array.isArray(data.data)) {
-            const filtered = data.data.filter((p: Product) => wishlistIds.includes(p.id));
-            setWishlistProducts(filtered);
-          }
-        })
-        .catch(() => {
-          // Fallback if API fails
-          setWishlistProducts([]);
-        });
+      const filtered = products.filter((p: Product) => 
+        wishlistIds.includes(p.id)
+      );
+      console.log("Filtered wishlist products:", filtered.length, filtered);
+      setWishlistProducts(filtered);
     }
   }, []);
 
