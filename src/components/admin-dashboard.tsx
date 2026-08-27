@@ -466,13 +466,119 @@ export function AdminDashboard() {
 
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Product photos</label>
-                <input
-                  type="text"
-                  value={form.images}
-                  onChange={(e) => setForm((current) => ({ ...current, images: e.target.value }))}
-                  className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
-                  placeholder="Add image URLs separated by commas"
-                />
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.add("border-[#8a6f5f]", "bg-[#f5ede5]");
+                  }}
+                  onDragLeave={(e) => {
+                    e.currentTarget.classList.remove("border-[#8a6f5f]", "bg-[#f5ede5]");
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove("border-[#8a6f5f]", "bg-[#f5ede5]");
+                    const files = Array.from(e.dataTransfer.files);
+                    files.forEach((file) => {
+                      if (file.type.startsWith("image/")) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          const base64 = event.target?.result as string;
+                          setForm((current) => ({
+                            ...current,
+                            images: current.images ? `${current.images},${base64}` : base64,
+                          }));
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    });
+                  }}
+                  onPaste={(e) => {
+                    const items = e.clipboardData?.items;
+                    if (!items) return;
+                    Array.from(items).forEach((item) => {
+                      if (item.type.startsWith("image/")) {
+                        const file = item.getAsFile();
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            const base64 = event.target?.result as string;
+                            setForm((current) => ({
+                              ...current,
+                              images: current.images ? `${current.images},${base64}` : base64,
+                            }));
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }
+                    });
+                  }}
+                  className="relative rounded-2xl border-2 border-dashed border-[#d9cabe] bg-[#fffaf7] p-6 text-center transition-colors cursor-pointer"
+                >
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => {
+                      Array.from(e.currentTarget.files || []).forEach((file) => {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          const base64 = event.target?.result as string;
+                          setForm((current) => ({
+                            ...current,
+                            images: current.images ? `${current.images},${base64}` : base64,
+                          }));
+                        };
+                        reader.readAsDataURL(file);
+                      });
+                    }}
+                    className="absolute inset-0 h-full w-full opacity-0 cursor-pointer"
+                  />
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium text-[#5a4b45]">Drag & drop images here</div>
+                    <div className="text-xs text-[#8a6f5f]">or click to browse, paste (Ctrl+V), or drag files</div>
+                  </div>
+                </div>
+                
+                {form.images && (
+                  <div className="mt-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-medium uppercase tracking-[0.15em] text-[#7a655d]">
+                        {form.images.split(",").length} image{form.images.split(",").length !== 1 ? "s" : ""} added
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setForm((current) => ({ ...current, images: "" }))}
+                        className="text-xs text-[#c85a4d] hover:text-[#a84640]"
+                      >
+                        Clear all
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+                      {form.images.split(",").map((img, idx) => (
+                        img && (
+                          <div key={idx} className="relative group">
+                            <img
+                              src={img}
+                              alt={`Preview ${idx}`}
+                              className="h-20 w-20 rounded-lg object-cover border border-[#e0d0c3]"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const imgs = form.images.split(",");
+                                imgs.splice(idx, 1);
+                                setForm((current) => ({ ...current, images: imgs.join(",") }));
+                              }}
+                              className="absolute -top-2 -right-2 bg-[#c85a4d] text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <button type="submit" className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#4b1f1d] px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#4b1f1d]/20">
