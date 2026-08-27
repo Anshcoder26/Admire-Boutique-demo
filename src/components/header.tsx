@@ -16,20 +16,47 @@ export function Header() {
   useEffect(() => {
     const syncHeader = async () => {
       try {
-        // Try to validate session with server
-        const response = await fetch("/api/auth/me", {
-          method: "GET",
-          credentials: "include",
-        });
+        let isAuth = false;
+        let isAdmin = false;
 
-        if (response.ok) {
-          const data = (await response.json()) as { user?: { name: string } };
-          setIsAuthenticated(!!data.user);
-        } else {
-          // Check localStorage as fallback
-          const token = window.localStorage.getItem("admire-user-token");
-          setIsAuthenticated(Boolean(token));
+        // Check for admin session/token
+        const adminToken = window.localStorage.getItem("admire-admin-token");
+        if (adminToken) {
+          try {
+            const adminRes = await fetch("/api/admin/me", {
+              headers: { Authorization: `Bearer ${adminToken}` },
+            });
+            isAdmin = adminRes.ok;
+            isAuth = isAdmin;
+          } catch {
+            // Admin check failed
+          }
         }
+
+        // Check for customer session
+        if (!isAuth) {
+          try {
+            const response = await fetch("/api/auth/me", {
+              method: "GET",
+              credentials: "include",
+            });
+
+            if (response.ok) {
+              const data = (await response.json()) as { user?: { name: string } };
+              isAuth = !!data.user;
+            }
+          } catch {
+            // Customer check failed
+          }
+        }
+
+        // Fallback to localStorage token check
+        if (!isAuth) {
+          const token = window.localStorage.getItem("admire-user-token");
+          isAuth = Boolean(token);
+        }
+
+        setIsAuthenticated(isAuth);
 
         // Sync cart
         const rawCart = window.localStorage.getItem("admire-cart");
@@ -40,7 +67,7 @@ export function Header() {
             : 0
         );
       } catch {
-        const token = window.localStorage.getItem("admire-user-token");
+        const token = window.localStorage.getItem("admire-user-token") || window.localStorage.getItem("admire-admin-token");
         setIsAuthenticated(Boolean(token));
       } finally {
         setIsLoading(false);
