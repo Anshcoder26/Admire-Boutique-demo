@@ -60,55 +60,190 @@ export function ProductsSearch({ products, onFilter }: ProductsSearchProps) {
   return (
     <>
       {/* Search and Filter Bar - Mobile Friendly */}
-      <div className="flex gap-3 items-center mb-4">
+      <div style={{ display: "flex", gap: "12px", alignItems: "center", marginBottom: "16px" }}>
         <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex-1 rounded-[22px] border border-[#eadcd3] bg-white p-3 shadow-sm hover:border-[#d4a894] transition-all hover:shadow-md flex items-center gap-2 text-[#8a6f5f]"
+          onClick={() => {
+            console.log("Search button clicked, opening modal");
+            setIsModalOpen(true);
+          }}
+          style={{
+            flex: 1,
+            borderRadius: "22px",
+            border: "1px solid #eadcd3",
+            backgroundColor: "white",
+            padding: "12px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            color: "#8a6f5f",
+            cursor: "pointer",
+            fontSize: "14px",
+            fontFamily: "inherit",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "#d4a894";
+            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "#eadcd3";
+            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
+          }}
           aria-label="Open search"
         >
-          <Search className="h-5 w-5" />
-          <span className="text-sm">Search kurtis...</span>
+          <Search size={20} />
+          <span>Search kurtis...</span>
         </button>
         
         <button
-          onClick={() => setIsModalOpen(true)}
-          className="rounded-[22px] border border-[#eadcd3] bg-white p-3 shadow-sm hover:border-[#d4a894] transition-all hover:shadow-md"
+          onClick={() => {
+            console.log("Filter button clicked, opening modal");
+            setIsModalOpen(true);
+          }}
+          style={{
+            borderRadius: "22px",
+            border: "1px solid #eadcd3",
+            backgroundColor: "white",
+            padding: "12px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#8a6f5f",
+            cursor: "pointer",
+            width: "44px",
+            height: "44px",
+            fontFamily: "inherit",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "#d4a894";
+            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "#eadcd3";
+            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
+          }}
           aria-label="Open filters"
         >
-          <Filter className="h-5 w-5 text-[#8a6f5f]" />
+          <Filter size={20} />
         </button>
       </div>
 
       {/* Active filters display */}
       {(searchTerm || selectedCategory || sortBy !== "featured") && (
-        <div className="flex flex-wrap gap-2 mb-4 items-center">
+        <div style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "8px",
+          marginBottom: "16px",
+          alignItems: "center",
+        }}>
           {searchTerm && (
-            <span className="inline-flex items-center gap-2 bg-[#f5e9e4] rounded-full px-3 py-1 text-sm text-[#5a403a]">
+            <span style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              backgroundColor: "#f5e9e4",
+              borderRadius: "9999px",
+              paddingLeft: "12px",
+              paddingRight: "12px",
+              paddingTop: "4px",
+              paddingBottom: "4px",
+              fontSize: "14px",
+              color: "#5a403a",
+            }}>
               Search: <strong>{searchTerm}</strong>
-              <button onClick={() => setSearchTerm("")} className="hover:text-[#4b1f1d]">
-                <X className="h-3.5 w-3.5" />
+              <button
+                onClick={() => setSearchTerm("")}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#5a403a",
+                  padding: "0 4px",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = "#4b1f1d"}
+                onMouseLeave={(e) => e.currentTarget.style.color = "#5a403a"}
+              >
+                <X size={14} />
               </button>
             </span>
           )}
           {selectedCategory && (
-            <span className="inline-flex items-center gap-2 bg-[#f5e9e4] rounded-full px-3 py-1 text-sm text-[#5a403a]">
+            <span style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              backgroundColor: "#f5e9e4",
+              borderRadius: "9999px",
+              paddingLeft: "12px",
+              paddingRight: "12px",
+              paddingTop: "4px",
+              paddingBottom: "4px",
+              fontSize: "14px",
+              color: "#5a403a",
+            }}>
               Category: <strong>{selectedCategory}</strong>
-              <button onClick={() => setSelectedCategory(null)} className="hover:text-[#4b1f1d]">
-                <X className="h-3.5 w-3.5" />
+              <button
+                onClick={() => setSelectedCategory(null)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#5a403a",
+                  padding: "0 4px",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = "#4b1f1d"}
+                onMouseLeave={(e) => e.currentTarget.style.color = "#5a403a"}
+              >
+                <X size={14} />
               </button>
             </span>
           )}
           {sortBy !== "featured" && (
-            <span className="inline-flex items-center gap-2 bg-[#f5e9e4] rounded-full px-3 py-1 text-sm text-[#5a403a]">
+            <span style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              backgroundColor: "#f5e9e4",
+              borderRadius: "9999px",
+              paddingLeft: "12px",
+              paddingRight: "12px",
+              paddingTop: "4px",
+              paddingBottom: "4px",
+              fontSize: "14px",
+              color: "#5a403a",
+            }}>
               Sort: <strong>{sortBy}</strong>
-              <button onClick={() => setSortBy("featured")} className="hover:text-[#4b1f1d]">
-                <X className="h-3.5 w-3.5" />
+              <button
+                onClick={() => setSortBy("featured")}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#5a403a",
+                  padding: "0 4px",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = "#4b1f1d"}
+                onMouseLeave={(e) => e.currentTarget.style.color = "#5a403a"}
+              >
+                <X size={14} />
               </button>
             </span>
           )}
           <button
             onClick={handleClearFilters}
-            className="text-xs font-medium text-[#7D1D1D] hover:text-[#4b1f1d] underline"
+            style={{
+              fontSize: "12px",
+              fontWeight: "600",
+              color: "#7D1D1D",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              textDecoration: "underline",
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.color = "#4b1f1d"}
+            onMouseLeave={(e) => e.currentTarget.style.color = "#7D1D1D"}
           >
             Clear all
           </button>
@@ -116,45 +251,148 @@ export function ProductsSearch({ products, onFilter }: ProductsSearchProps) {
       )}
 
       {/* Modal Dialog */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="w-full md:w-full md:max-w-2xl rounded-t-[32px] md:rounded-[32px] bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+      {isModalOpen ? (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.4)",
+          backdropFilter: "blur(4px)",
+          zIndex: 9999,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "16px",
+        }}>
+          <div style={{
+            backgroundColor: "white",
+            borderRadius: "32px",
+            padding: "24px",
+            boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
+            maxWidth: "600px",
+            width: "100%",
+            maxHeight: "90vh",
+            overflowY: "auto",
+          }}>
             {/* Modal header */}
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-serif text-[#201614]">Search & Filter</h2>
+            <div style={{
+              marginBottom: "24px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}>
+              <h2 style={{
+                fontSize: "24px",
+                fontWeight: "bold",
+                color: "#201614",
+                fontFamily: "Georgia, serif",
+                margin: 0,
+              }}>Search & Filter</h2>
               <button
-                onClick={() => setIsModalOpen(false)}
-                className="p-2 hover:bg-[#f5e9e4] rounded-full transition"
-                aria-label="Close modal"
+                onClick={() => {
+                  console.log("Close button clicked");
+                  setIsModalOpen(false);
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "24px",
+                  cursor: "pointer",
+                  color: "#8a6f5f",
+                  padding: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#f5e9e4";
+                  e.currentTarget.style.borderRadius = "50%";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }}
               >
-                <X className="h-6 w-6 text-[#8a6f5f]" />
+                <X size={24} />
               </button>
             </div>
 
-            <div className="space-y-6">
+            <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
               {/* Search input */}
               <div>
-                <label className="block text-sm font-semibold text-[#5a403a] mb-2 uppercase tracking-wide">Search</label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#8a6f5f]" />
+                <label style={{
+                  display: "block",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  color: "#5a403a",
+                  marginBottom: "8px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}>Search</label>
+                <div style={{ position: "relative" }}>
+                  <Search style={{
+                    position: "absolute",
+                    left: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "#8a6f5f",
+                  }} size={20} />
                   <input
                     type="text"
                     autoFocus
                     placeholder="Search by name or description..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-[16px] border border-[#eadcd3] bg-white outline-none focus:border-[#7D1D1D] transition"
+                    style={{
+                      width: "100%",
+                      paddingLeft: "40px",
+                      paddingRight: "16px",
+                      paddingTop: "12px",
+                      paddingBottom: "12px",
+                      borderRadius: "16px",
+                      border: "1px solid #eadcd3",
+                      backgroundColor: "white",
+                      outline: "none",
+                      fontSize: "16px",
+                      fontFamily: "inherit",
+                    }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = "#7D1D1D"}
+                    onBlur={(e) => e.currentTarget.style.borderColor = "#eadcd3"}
                   />
                 </div>
               </div>
 
               {/* Category filter */}
               <div>
-                <label className="block text-sm font-semibold text-[#5a403a] mb-2 uppercase tracking-wide">Category</label>
+                <label style={{
+                  display: "block",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  color: "#5a403a",
+                  marginBottom: "8px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}>Category</label>
                 <select
                   value={selectedCategory || ""}
                   onChange={(e) => setSelectedCategory(e.target.value || null)}
-                  className="w-full px-4 py-3 rounded-[16px] border border-[#eadcd3] bg-white outline-none focus:border-[#7D1D1D] accent-[#7D1D1D] transition text-[#5a403a]"
+                  style={{
+                    width: "100%",
+                    paddingLeft: "16px",
+                    paddingRight: "16px",
+                    paddingTop: "12px",
+                    paddingBottom: "12px",
+                    borderRadius: "16px",
+                    border: "1px solid #eadcd3",
+                    backgroundColor: "white",
+                    outline: "none",
+                    fontSize: "16px",
+                    fontFamily: "inherit",
+                    color: "#5a403a",
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = "#7D1D1D"}
+                  onBlur={(e) => e.currentTarget.style.borderColor = "#eadcd3"}
                 >
                   <option value="">All Categories</option>
                   {categories.map(cat => (
@@ -165,11 +403,34 @@ export function ProductsSearch({ products, onFilter }: ProductsSearchProps) {
 
               {/* Sort dropdown */}
               <div>
-                <label className="block text-sm font-semibold text-[#5a403a] mb-2 uppercase tracking-wide">Sort By</label>
+                <label style={{
+                  display: "block",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  color: "#5a403a",
+                  marginBottom: "8px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}>Sort By</label>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                  className="w-full px-4 py-3 rounded-[16px] border border-[#eadcd3] bg-white outline-none focus:border-[#7D1D1D] accent-[#7D1D1D] transition text-[#5a403a]"
+                  style={{
+                    width: "100%",
+                    paddingLeft: "16px",
+                    paddingRight: "16px",
+                    paddingTop: "12px",
+                    paddingBottom: "12px",
+                    borderRadius: "16px",
+                    border: "1px solid #eadcd3",
+                    backgroundColor: "white",
+                    outline: "none",
+                    fontSize: "16px",
+                    fontFamily: "inherit",
+                    color: "#5a403a",
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = "#7D1D1D"}
+                  onBlur={(e) => e.currentTarget.style.borderColor = "#eadcd3"}
                 >
                   <option value="featured">Featured</option>
                   <option value="price-low">Price: Low to High</option>
@@ -179,21 +440,60 @@ export function ProductsSearch({ products, onFilter }: ProductsSearchProps) {
               </div>
 
               {/* Results info */}
-              <div className="text-sm text-[#5a403a] bg-[#fffaf6] rounded-[16px] p-3 border border-[#eadcd3]">
+              <div style={{
+                fontSize: "14px",
+                color: "#5a403a",
+                backgroundColor: "#fffaf6",
+                borderRadius: "16px",
+                padding: "12px",
+                border: "1px solid #eadcd3",
+              }}>
                 Found <strong>{filtered.length}</strong> product{filtered.length !== 1 ? 's' : ''}
               </div>
 
               {/* Action buttons */}
-              <div className="flex gap-3">
+              <div style={{ display: "flex", gap: "12px" }}>
                 <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="flex-1 rounded-full bg-[#4b1f1d] px-6 py-3 text-center text-sm font-medium text-white shadow-lg shadow-[#4b1f1d]/15 transition hover:bg-[#341514]"
+                  onClick={() => {
+                    console.log("View Results clicked, closing modal");
+                    setIsModalOpen(false);
+                  }}
+                  style={{
+                    flex: 1,
+                    borderRadius: "9999px",
+                    backgroundColor: "#4b1f1d",
+                    color: "white",
+                    padding: "12px 24px",
+                    textAlign: "center",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    border: "none",
+                    cursor: "pointer",
+                    boxShadow: "0 4px 12px rgba(75, 31, 29, 0.15)",
+                    fontFamily: "inherit",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#341514"}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#4b1f1d"}
                 >
                   View Results
                 </button>
                 <button
                   onClick={handleClearFilters}
-                  className="flex-1 rounded-full border border-[#eadcd3] bg-white px-6 py-3 text-center text-sm font-medium text-[#5a403a] transition hover:bg-[#fffaf6]"
+                  style={{
+                    flex: 1,
+                    borderRadius: "9999px",
+                    border: "1px solid #eadcd3",
+                    backgroundColor: "white",
+                    color: "#5a403a",
+                    padding: "12px 24px",
+                    textAlign: "center",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#fffaf6"}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "white"}
                 >
                   Clear All
                 </button>
@@ -201,7 +501,7 @@ export function ProductsSearch({ products, onFilter }: ProductsSearchProps) {
             </div>
           </div>
         </div>
-      )}
+      ) : null}
       </>
     );
   }
