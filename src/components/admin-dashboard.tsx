@@ -974,23 +974,25 @@ export function AdminDashboard() {
           <div className="space-y-3">
             {catalog.map((item) => (
               <div key={item.id} className="flex flex-col gap-3 rounded-[24px] border border-[#efe1d7] bg-[#fffaf7] p-4 md:flex-row md:items-center md:justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f3e7db] text-[#4b1f1d]">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f3e7db] text-[#4b1f1d] shrink-0">
                     <Package className="h-5 w-5" />
                   </div>
-                  <div>
-                    <div className="font-medium text-[#201614]">{item.name}</div>
+                  <div className="min-w-0">
+                    <div className="font-medium text-[#201614] truncate">{item.name}</div>
                     <div className="text-xs uppercase tracking-[0.15em] text-[#7a675f]">{item.category}</div>
                   </div>
                 </div>
-                <div className="flex items-center justify-between gap-3 md:gap-6">
-                  <div>
-                    <div className="text-sm text-[#5b4a45]">{item.price}</div>
-                    <div className="text-xs text-[#7a675f]">{item.stock} in stock</div>
+                <div className="flex items-center justify-between gap-3 md:justify-end flex-wrap">
+                  <div className="flex gap-4 text-right">
+                    <div>
+                      <div className="text-sm text-[#5b4a45]">{item.price}</div>
+                      <div className="text-xs text-[#7a675f]">{item.stock} in stock</div>
+                    </div>
                   </div>
                   <button
                     onClick={() => setEditingProductId(item.id)}
-                    className="inline-flex items-center gap-2 rounded-full bg-[#4b1f1d] px-4 py-2 text-sm font-medium text-white hover:bg-[#3d1815] transition"
+                    className="shrink-0 inline-flex items-center gap-2 rounded-full bg-[#4b1f1d] px-4 py-2 text-sm font-medium text-white hover:bg-[#3d1815] transition"
                   >
                     <Edit className="h-4 w-4" />
                     Edit
