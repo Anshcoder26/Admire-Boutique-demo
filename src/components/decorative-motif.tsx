@@ -6,12 +6,12 @@ interface MotifProps {
 
 export function DecorativeMotif({
   className = "w-8 h-8",
-  color = "currentColor",
+  color = "#D4AF37",
   variant = "lotus",
 }: MotifProps) {
   if (variant === "lotus") {
     return (
-      <svg viewBox="0 0 100 100" className={className} fill="none" stroke={color} strokeWidth="1.5">
+      <svg viewBox="0 0 100 100" className={className}>
         {/* Lotus petals */}
         {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => (
           <ellipse
@@ -20,8 +20,9 @@ export function DecorativeMotif({
             cy="50"
             rx="20"
             ry="35"
+            fill={color}
             transform={`rotate(${angle} 50 50)`}
-            opacity="0.8"
+            opacity="0.7"
           />
         ))}
         {/* Center circle */}
@@ -32,7 +33,7 @@ export function DecorativeMotif({
 
   if (variant === "flower") {
     return (
-      <svg viewBox="0 0 100 100" className={className} fill="none" stroke={color} strokeWidth="1.5">
+      <svg viewBox="0 0 100 100" className={className}>
         {/* Petals */}
         {[0, 60, 120, 180, 240, 300].map((angle) => (
           <ellipse
@@ -41,32 +42,33 @@ export function DecorativeMotif({
             cy="50"
             rx="16"
             ry="28"
+            fill={color}
             transform={`rotate(${angle} 50 50)`}
-            opacity="0.7"
+            opacity="0.6"
           />
         ))}
         {/* Center */}
-        <circle cx="50" cy="50" r="10" fill={color} opacity="0.6" />
+        <circle cx="50" cy="50" r="10" fill={color} opacity="0.8" />
       </svg>
     );
   }
 
   if (variant === "diamond") {
     return (
-      <svg viewBox="0 0 100 100" className={className} fill="none" stroke={color} strokeWidth="1.5">
+      <svg viewBox="0 0 100 100" className={className}>
         {/* Four petals diamond shape */}
-        <path d="M 50 15 L 70 50 L 50 85 L 30 50 Z" />
+        <path d="M 50 15 L 70 50 L 50 85 L 30 50 Z" fill={color} opacity="0.7" />
         {/* Inner details */}
-        <line x1="50" y1="30" x2="50" y2="70" />
-        <line x1="35" y1="50" x2="65" y2="50" />
-        <circle cx="50" cy="50" r="8" fill={color} opacity="0.4" />
+        <line x1="50" y1="30" x2="50" y2="70" stroke={color} strokeWidth="1.5" opacity="0.5" />
+        <line x1="35" y1="50" x2="65" y2="50" stroke={color} strokeWidth="1.5" opacity="0.5" />
+        <circle cx="50" cy="50" r="8" fill={color} opacity="0.5" />
       </svg>
     );
   }
 
   // star variant
   return (
-    <svg viewBox="0 0 100 100" className={className} fill="none" stroke={color} strokeWidth="1.5">
+    <svg viewBox="0 0 100 100" className={className}>
       {/* Star petals */}
       {[0, 36, 72, 108, 144, 180, 216, 252, 288, 324].map((angle) => (
         <line
@@ -75,7 +77,9 @@ export function DecorativeMotif({
           y1="50"
           x2={50 + 30 * Math.cos((angle - 90) * (Math.PI / 180))}
           y2={50 + 30 * Math.sin((angle - 90) * (Math.PI / 180))}
-          opacity="0.7"
+          stroke={color}
+          strokeWidth="1.5"
+          opacity="0.6"
         />
       ))}
       {/* Center ornament */}
@@ -117,7 +121,7 @@ export function MotifCorner({
 
   return (
     <div className={`absolute ${positionClass} ${rotation} ${className}`}>
-      <svg viewBox="0 0 40 40" className="w-12 h-12 opacity-40" fill="none" stroke="#D4AF37" strokeWidth="0.8">
+      <svg viewBox="0 0 40 40" className="w-12 h-12 opacity-40" fill="none" stroke="#D4AF37" strokeWidth="1">
         <path d="M 35 5 L 35 20 M 20 5 L 5 5 L 5 20" strokeLinecap="round" />
         <circle cx="30" cy="10" r="2" fill="#D4AF37" opacity="0.6" />
       </svg>
