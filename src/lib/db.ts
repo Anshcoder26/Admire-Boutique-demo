@@ -1473,3 +1473,102 @@ export async function listRecentAdminOrders() {
 
   return rows.map((row) => ({ ...row, total: Number(row.total) }));
 }
+
+export async function getOrderById(orderId: string) {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query(
+      `SELECT * FROM orders WHERE id = $1`,
+      [orderId]
+    );
+    if (!result.rows.length) return null;
+    const row = result.rows[0];
+    return {
+      ...row,
+      subtotal: Number(row.sub_total),
+      shipping: Number(row.shipping),
+      discount: Number(row.discount),
+      total: Number(row.total),
+      items: row.items_json ? JSON.parse(row.items_json) : [],
+      shipping_address: row.shipping_address_json ? JSON.parse(row.shipping_address_json) : {},
+    };
+  }
+
+  const row = sqliteDb
+    .prepare(`SELECT * FROM orders WHERE id = ?`)
+    .get(orderId) as Record<string, any> | undefined;
+
+  if (!row) return null;
+
+  return {
+    ...row,
+    subtotal: row.sub_total,
+    shipping: row.shipping,
+    discount: row.discount,
+    total: row.total,
+    items: row.items_json ? JSON.parse(row.items_json) : [],
+    shipping_address: row.shipping_address_json ? JSON.parse(row.shipping_address_json) : {},
+  };
+}
+
+export async function updateOrder(
+  orderId: string,
+  updates: {
+    payment_status?: string;
+    razorpay_order_id?: string;
+    razorpay_payment_id?: string;
+    payment_verified_at?: string;
+    status?: string;
+  }
+) {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+
+    const setClauses: string[] = [];
+    const values: any[] = [];
+    let paramCount = 1;
+
+    if (updates.payment_status !== undefined) {
+      setClauses.push(`payment_status = $${paramCount++}`);
+      values.push(updates.payment_status);
+    }
+    if (updates.status !== undefined) {
+      setClauses.push(`status = $${paramCount++}`);
+      values.push(updates.status);
+    }
+    if (updates.razorpay_order_id !== undefined) {
+      setClauses.push(`razorpay_order_id = $${paramCount++}`);
+      values.push(updates.razorpay_order_id);
+    }
+    if (updates.razorpay_payment_id !== undefined) {
+      setClauses.push(`razorpay_payment_id = $${paramCount++}`);
+      values.push(updates.razorpay_payment_id);
+    }
+    if (updates.payment_verified_at !== undefined) {
+      setClauses.push(`payment_verified_at = $${paramCount++}`);
+      values.push(updates.payment_verified_at);
+    }
+
+    if (setClauses.length === 0) return;
+
+    values.push(orderId);
+    const query = `UPDATE orders SET ${setClauses.join(", ")} WHERE id = $${paramCount}`;
+
+    await postgresPool!.query(query, values);
+  } else {
+    const updateObj: Record<string, any> = {};
+
+    if (updates.payment_status !== undefined) updateObj.payment_status = updates.payment_status;
+    if (updates.status !== undefined) updateObj.status = updates.status;
+    if (updates.razorpay_order_id !== undefined) updateObj.razorpay_order_id = updates.razorpay_order_id;
+    if (updates.razorpay_payment_id !== undefined) updateObj.razorpay_payment_id = updates.razorpay_payment_id;
+    if (updates.payment_verified_at !== undefined) updateObj.payment_verified_at = updates.payment_verified_at;
+
+    const setClauses = Object.keys(updateObj).map((key) => `${key} = ?`);
+    const values = Object.values(updateObj);
+
+    if (setClauses.length === 0) return;
+
+    sqliteDb.prepare(`UPDATE orders SET ${setClauses.join(", ")} WHERE id = ?`).run(...values, orderId);
+  }
+}
