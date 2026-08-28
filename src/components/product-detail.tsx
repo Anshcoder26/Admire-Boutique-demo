@@ -280,15 +280,6 @@ export function ProductDetail({ product }: { product: Product }) {
         <div className="space-y-4">
           <div className="border border-[#7D1D1D]/15 rounded p-5 bg-[#fafaf9]">
             <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#6f2fbf] flex items-center gap-2">
-              <span className="text-lg">📦</span> Stock Status
-            </p>
-            <p className={`text-sm font-semibold mt-3 ${isSoldOut ? "text-[#8a1f1f]" : "text-[#1a1612]"}`}>
-              {isSoldOut ? "Sold Out" : `${product.stock} pieces available`}
-            </p>
-          </div>
-
-          <div className="border border-[#7D1D1D]/15 rounded p-5 bg-[#fafaf9]">
-            <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#6f2fbf] flex items-center gap-2">
               <span className="text-lg">🚚</span> Shipping
             </p>
             <p className="text-sm font-semibold mt-3 text-[#1a1612]">Free worldwide shipping</p>
