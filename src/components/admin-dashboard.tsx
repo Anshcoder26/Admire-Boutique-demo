@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Bell, CheckCircle2, LogOut, Package, Plus, Search, ShieldCheck, ShoppingBag, Sparkles, Trash2, TrendingUp, Users } from "lucide-react";
+import { ArrowRight, Bell, CheckCircle2, LogOut, Package, Plus, Search, ShieldCheck, ShoppingBag, Sparkles, Trash2, TrendingUp, Users, Edit } from "lucide-react";
 import { LotusOrnament } from "@/components/lotus-ornament";
+import { ProductEditor } from "@/components/admin-product-editor";
+import { OrderManagement } from "@/components/admin-order-management";
+import { CustomerManagement } from "@/components/admin-customer-management";
 import { categories } from "@/data/products";
 
 const productCategories = categories.map((category) => category.name);
@@ -87,6 +90,9 @@ export function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [email, setEmail] = useState("owner@admireboutique.in");
   const [password, setPassword] = useState("admire123");
+  const [adminToken, setAdminToken] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"publish" | "products" | "orders" | "customers">("publish");
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     category: productCategories[0] || "Premium Cotton",
@@ -490,8 +496,55 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      <section className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {statCards.map((card) => (
+      {/* Tab Navigation */}
+      <div className="mb-8 flex gap-2 border-b border-[#ead9cf]">
+        <button
+          onClick={() => setActiveTab("publish")}
+          className={`px-6 py-3 font-medium transition ${
+            activeTab === "publish"
+              ? "border-b-2 border-[#4b1f1d] text-[#4b1f1d]"
+              : "text-[#8a6f5f] hover:text-[#5a403a]"
+          }`}
+        >
+          Publish Product
+        </button>
+        <button
+          onClick={() => setActiveTab("products")}
+          className={`px-6 py-3 font-medium transition ${
+            activeTab === "products"
+              ? "border-b-2 border-[#4b1f1d] text-[#4b1f1d]"
+              : "text-[#8a6f5f] hover:text-[#5a403a]"
+          }`}
+        >
+          Edit Products
+        </button>
+        <button
+          onClick={() => setActiveTab("orders")}
+          className={`px-6 py-3 font-medium transition ${
+            activeTab === "orders"
+              ? "border-b-2 border-[#4b1f1d] text-[#4b1f1d]"
+              : "text-[#8a6f5f] hover:text-[#5a403a]"
+          }`}
+        >
+          Orders
+        </button>
+        <button
+          onClick={() => setActiveTab("customers")}
+          className={`px-6 py-3 font-medium transition ${
+            activeTab === "customers"
+              ? "border-b-2 border-[#4b1f1d] text-[#4b1f1d]"
+              : "text-[#8a6f5f] hover:text-[#5a403a]"
+          }`}
+        >
+          Customers
+        </button>
+      </div>
+
+      {/* Publish Product Tab */}
+      {activeTab === "publish" && (
+        <>
+          <section className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {statCards.map((card) => (
           <div key={card.label} className="rounded-[28px] border border-[#eadcce] bg-white p-5 shadow-[0_16px_28px_rgba(84,58,45,0.04)]">
             <div className={`mb-4 inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${card.accent}`}>
               {card.change}
@@ -500,9 +553,9 @@ export function AdminDashboard() {
             <div className="font-serif text-4xl text-[#201614]">{card.value}</div>
           </div>
         ))}
-      </section>
+        </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+        <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-6">
           <div className="rounded-[30px] border border-[#eadcce] bg-white p-5 shadow-[0_18px_36px_rgba(84,58,45,0.04)] md:p-6">
             <div className="mb-5 flex items-center justify-between gap-4">
@@ -907,6 +960,73 @@ export function AdminDashboard() {
           </div>
         </div>
       </section>
+        </>
+      )}
+
+      {/* Products Tab - Edit Existing Products */}
+      {activeTab === "products" && (
+        <div className="rounded-[30px] border border-[#eadcce] bg-white p-5 shadow-[0_18px_36px_rgba(84,58,45,0.04)] md:p-6">
+          <div className="mb-6">
+            <h2 className="font-serif text-3xl text-[#201614]">Edit Products</h2>
+            <p className="text-sm text-[#8a6f5f] mt-2">Click on a product to edit its details</p>
+          </div>
+
+          <div className="space-y-3">
+            {catalog.map((item) => (
+              <div key={item.id} className="flex flex-col gap-3 rounded-[24px] border border-[#efe1d7] bg-[#fffaf7] p-4 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f3e7db] text-[#4b1f1d]">
+                    <Package className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-[#201614]">{item.name}</div>
+                    <div className="text-xs uppercase tracking-[0.15em] text-[#7a675f]">{item.category}</div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-3 md:gap-6">
+                  <div>
+                    <div className="text-sm text-[#5b4a45]">{item.price}</div>
+                    <div className="text-xs text-[#7a675f]">{item.stock} in stock</div>
+                  </div>
+                  <button
+                    onClick={() => setEditingProductId(item.id)}
+                    className="inline-flex items-center gap-2 rounded-full bg-[#4b1f1d] px-4 py-2 text-sm font-medium text-white hover:bg-[#3d1815] transition"
+                  >
+                    <Edit className="h-4 w-4" />
+                    Edit
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Orders Tab */}
+      {activeTab === "orders" && adminToken && (
+        <div className="rounded-[30px] border border-[#eadcce] bg-white p-5 shadow-[0_18px_36px_rgba(84,58,45,0.04)] md:p-6">
+          <h2 className="font-serif text-3xl text-[#201614] mb-6">Orders Management</h2>
+          <OrderManagement token={adminToken} />
+        </div>
+      )}
+
+      {/* Customers Tab */}
+      {activeTab === "customers" && adminToken && (
+        <div className="rounded-[30px] border border-[#eadcce] bg-white p-5 shadow-[0_18px_36px_rgba(84,58,45,0.04)] md:p-6">
+          <h2 className="font-serif text-3xl text-[#201614] mb-6">Customer Management</h2>
+          <CustomerManagement token={adminToken} />
+        </div>
+      )}
+
+      {/* Product Editor Modal */}
+      {editingProductId && adminToken && (
+        <ProductEditor
+          token={adminToken}
+          productId={editingProductId}
+          onClose={() => setEditingProductId(null)}
+          onSave={() => setEditingProductId(null)}
+        />
+      )}
 
       <div className="mt-6 flex items-center justify-between rounded-[28px] border border-[#eadcce] bg-[#f7efe8] px-5 py-4">
         <div className="flex items-center gap-3">
