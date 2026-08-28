@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, X } from "lucide-react";
 import type { Product } from "@/data/products";
 
@@ -43,7 +43,7 @@ export function ProductsSearch({ products, onFilter }: ProductsSearchProps) {
     return result;
   }, [products, searchTerm, selectedCategory, sortBy]);
 
-  useMemo(() => {
+  useEffect(() => {
     onFilter(filtered);
   }, [filtered, onFilter]);
 
