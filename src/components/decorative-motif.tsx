@@ -11,7 +11,7 @@ export function DecorativeMotif({
 }: MotifProps) {
   if (variant === "lotus") {
     return (
-      <svg viewBox="0 0 100 100" className={className}>
+      <svg viewBox="0 0 100 100" className={className} style={{ display: "inline-block" }}>
         {/* Lotus petals */}
         {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => (
           <ellipse
@@ -33,7 +33,7 @@ export function DecorativeMotif({
 
   if (variant === "flower") {
     return (
-      <svg viewBox="0 0 100 100" className={className}>
+      <svg viewBox="0 0 100 100" className={className} style={{ display: "inline-block" }}>
         {/* Petals */}
         {[0, 60, 120, 180, 240, 300].map((angle) => (
           <ellipse
@@ -55,7 +55,7 @@ export function DecorativeMotif({
 
   if (variant === "diamond") {
     return (
-      <svg viewBox="0 0 100 100" className={className}>
+      <svg viewBox="0 0 100 100" className={className} style={{ display: "inline-block" }}>
         {/* Four petals diamond shape */}
         <path d="M 50 15 L 70 50 L 50 85 L 30 50 Z" fill={color} opacity="0.7" />
         {/* Inner details */}
@@ -68,7 +68,7 @@ export function DecorativeMotif({
 
   // star variant
   return (
-    <svg viewBox="0 0 100 100" className={className}>
+    <svg viewBox="0 0 100 100" className={className} style={{ display: "inline-block" }}>
       {/* Star petals */}
       {[0, 36, 72, 108, 144, 180, 216, 252, 288, 324].map((angle) => (
         <line
