@@ -1,21 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ProductsSearch } from "@/components/products-search";
 import { ProductGrid } from "@/components/product-grid";
 import type { Product } from "@/data/products";
 
 interface ProductsPageContentProps {
   initialProducts: Product[];
+  initialCategory?: string;
 }
 
-export function ProductsPageContent({ initialProducts }: ProductsPageContentProps) {
-  const [filteredProducts, setFilteredProducts] = useState(initialProducts);
+export function ProductsPageContent({ initialProducts, initialCategory }: ProductsPageContentProps) {
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(initialCategory);
+
+  // Apply initial category filter on mount
+  useEffect(() => {
+    if (initialCategory) {
+      const categoryFiltered = initialProducts.filter(p => p.category === initialCategory);
+      setFilteredProducts(categoryFiltered);
+    } else {
+      setFilteredProducts(initialProducts);
+    }
+  }, [initialCategory, initialProducts]);
+
+  const handleFilter = (filtered: Product[]) => {
+    setFilteredProducts(filtered);
+  };
 
   return (
     <div className="space-y-8">
       {/* Search and filters */}
-      <ProductsSearch products={initialProducts} onFilter={setFilteredProducts} />
+      <ProductsSearch 
+        products={initialProducts} 
+        onFilter={handleFilter}
+        initialCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+      />
 
       {/* Results */}
       {filteredProducts.length > 0 ? (

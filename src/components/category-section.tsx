@@ -22,7 +22,7 @@ export function CategorySection() {
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {categories.map((category) => (
-            <Link key={category.name} href="/products" className="group block overflow-hidden rounded-[28px] border border-[#e9e0d8] bg-white shadow-[0_12px_30px_rgba(86,65,55,0.05)] transition hover:-translate-y-1 hover:shadow-[0_18px_36px_rgba(86,65,55,0.08)]">
+            <Link key={category.name} href={`/products?category=${encodeURIComponent(category.name)}`} className="group block overflow-hidden rounded-[28px] border border-[#e9e0d8] bg-white shadow-[0_12px_30px_rgba(86,65,55,0.05)] transition hover:-translate-y-1 hover:shadow-[0_18px_36px_rgba(86,65,55,0.08)]">
               <div className="relative overflow-hidden">
                 <Image
                   src={category.image}

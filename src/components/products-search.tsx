@@ -7,13 +7,15 @@ import type { Product } from "@/data/products";
 interface ProductsSearchProps {
   products: Product[];
   onFilter: (filtered: Product[]) => void;
+  initialCategory?: string;
+  onCategoryChange?: (category: string | undefined) => void;
 }
 
-export function ProductsSearch({ products, onFilter }: ProductsSearchProps) {
+export function ProductsSearch({ products, onFilter, initialCategory, onCategoryChange }: ProductsSearchProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"featured" | "price-low" | "price-high" | "rating">("featured");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory || null);
 
   const categories = Array.from(new Set(products.map(p => p.category)));
 
@@ -46,6 +48,10 @@ export function ProductsSearch({ products, onFilter }: ProductsSearchProps) {
   useEffect(() => {
     onFilter(filtered);
   }, [filtered, onFilter]);
+
+  useEffect(() => {
+    onCategoryChange?.(selectedCategory || undefined);
+  }, [selectedCategory, onCategoryChange]);
 
   return (
     <>
