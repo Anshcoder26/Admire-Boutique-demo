@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from 'next/navigation';
 import { Heart, Shield, Truck, Check } from "lucide-react";
 import { ProductGallery } from "@/components/product-gallery";
+import { DecorativeMotif, MotifDivider, MotifCorner } from "@/components/decorative-motif";
 import type { Product } from "@/data/products";
 
 export function ProductDetail({ product }: { product: Product }) {
@@ -82,7 +83,10 @@ export function ProductDetail({ product }: { product: Product }) {
           {/* Header */}
           <div className="border-b border-[#7D1D1D]/15 pb-8">
             <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#6f2fbf]/80">{product.category}</p>
-            <h1 className="mt-3 font-serif text-4xl leading-tight text-[#1a1612] md:text-5xl">{product.name}</h1>
+            <div className="mt-3 flex items-start gap-3">
+              <DecorativeMotif className="w-6 h-6 text-[#D4AF37] flex-shrink-0 mt-1" variant="lotus" />
+              <h1 className="font-serif text-4xl leading-tight text-[#1a1612] md:text-5xl">{product.name}</h1>
+            </div>
             
             {product.stitchType && (
               <div className="mt-4 inline-flex items-center gap-2 border-l-2 border-[#D4AF37] pl-4">
@@ -252,7 +256,11 @@ export function ProductDetail({ product }: { product: Product }) {
       <div className="mt-20 grid gap-12 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <div className="border-b border-[#7D1D1D]/10 pb-8 mb-8">
-            <h2 className="font-serif text-3xl font-bold text-[#1a1612] mb-6">Product Details</h2>
+            <div className="flex items-center gap-4 mb-6">
+              <DecorativeMotif className="w-5 h-5 text-[#D4AF37]" variant="flower" />
+              <h2 className="font-serif text-3xl font-bold text-[#1a1612]">Product Details</h2>
+              <DecorativeMotif className="w-5 h-5 text-[#D4AF37]" variant="flower" />
+            </div>
             <p className="text-base leading-8 text-[#584942] whitespace-pre-line">{product.description}</p>
           </div>
 
@@ -297,14 +305,22 @@ export function ProductDetail({ product }: { product: Product }) {
 
       {/* Why Choose */}
       <div className="mt-20 border-t border-[#7D1D1D]/10 pt-12">
-        <h2 className="font-serif text-3xl font-bold text-[#1a1612] mb-8">Why Admire Boutique?</h2>
+        <MotifDivider className="mb-8" />
+        <div className="flex items-center justify-center gap-4 mb-8">
+          <DecorativeMotif className="w-6 h-6 text-[#D4AF37]" variant="lotus" />
+          <h2 className="font-serif text-3xl font-bold text-[#1a1612]">Why Admire Boutique?</h2>
+          <DecorativeMotif className="w-6 h-6 text-[#D4AF37]" variant="lotus" />
+        </div>
         <div className="grid gap-6 md:grid-cols-3">
           {[
             { title: "Premium Quality", desc: "Handpicked fabrics and superior craftsmanship" },
             { title: "Authentic Design", desc: "Traditional aesthetics meets modern elegance" },
             { title: "Perfect Fit", desc: "Available in multiple sizes and customization options" },
           ].map((item) => (
-            <div key={item.title} className="border border-[#7D1D1D]/10 rounded p-8 hover:shadow-md transition-all">
+            <div key={item.title} className="border border-[#7D1D1D]/10 rounded p-8 hover:shadow-md transition-all relative overflow-hidden group">
+              <div className="absolute top-0 right-0 opacity-20 group-hover:opacity-30 transition">
+                <DecorativeMotif className="w-12 h-12 text-[#D4AF37]" variant="diamond" />
+              </div>
               <h3 className="font-semibold text-[#1a1612] mb-3">{item.title}</h3>
               <p className="text-sm leading-6 text-[#584942]">{item.desc}</p>
             </div>
