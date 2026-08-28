@@ -23,7 +23,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: "Product not found" }, { status: 404 });
   }
 
-  return NextResponse.json(product);
+  // Parse JSON fields
+  return NextResponse.json({
+    ...product,
+    images: typeof product.images === "string" ? JSON.parse(product.images || "[]") : product.images || [],
+    colors: typeof product.colors === "string" ? JSON.parse(product.colors || "[]") : product.colors || [],
+  });
 }
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

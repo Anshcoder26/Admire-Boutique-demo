@@ -71,6 +71,13 @@ export function ProductEditor({
         if (res.ok) {
           const data = await res.json();
           setProduct(data);
+          
+          // Ensure colors and images are arrays
+          const colors = Array.isArray(data.colors) ? data.colors : 
+                        (typeof data.colors === "string" ? JSON.parse(data.colors) : []);
+          const images = Array.isArray(data.images) ? data.images :
+                        (typeof data.images === "string" ? JSON.parse(data.images) : []);
+          
           setForm({
             name: data.name,
             category: data.category,
@@ -78,8 +85,8 @@ export function ProductEditor({
             stock: data.stock,
             fabric: data.fabric,
             description: data.description,
-            images: data.images || [],
-            colors: data.colors || [],
+            images: images || [],
+            colors: colors || [],
             stitchType: data.stitch_type || "",
           });
         }
@@ -288,7 +295,7 @@ export function ProductEditor({
               </button>
             </div>
 
-            {form.colors && form.colors.length > 0 && (
+            {form.colors && Array.isArray(form.colors) && form.colors.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {form.colors.map((color, idx) => (
                   <span
