@@ -1,133 +1,92 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
+
+interface InstagramErrorResponse {
+  error?: {
+    message: string;
+  };
+}
 
 interface InstagramPost {
   id: string;
-  image: string;
-  caption: string;
-  link: string;
+  caption?: string;
+  media_type: string;
+  media_url?: string;
+  thumbnail_url?: string;
+  timestamp: string;
 }
 
-async function fetchFromInstagramAPI(): Promise<InstagramPost[] | null> {
-  const accountId = process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID;
-  const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
+interface InstagramResponse {
+  data?: InstagramPost[];
+  error?: {
+    message: string;
+  };
+}
 
-  if (!accountId || !accessToken) {
-    console.log('Instagram API credentials not configured');
-    return null;
+export async function GET() {
+  const accessToken = process.env.NEXT_PUBLIC_INSTAGRAM_ACCESS_TOKEN;
+
+  if (!accessToken) {
+    console.log("[Instagram] No access token configured");
+    return NextResponse.json(
+      {
+        posts: [],
+        message: "Instagram integration not configured",
+      },
+      { status: 200 }
+    );
   }
 
   try {
     const response = await fetch(
-      `https://graph.facebook.com/v20.0/${accountId}/media?fields=id,caption,media_type,media_url,permalink,timestamp&access_token=${accessToken}`,
-      {
-        next: { revalidate: 3600 }, // Cache for 1 hour (ISR)
-      }
+      `https://graph.instagram.com/me/media?fields=id,caption,media_type,media_url,thumbnail_url,timestamp&access_token=${accessToken}`,
+      { next: { revalidate: 3600 } }
     );
 
     if (!response.ok) {
-      console.error(`Instagram API error: ${response.status} ${response.statusText}`);
-      return null;
+      const errorData = (await response.json()) as InstagramErrorResponse;
+      console.log("[Instagram] API error:", errorData.error?.message);
+      return NextResponse.json(
+        {
+          posts: [],
+          message: "Instagram API unavailable",
+        },
+        { status: 200 }
+      );
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as InstagramResponse;
 
-    if (!data.data || data.data.length === 0) {
-      console.log('No Instagram posts found');
-      return null;
+    if (!data.data || data.error) {
+      console.log("[Instagram] No data or API error:", data.error?.message);
+      return NextResponse.json(
+        {
+          posts: [],
+          message: "No Instagram posts available",
+        },
+        { status: 200 }
+      );
     }
 
-    const posts: InstagramPost[] = data.data
-      .filter((post: any) => post.media_type === "IMAGE" || post.media_type === "CAROUSEL_ALBUM")
-      .slice(0, 3)
-      .map((post: any) => ({
-        id: post.id,
-        image: post.media_url || "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
-        caption: post.caption || "Check our latest collection ✨",
-        link: post.permalink || "https://www.instagram.com/admire_boutique.ab/",
-      }));
+    const posts = data.data.slice(0, 9).map((post: InstagramPost) => ({
+      id: post.id,
+      caption: post.caption || "",
+      image:
+        post.media_type === "VIDEO"
+          ? post.thumbnail_url || ""
+          : post.media_url || "",
+      link: `https://instagram.com/p/${post.id}`,
+      timestamp: post.timestamp,
+    }));
 
-    return posts;
+    return NextResponse.json({ posts }, { status: 200 });
   } catch (error) {
-    console.error('Error fetching from Instagram Graph API:', error);
-    return null;
-  }
-}
-
-function getFallbackPosts(): InstagramPost[] {
-  // Fallback to environment variables or placeholder
-  return [
-    {
-      id: '1',
-      image:
-        process.env.NEXT_PUBLIC_INSTA_POST_1 ||
-        "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
-      caption: process.env.NEXT_PUBLIC_INSTA_CAPTION_1 || 'Elegant kurtas for every occasion ✨',
-      link: 'https://www.instagram.com/admire_boutique.ab/',
-    },
-    {
-      id: '2',
-      image:
-        process.env.NEXT_PUBLIC_INSTA_POST_2 ||
-        "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
-      caption: process.env.NEXT_PUBLIC_INSTA_CAPTION_2 || 'Premium ethnic wear collection 🌸',
-      link: 'https://www.instagram.com/admire_boutique.ab/',
-    },
-    {
-      id: '3',
-      image:
-        process.env.NEXT_PUBLIC_INSTA_POST_3 ||
-        "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
-      caption: process.env.NEXT_PUBLIC_INSTA_CAPTION_3 || 'Festive looks that shine ✨',
-      link: 'https://www.instagram.com/admire_boutique.ab/',
-    },
-  ];
-}
-
-export async function GET() {
-  try {
-    // Try to fetch from Instagram Graph API first
-    const instagramPosts = await fetchFromInstagramAPI();
-
-    if (instagramPosts && instagramPosts.length > 0) {
-      return NextResponse.json({
-        success: true,
-        posts: instagramPosts,
-        source: 'instagram-graph-api',
-        message: 'Fetched latest posts from Instagram',
-      });
-    }
-
-    // Fallback to environment variables
-    const fallbackPosts = getFallbackPosts();
-
+    console.log("[Instagram] Fetch error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       {
-        success: true,
-        posts: fallbackPosts,
-        source: process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID ? 'fallback-after-api-error' : 'environment-config',
-        message: process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID
-          ? 'Using fallback (Instagram API error)'
-          : 'Using environment configuration',
-        note: 'Set INSTAGRAM_BUSINESS_ACCOUNT_ID and INSTAGRAM_ACCESS_TOKEN for automatic fetching',
+        posts: [],
+        message: "Instagram service temporarily unavailable",
       },
       { status: 200 }
     );
-  } catch (error) {
-    console.error('Error in Instagram API route:', error);
-
-    // Return fallback even on error
-    const fallbackPosts = getFallbackPosts();
-
-    return NextResponse.json(
-      {
-        success: false,
-        posts: fallbackPosts,
-        source: 'fallback-error',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 200 } // Return 200 with fallback data for reliability
-    );
   }
 }
-
-

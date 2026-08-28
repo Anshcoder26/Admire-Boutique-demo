@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from "react";
 import { ArrowLeft, PackageCheck } from "lucide-react";
 
@@ -18,12 +19,13 @@ type Order = {
 };
 
 export default function OrdersPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
     const token = window.localStorage.getItem("admire-user-token");
     if (!token) {
-      window.location.href = "/login";
+      router.push('/login');
       return;
     }
 

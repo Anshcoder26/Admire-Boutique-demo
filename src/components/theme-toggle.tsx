@@ -9,6 +9,7 @@ export function ThemeToggle() {
   useEffect(() => {
     const savedTheme = window.localStorage.getItem("admire-theme");
     const preferredTheme = savedTheme === "dark" || savedTheme === "light" ? savedTheme : "light";
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(preferredTheme);
     document.documentElement.dataset.theme = preferredTheme;
   }, []);

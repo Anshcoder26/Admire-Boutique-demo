@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from "react";
 import { ArrowRight, CheckCircle2, MapPin, PackageCheck, Truck } from "lucide-react";
 
@@ -46,6 +47,7 @@ type Order = {
 };
 
 export function AccountDashboard() {
+  const router = useRouter();
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -54,7 +56,7 @@ export function AccountDashboard() {
   useEffect(() => {
     const token = window.localStorage.getItem("admire-user-token");
     if (!token) {
-      window.location.href = "/login";
+      router.push('/login');
       return;
     }
 
@@ -68,7 +70,7 @@ export function AccountDashboard() {
           console.error("[ACCOUNT] Me endpoint failed:", meRes.status);
           window.localStorage.removeItem("admire-user-token");
           window.dispatchEvent(new Event("admire-auth-updated"));
-          window.location.href = "/login";
+          router.push('/login');
           return;
         }
 
@@ -83,7 +85,7 @@ export function AccountDashboard() {
       .catch((err) => {
         console.error("[ACCOUNT] Error loading account data:", err);
         window.localStorage.removeItem("admire-user-token");
-        window.location.href = "/login";
+        router.push('/login');
       })
       .finally(() => setLoading(false));
   }, []);

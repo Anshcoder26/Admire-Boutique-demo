@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCatalogProducts, saveCatalogProducts } from "@/lib/catalog-store";
+import { getCatalogProducts } from "@/lib/catalog-store";
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -13,15 +13,6 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   return NextResponse.json(product);
 }
 
-export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const products = await getCatalogProducts();
-  const filtered = products.filter((item) => item.id !== id && item.slug !== id);
-
-  if (filtered.length === products.length) {
-    return NextResponse.json({ error: "Product not found" }, { status: 404 });
-  }
-
-  await saveCatalogProducts(filtered);
-  return NextResponse.json({ success: true, deletedId: id });
-}
+// Product deletion is intentionally handled only by the protected admin route
+// `/api/admin/products/[id]` (requires a valid admin token). Do not expose an
+// unauthenticated DELETE here.

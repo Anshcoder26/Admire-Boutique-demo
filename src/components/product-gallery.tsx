@@ -15,7 +15,7 @@ export function ProductGallery({ images, name }: { images: string[]; name: strin
           <img
             src={activeImage}
             alt={name}
-            className="h-[420px] w-full rounded-[24px] object-contain md:h-[560px]"
+            className="h-[520px] w-full rounded-[24px] object-contain md:h-[680px] xl:h-[760px]"
           />
         ) : (
           <Image
@@ -23,7 +23,7 @@ export function ProductGallery({ images, name }: { images: string[]; name: strin
             alt={name}
             width={900}
             height={1200}
-            className="h-[420px] w-full rounded-[24px] object-contain md:h-[560px]"
+            className="h-[520px] w-full rounded-[24px] object-contain md:h-[680px] xl:h-[760px]"
           />
         )}
       </div>

@@ -24,6 +24,7 @@ export function OrderHistory() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     // Fetch from API
     fetch("/api/me/orders")

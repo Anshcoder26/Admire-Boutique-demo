@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
  * POST /api/auth/logout
  * Clears session cookies and invalidates the session
  */
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const response = NextResponse.json(
       { success: true, message: "Logged out successfully" },

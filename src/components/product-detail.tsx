@@ -2,34 +2,42 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Heart, Minus, Plus, ShieldCheck, Star, Truck } from "lucide-react";
-import { LotusOrnament } from "@/components/lotus-ornament";
+import { useRouter } from 'next/navigation';
+import { Heart, Shield, Truck, Check } from "lucide-react";
 import { ProductGallery } from "@/components/product-gallery";
 import type { Product } from "@/data/products";
 
 export function ProductDetail({ product }: { product: Product }) {
+  const router = useRouter();
+  const isSoldOut = Boolean(product.isSoldOut) || Number(product.stock) <= 0;
+  const isUnstitched = product.stitchType === "Unstitched";
   const [selectedColor, setSelectedColor] = useState(product.colors[0].name);
   const [selectedSize, setSelectedSize] = useState(product.sizes[2] || product.sizes[0]);
   const [quantity, setQuantity] = useState(1);
 
   const addProductToCart = (redirectToCheckout = false) => {
     if (typeof window === "undefined") return;
+    if (isSoldOut) {
+      window.alert(`${product.name} is currently sold out.`);
+      return;
+    }
 
     const cart = JSON.parse(window.localStorage.getItem("admire-cart") || "[]");
+    const effectiveSize = isUnstitched ? "Unstitched" : selectedSize;
     const item = {
       productId: product.id,
       name: product.name,
       color: selectedColor,
-      size: selectedSize,
-      variant: `${selectedColor} / ${selectedSize}`,
+      size: effectiveSize,
+      variant: isUnstitched ? `${selectedColor} / Unstitched` : `${selectedColor} / ${selectedSize}`,
       image: product.images[0],
       price: Number(product.price),
       quantity,
     };
 
     const existingIndex = cart.findIndex(
-      (entry: any) =>
-        entry.productId === product.id && entry.color === selectedColor && entry.size === selectedSize
+      (entry: { productId: string; color: string; size: string }) =>
+        entry.productId === product.id && entry.color === selectedColor && entry.size === effectiveSize
     );
 
     if (existingIndex >= 0) {
@@ -42,12 +50,11 @@ export function ProductDetail({ product }: { product: Product }) {
     window.dispatchEvent(new CustomEvent("admire-cart-updated"));
 
     if (redirectToCheckout) {
-      // Check if authenticated, if not redirect to login with cart intact
       const isAuthenticated = window.localStorage.getItem("admire-user-token");
       if (!isAuthenticated) {
-        window.location.href = "/login?redirect=/checkout";
+        router.push("/login?redirect=/checkout");
       } else {
-        window.location.href = "/checkout";
+        router.push("/checkout");
       }
       return;
     }
@@ -57,55 +64,88 @@ export function ProductDetail({ product }: { product: Product }) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-24 pt-8 md:px-8 lg:px-10">
-      <div className="mb-8 flex items-center gap-2 text-sm font-bold text-[#6f2fbf]">
+      {/* Breadcrumb */}
+      <div className="mb-8 flex items-center gap-2 text-sm text-[#6f2fbf]/70">
         <Link href="/" className="hover:text-[#7D1D1D] transition">Home</Link>
-        <span>/</span>
-        <Link href="/products" className="hover:text-[#7D1D1D] transition">Kurtis</Link>
-        <span>/</span>
-        <span className="text-[#7D1D1D]">{product.name}</span>
+        <span className="text-[#ccc]">—</span>
+        <Link href="/products" className="hover:text-[#7D1D1D] transition">Collection</Link>
+        <span className="text-[#ccc]">—</span>
+        <span className="text-[#1a1612] font-semibold">{product.name}</span>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid gap-12 lg:grid-cols-[1.25fr_0.75fr]">
+        {/* Image Gallery */}
         <ProductGallery images={product.images} name={product.name} />
 
-        <div className="space-y-6">
-          <div className="flex items-center gap-4 pb-4 border-b-2 border-[#7D1D1D]/30">
-            <LotusOrnament className="h-14 w-14 rounded-full border-2 border-[#7D1D1D]/40 bg-[#fff5f0] p-3 animate-float" />
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#7D1D1D]">{product.category}</p>
-              <h1 className="mt-2 font-serif text-5xl leading-tight text-[#1a1612] md:text-6xl">{product.name}</h1>
-            </div>
+        {/* Product Info */}
+        <div className="space-y-8">
+          {/* Header */}
+          <div className="border-b border-[#7D1D1D]/15 pb-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#6f2fbf]/80">{product.category}</p>
+            <h1 className="mt-3 font-serif text-4xl leading-tight text-[#1a1612] md:text-5xl">{product.name}</h1>
+            
+            {product.stitchType && (
+              <div className="mt-4 inline-flex items-center gap-2 border-l-2 border-[#D4AF37] pl-4">
+                <span className="text-xs font-bold uppercase tracking-[0.12em] text-[#5e3228]">
+                  {product.stitchType === "Stitched" ? "Stitched" : "Unstitched"}
+                </span>
+              </div>
+            )}
           </div>
 
+          {/* Rating & Reviews */}
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5 rounded-full bg-[#D4AF37]/15 px-4 py-2 border border-[#D4AF37]/30 text-[#D4AF37]">
-              <Star className="h-5 w-5 fill-current" />
-              <span className="text-sm font-bold">{product.rating}</span>
+            <div className="flex items-center gap-1.5">
+              <div className="flex gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-4 h-4 fill-[#D4AF37]" viewBox="0 0 20 20">
+                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                  </svg>
+                ))}
+              </div>
+              <span className="text-sm font-semibold text-[#1a1612]">{product.rating}</span>
             </div>
-            <span className="text-base font-semibold text-[#6f2fbf]">{product.reviews} verified reviews</span>
+            <span className="text-sm text-[#584942]">{product.reviews} verified reviews</span>
           </div>
 
-          <div className="flex items-end gap-4 py-4 border-y border-[#7D1D1D]/20">
-            <span className="text-5xl font-bold text-[#7D1D1D]">₹{product.price}</span>
-            <span className="text-xl text-[#999] line-through">₹{product.originalPrice}</span>
-            <span className="rounded-full bg-[#7D1D1D]/15 px-4 py-1.5 text-sm font-bold text-[#7D1D1D] border border-[#7D1D1D]/30">{product.discount}% off</span>
+          {/* Pricing */}
+          <div className="space-y-4 border-y border-[#7D1D1D]/10 py-6">
+            <div className="flex items-baseline gap-4">
+              <span className="text-5xl font-bold text-[#1a1612]">₹{product.price}</span>
+              <span className="text-lg text-[#999] line-through">₹{product.originalPrice}</span>
+              <span className="text-sm font-bold text-[#c8563e]">{product.discount}% off</span>
+            </div>
+            
+            {isSoldOut && (
+              <div className="text-sm font-semibold text-[#8a1f1f] bg-[#fdf0f0] border border-[#8a1f1f]/20 rounded px-4 py-2 w-fit">
+                Currently sold out
+              </div>
+            )}
           </div>
 
-          <div className="rounded-[28px] border-2 border-[#7D1D1D]/30 bg-[#fff5f0] p-5 shadow-md">
-            <div className="mb-3 flex items-center gap-3 text-base font-bold text-[#7D1D1D]">
-              <ShieldCheck className="h-5 w-5" />
-              ✓ Easy return within 7 days
+          {/* Trust Section */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-start gap-3 p-4 bg-[#fafaf9] rounded border border-[#ddd]/30">
+              <Shield className="w-5 h-5 text-[#7D1D1D] flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#6f2fbf]">7-Day Returns</p>
+                <p className="text-sm text-[#584942] mt-1">Easy, no-questions-asked</p>
+              </div>
             </div>
-            <div className="flex items-center gap-3 text-base font-bold text-[#6f2fbf]">
-              <Truck className="h-5 w-5" />
-              🚚 Delivery: 3-5 days | Cash on Delivery
+            <div className="flex items-start gap-3 p-4 bg-[#fafaf9] rounded border border-[#ddd]/30">
+              <Truck className="w-5 h-5 text-[#7D1D1D] flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#6f2fbf]">3-5 Day Delivery</p>
+                <p className="text-sm text-[#584942] mt-1">Free shipping included</p>
+              </div>
             </div>
           </div>
 
+          {/* Color Selection */}
           <div>
-            <div className="mb-4 flex items-center justify-between gap-2">
-              <span className="text-base font-bold text-[#1a1612]">🎨 Color</span>
-              <span className="px-4 py-1 rounded-full bg-gradient-to-r from-[#7D1D1D]/20 to-[#6f2fbf]/20 text-sm font-bold text-[#7D1D1D]">{selectedColor}</span>
+            <div className="flex items-center justify-between mb-4">
+              <label className="text-sm font-bold uppercase tracking-[0.1em] text-[#1a1612]">Select Color</label>
+              <span className="text-sm text-[#6f2fbf] font-semibold">{selectedColor}</span>
             </div>
             <div className="flex gap-3 flex-wrap items-center">
               {product.colors && product.colors.length > 0 ? (
@@ -113,8 +153,10 @@ export function ProductDetail({ product }: { product: Product }) {
                   <button
                     key={color.name}
                     onClick={() => setSelectedColor(color.name)}
-                    className={`h-14 w-14 md:h-12 md:w-12 rounded-full border-3 transition-all hover:scale-110 ${
-                      selectedColor === color.name ? "border-[#7D1D1D] shadow-md" : "border-[#7D1D1D]/30"
+                    className={`h-12 w-12 rounded-lg border-2 transition-all ${
+                      selectedColor === color.name 
+                        ? "border-[#7D1D1D] ring-2 ring-[#7D1D1D]/30 shadow-sm" 
+                        : "border-[#7D1D1D]/20 hover:border-[#7D1D1D]/60"
                     }`}
                     style={{ backgroundColor: color.hex || "#cccccc" }}
                     aria-label={color.name}
@@ -127,137 +169,147 @@ export function ProductDetail({ product }: { product: Product }) {
             </div>
           </div>
 
-          {/* Stitching Badge */}
-          {product.badge && (product.badge === "Stitched" || product.badge === "Unstitched") && (
-            <div className="mt-4 p-3 bg-[#f8e9d7] border border-[#d7a46c] rounded-lg">
-              <span className="text-sm font-semibold text-[#5e3228]">
-                {product.badge === "Stitched" ? "✂️ Stitched" : "🧵 Unstitched Cloth"}
-              </span>
+          {/* Size Selection */}
+          {!isUnstitched && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <label className="text-sm font-bold uppercase tracking-[0.1em] text-[#1a1612]">Select Size</label>
+                <Link href="#size-guide" className="text-xs font-semibold text-[#6f2fbf] hover:text-[#7D1D1D] transition">Size Guide</Link>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {product.sizes.map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setSelectedSize(size)}
+                    className={`h-11 min-w-[44px] px-4 flex items-center justify-center rounded border text-sm font-semibold transition-all ${
+                      selectedSize === size
+                        ? "border-[#7D1D1D] bg-[#7D1D1D] text-white shadow-md"
+                        : "border-[#7D1D1D]/30 bg-white text-[#1a1612] hover:border-[#7D1D1D]/60"
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
-          <div>
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-base font-bold text-[#1a1612]">📏 Size</span>
-              <Link href="#" className="text-sm font-bold text-[#00a8cc] hover:text-[#6f2fbf] transition">Size guide</Link>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              {product.sizes.map((size) => (
+          {/* Quantity & Actions */}
+          <div className="space-y-4 pt-4">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center border border-[#7D1D1D]/20 rounded">
                 <button
-                  key={size}
-                  onClick={() => setSelectedSize(size)}
-                  className={`flex h-14 w-14 md:h-12 md:w-12 items-center justify-center rounded-full border-2 text-sm font-bold transition-all min-h-[44px] min-w-[44px] ${
-                    selectedSize === size
-                      ? "border-[#7D1D1D] bg-[#7D1D1D] text-white shadow-md"
-                      : "border-[#7D1D1D]/30 bg-white text-[#1a1612] hover:border-[#7D1D1D]/60 hover:scale-105"
-                  }`}
+                  onClick={() => setQuantity((value) => Math.max(1, value - 1))}
+                  disabled={isSoldOut}
+                  className="px-4 py-3 text-[#7D1D1D] hover:bg-[#f9f7f6] transition"
                 >
-                  {size}
+                  −
                 </button>
-              ))}
-            </div>
-          </div>
+                <span className="px-6 py-3 text-base font-semibold text-[#1a1612] border-x border-[#7D1D1D]/20">{quantity}</span>
+                <button
+                  onClick={() => setQuantity((value) => value + 1)}
+                  disabled={isSoldOut}
+                  className="px-4 py-3 text-[#7D1D1D] hover:bg-[#f9f7f6] transition"
+                >
+                  +
+                </button>
+              </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-            <div className="flex items-center gap-3 rounded-full border-2 border-[#7D1D1D]/30 bg-white px-4 py-3">
-              <button
-                onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-                className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-[#f5e6f0] text-[#7D1D1D] font-bold text-lg transition min-h-[44px] min-w-[44px]"
-                aria-label="Decrease quantity"
-              >
-                −
-              </button>
-              <span className="w-8 text-center text-base font-bold text-[#1a1612]">{quantity}</span>
-              <button
-                onClick={() => setQuantity((value) => value + 1)}
-                className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-[#f5e6f0] text-[#7D1D1D] font-bold text-lg transition min-h-[44px] min-w-[44px]"
-                aria-label="Increase quantity"
-              >
-                +
+              <button className="flex items-center justify-center w-12 h-12 rounded border border-[#7D1D1D]/30 hover:bg-[#f9f7f6] transition" aria-label="Add to wishlist">
+                <Heart className="w-5 h-5 text-[#7D1D1D]" />
               </button>
             </div>
 
-            <button onClick={() => addProductToCart(false)} className="flex-1 rounded-full bg-[#7D1D1D] px-6 py-4 text-base font-bold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 active:scale-95 border border-[#7D1D1D]/40 min-h-[48px]">
-              🛍️ Add to Cart
-            </button>
-            <button className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#7D1D1D]/30 bg-white text-[#7D1D1D] hover:border-[#7D1D1D]/60 hover:bg-[#fff5f0] transition min-h-[44px] min-w-[44px]" aria-label="Add to wishlist">
-              <Heart className="h-6 w-6 fill-current" />
-            </button>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <button onClick={() => addProductToCart(true)} className="rounded-full border-2 border-[#7D1D1D] bg-white px-6 py-4 text-base font-bold text-[#7D1D1D] transition-all hover:bg-[#7D1D1D] hover:text-white hover:scale-105 active:scale-95">
-              💳 Buy Now
-            </button>
-            <button className="rounded-full bg-[#D4AF37] px-6 py-4 text-base font-bold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 active:scale-95 border border-[#D4AF37]/40">
-              👗 Try On at Home
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-16 grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">
-        <div className="rounded-[32px] border-2 border-[#7D1D1D]/30 bg-[#fff5f0] p-8 shadow-md">
-          <h2 className="mb-6 font-serif text-4xl font-bold text-[#7D1D1D] flex items-center gap-3">
-            <span className="text-2xl">📦</span> Product Details
-          </h2>
-          <p className="text-lg leading-8 text-[#584942]">{product.description}</p>
-
-          <div className="mt-8 grid gap-6 border-t-2 border-[#7D1D1D]/20 pt-6 md:grid-cols-2">
-            <div className="rounded-[20px] bg-white border-2 border-[#6f2fbf]/30 p-5">
-              <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-[#6f2fbf] flex items-center gap-2">🧵 Fabric</h3>
-              <p className="mt-3 text-base font-semibold text-[#1a1612]">{product.fabric}</p>
-            </div>
-            <div className="rounded-[20px] bg-white border-2 border-[#00a8cc]/30 p-5">
-              <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-[#00a8cc] flex items-center gap-2">🧺 Care</h3>
-              <p className="mt-3 text-base font-semibold text-[#1a1612]">Cold wash, line dry, minimal ironing</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4 rounded-[32px] border-2 border-[#D4AF37]/30 bg-[#fffbf8] p-8 shadow-md">
-          <div className="rounded-[16px] bg-white border-2 border-[#D4AF37]/30 p-4">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-[#1a1612] flex items-center gap-2">📊 Stock</span>
-              <span className="px-3 py-1 rounded-full bg-[#D4AF37]/15 font-bold text-[#D4AF37] border border-[#D4AF37]/30">{product.stock} left</span>
-            </div>
-          </div>
-          <div className="rounded-[16px] bg-white border-2 border-[#00a8cc]/30 p-4">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-[#1a1612] flex items-center gap-2">🚚 Shipping</span>
-              <span className="px-3 py-1 rounded-full bg-[#00a8cc]/15 font-bold text-[#00a8cc] border border-[#00a8cc]/30">Free</span>
-            </div>
-          </div>
-          <div className="rounded-[16px] bg-white border-2 border-[#6f2fbf]/30 p-4">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-[#1a1612] flex items-center gap-2">✅ Returns</span>
-              <span className="px-3 py-1 rounded-full bg-[#6f2fbf]/15 font-bold text-[#6f2fbf] border border-[#6f2fbf]/30">7 days</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <button
+                onClick={() => addProductToCart(false)}
+                disabled={isSoldOut}
+                className={`w-full py-4 px-6 rounded font-semibold text-base transition-all ${
+                  isSoldOut
+                    ? "cursor-not-allowed bg-[#e4dbd7] text-[#7d6f69]"
+                    : "bg-[#7D1D1D] text-white hover:bg-[#5a1515] active:scale-95"
+                }`}
+              >
+                {isSoldOut ? "Sold Out" : "Add to Cart"}
+              </button>
+              <button
+                onClick={() => addProductToCart(true)}
+                disabled={isSoldOut}
+                className={`w-full py-4 px-6 rounded font-semibold text-base border-2 transition-all ${
+                  isSoldOut
+                    ? "cursor-not-allowed border-[#c8b8b1] bg-[#e4dbd7] text-[#7d6f69]"
+                    : "border-[#7D1D1D] bg-white text-[#7D1D1D] hover:bg-[#7D1D1D] hover:text-white"
+                }`}
+              >
+                {isSoldOut ? "Sold Out" : "Buy Now"}
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="mt-16 rounded-[32px] border-2 border-[#7D1D1D]/30 bg-[#fff5f0] p-8 shadow-md">
-        <h2 className="mb-8 font-serif text-4xl font-bold text-[#1a1612] flex items-center gap-3"><span className="text-2xl">⭐</span> Why Shoppers Love It</h2>
+      {/* Product Details Section */}
+      <div className="mt-20 grid gap-12 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <div className="border-b border-[#7D1D1D]/10 pb-8 mb-8">
+            <h2 className="font-serif text-3xl font-bold text-[#1a1612] mb-6">Product Details</h2>
+            <p className="text-base leading-8 text-[#584942] whitespace-pre-line">{product.description}</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-8">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-[#6f2fbf] mb-3">Fabric</h3>
+              <p className="text-base font-semibold text-[#1a1612]">{product.fabric}</p>
+            </div>
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-[#6f2fbf] mb-3">Care Instructions</h3>
+              <p className="text-base font-semibold text-[#1a1612]">Cold wash, line dry, minimal ironing</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Info Cards */}
+        <div className="space-y-4">
+          <div className="border border-[#7D1D1D]/15 rounded p-5 bg-[#fafaf9]">
+            <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#6f2fbf] flex items-center gap-2">
+              <span className="text-lg">📦</span> Stock Status
+            </p>
+            <p className={`text-sm font-semibold mt-3 ${isSoldOut ? "text-[#8a1f1f]" : "text-[#1a1612]"}`}>
+              {isSoldOut ? "Sold Out" : `${product.stock} pieces available`}
+            </p>
+          </div>
+
+          <div className="border border-[#7D1D1D]/15 rounded p-5 bg-[#fafaf9]">
+            <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#6f2fbf] flex items-center gap-2">
+              <span className="text-lg">🚚</span> Shipping
+            </p>
+            <p className="text-sm font-semibold mt-3 text-[#1a1612]">Free worldwide shipping</p>
+          </div>
+
+          <div className="border border-[#7D1D1D]/15 rounded p-5 bg-[#fafaf9]">
+            <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#6f2fbf] flex items-center gap-2">
+              <Check className="w-4 h-4" /> Guarantee
+            </p>
+            <p className="text-sm font-semibold mt-3 text-[#1a1612]">7-day money-back guarantee</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Why Choose */}
+      <div className="mt-20 border-t border-[#7D1D1D]/10 pt-12">
+        <h2 className="font-serif text-3xl font-bold text-[#1a1612] mb-8">Why Admire Boutique?</h2>
         <div className="grid gap-6 md:grid-cols-3">
           {[
-            { icon: "✨", text: "Premium fabric feel with breathable comfort" },
-            { icon: "👗", text: "Tailored silhouettes that flatter various body types" },
-            { icon: "🎨", text: "Elegant colors designed for modern Indian wardrobes" },
+            { title: "Premium Quality", desc: "Handpicked fabrics and superior craftsmanship" },
+            { title: "Authentic Design", desc: "Traditional aesthetics meets modern elegance" },
+            { title: "Perfect Fit", desc: "Available in multiple sizes and customization options" },
           ].map((item) => (
-            <div key={item.text} className="rounded-[24px] bg-white border-2 border-[#7D1D1D]/20 p-6 shadow-md hover:shadow-lg transition-all hover:scale-105">
-              <div className="text-3xl mb-3">{item.icon}</div>
-              <p className="text-base leading-7 font-semibold text-[#584942]">{item.text}</p>
+            <div key={item.title} className="border border-[#7D1D1D]/10 rounded p-8 hover:shadow-md transition-all">
+              <h3 className="font-semibold text-[#1a1612] mb-3">{item.title}</h3>
+              <p className="text-sm leading-6 text-[#584942]">{item.desc}</p>
             </div>
           ))}
         </div>
-      </div>
-
-      <div className="mt-12 flex gap-4 justify-end md:hidden">
-        <button onClick={() => addProductToCart(false)} className="flex-1 rounded-full bg-gradient-to-r from-[#7D1D1D] to-[#a81566] px-5 py-3.5 text-sm font-bold text-white">🛍️ Add to cart</button>
-        <button className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#7D1D1D]/30 bg-white text-[#7D1D1D]">
-          <Heart className="h-5 w-5 fill-current" />
-        </button>
       </div>
     </div>
   );

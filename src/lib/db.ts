@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import fs from "node:fs";
 import path from "node:path";
 import Database from "better-sqlite3";
@@ -92,6 +93,7 @@ function parseJsonObject(value: unknown): Record<string, any> {
 }
 
 export function normalizeProductRow(row: Record<string, any>): Product {
+  const soldOutValue = row.is_sold_out ?? row.isSoldOut ?? false;
   return {
     id: row.id,
     slug: row.slug,
@@ -103,12 +105,14 @@ export function normalizeProductRow(row: Record<string, any>): Product {
     rating: Number(row.rating),
     reviews: Number(row.reviews),
     stock: Number(row.stock),
+    isSoldOut: soldOutValue === true || soldOutValue === 1 || soldOutValue === "1",
     badge: row.badge ?? undefined,
     fabric: row.fabric,
     description: row.description,
     images: parseJsonArray(row.images),
     colors: parseJsonArray(row.colors),
     sizes: parseJsonArray(row.sizes),
+    stitchType: (row.stitch_type ?? row.stitchType) || undefined,
   };
 }
 
@@ -370,12 +374,14 @@ if (!usesPostgres) {
       rating REAL NOT NULL,
       reviews INTEGER NOT NULL,
       stock INTEGER NOT NULL,
+      is_sold_out INTEGER NOT NULL DEFAULT 0,
       badge TEXT,
       fabric TEXT NOT NULL,
       description TEXT NOT NULL,
       images TEXT NOT NULL,
       colors TEXT NOT NULL,
       sizes TEXT NOT NULL,
+      stitch_type TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
@@ -452,13 +458,21 @@ if (!usesPostgres) {
     );
   `);
 
+  const sqliteProductColumns = sqliteDb.prepare("PRAGMA table_info(products)").all() as Array<{ name: string }>;
+  if (!sqliteProductColumns.some((column) => column.name === "is_sold_out")) {
+    sqliteDb.exec("ALTER TABLE products ADD COLUMN is_sold_out INTEGER NOT NULL DEFAULT 0;");
+  }
+  if (!sqliteProductColumns.some((column) => column.name === "stitch_type")) {
+    sqliteDb.exec("ALTER TABLE products ADD COLUMN stitch_type TEXT;");
+  }
+
   const productsCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM products").get() as { count: number };
   if (productsCount.count === 0) {
     const insertProduct = sqliteDb.prepare(`
       INSERT INTO products (
-        id, slug, name, category, price, originalPrice, discount, rating, reviews, stock, badge, fabric, description, images, colors, sizes
+        id, slug, name, category, price, originalPrice, discount, rating, reviews, stock, is_sold_out, badge, fabric, description, images, colors, sizes
       ) VALUES (
-        @id, @slug, @name, @category, @price, @originalPrice, @discount, @rating, @reviews, @stock, @badge, @fabric, @description, @images, @colors, @sizes
+        @id, @slug, @name, @category, @price, @originalPrice, @discount, @rating, @reviews, @stock, @is_sold_out, @badge, @fabric, @description, @images, @colors, @sizes
       )
     `);
 
@@ -466,6 +480,7 @@ if (!usesPostgres) {
       for (const product of seedProducts) {
         insertProduct.run({
           ...product,
+          is_sold_out: 0,
           images: JSON.stringify(product.images),
           colors: JSON.stringify(product.colors),
           sizes: JSON.stringify(product.sizes),
@@ -546,12 +561,14 @@ async function ensurePostgresReady() {
       rating DOUBLE PRECISION NOT NULL,
       reviews INTEGER NOT NULL,
       stock INTEGER NOT NULL,
+      is_sold_out BOOLEAN NOT NULL DEFAULT FALSE,
       badge TEXT,
       fabric TEXT NOT NULL,
       description TEXT NOT NULL,
       images TEXT NOT NULL,
       colors TEXT NOT NULL,
       sizes TEXT NOT NULL,
+      stitch_type TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
@@ -626,12 +643,22 @@ async function ensurePostgresReady() {
     );
   `);
 
+  await postgresPool.query(`
+    ALTER TABLE products
+    ADD COLUMN IF NOT EXISTS is_sold_out BOOLEAN NOT NULL DEFAULT FALSE
+  `);
+
+  await postgresPool.query(`
+    ALTER TABLE products
+    ADD COLUMN IF NOT EXISTS stitch_type TEXT
+  `);
+
   const productCount = await postgresPool.query("SELECT COUNT(*) as count FROM products");
   if (Number(productCount.rows[0]?.count ?? 0) === 0) {
     for (const product of seedProducts) {
       await postgresPool.query(
-        `INSERT INTO products (id, slug, name, category, price, "originalPrice", discount, rating, reviews, stock, badge, fabric, description, images, colors, sizes)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+        `INSERT INTO products (id, slug, name, category, price, "originalPrice", discount, rating, reviews, stock, is_sold_out, badge, fabric, description, images, colors, sizes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
         [
           product.id,
           product.slug,
@@ -643,6 +670,7 @@ async function ensurePostgresReady() {
           product.rating,
           product.reviews,
           product.stock,
+          false,
           product.badge ?? null,
           product.fabric,
           product.description,
@@ -799,6 +827,8 @@ export async function createProduct(input: {
   images?: string[];
   colors?: Array<{ name: string; hex: string }>;
   sizes?: string[];
+  isSoldOut?: boolean;
+  stitchType?: "Stitched" | "Unstitched";
 }) {
   const slug = input.name
     .toLowerCase()
@@ -821,6 +851,7 @@ export async function createProduct(input: {
     rating: 4.8,
     reviews: 0,
     stock: input.stock,
+    isSoldOut: Boolean(input.isSoldOut),
     badge: input.badge || "New",
     fabric: input.fabric,
     description: input.description || "Curated for the Admire Boutique collection.",
@@ -831,13 +862,14 @@ export async function createProduct(input: {
     ],
     colors: input.colors || [{ name: "Terracotta", hex: "#c06a4f" }],
     sizes: input.sizes || ["XS", "S", "M", "L", "XL"],
+    stitchType: input.stitchType,
   };
 
   if (usesPostgres) {
     await ensurePostgresReady();
     await postgresPool!.query(
-      `INSERT INTO products (id, slug, name, category, price, "originalPrice", discount, rating, reviews, stock, badge, fabric, description, images, colors, sizes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+      `INSERT INTO products (id, slug, name, category, price, "originalPrice", discount, rating, reviews, stock, is_sold_out, badge, fabric, description, images, colors, sizes, stitch_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
       [
         product.id,
         product.slug,
@@ -849,31 +881,35 @@ export async function createProduct(input: {
         product.rating,
         product.reviews,
         product.stock,
+        product.isSoldOut,
         product.badge,
         product.fabric,
         product.description,
         JSON.stringify(product.images),
         JSON.stringify(product.colors),
         JSON.stringify(product.sizes),
+        product.stitchType ?? null,
       ]
     );
-    return normalizeProductRow({ ...product, images: JSON.stringify(product.images), colors: JSON.stringify(product.colors), sizes: JSON.stringify(product.sizes) });
+    return normalizeProductRow({ ...product, stitch_type: product.stitchType ?? null, images: JSON.stringify(product.images), colors: JSON.stringify(product.colors), sizes: JSON.stringify(product.sizes) });
   }
 
   sqliteDb.prepare(
     `INSERT INTO products (
-      id, slug, name, category, price, originalPrice, discount, rating, reviews, stock, badge, fabric, description, images, colors, sizes
+      id, slug, name, category, price, originalPrice, discount, rating, reviews, stock, is_sold_out, badge, fabric, description, images, colors, sizes, stitch_type
     ) VALUES (
-      @id, @slug, @name, @category, @price, @originalPrice, @discount, @rating, @reviews, @stock, @badge, @fabric, @description, @images, @colors, @sizes
+      @id, @slug, @name, @category, @price, @originalPrice, @discount, @rating, @reviews, @stock, @is_sold_out, @badge, @fabric, @description, @images, @colors, @sizes, @stitch_type
     )`
   ).run({
     ...product,
+    is_sold_out: product.isSoldOut ? 1 : 0,
+    stitch_type: product.stitchType ?? null,
     images: JSON.stringify(product.images),
     colors: JSON.stringify(product.colors),
     sizes: JSON.stringify(product.sizes),
   });
 
-  return normalizeProductRow({ ...product, images: JSON.stringify(product.images), colors: JSON.stringify(product.colors), sizes: JSON.stringify(product.sizes) });
+  return normalizeProductRow({ ...product, stitch_type: product.stitchType ?? null, images: JSON.stringify(product.images), colors: JSON.stringify(product.colors), sizes: JSON.stringify(product.sizes) });
 }
 
 export async function replaceAllProducts(products: Product[]) {
@@ -883,8 +919,8 @@ export async function replaceAllProducts(products: Product[]) {
 
     for (const product of products) {
       await postgresPool!.query(
-        `INSERT INTO products (id, slug, name, category, price, "originalPrice", discount, rating, reviews, stock, badge, fabric, description, images, colors, sizes)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+        `INSERT INTO products (id, slug, name, category, price, "originalPrice", discount, rating, reviews, stock, is_sold_out, badge, fabric, description, images, colors, sizes, stitch_type)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
         [
           product.id,
           product.slug,
@@ -896,12 +932,14 @@ export async function replaceAllProducts(products: Product[]) {
           product.rating,
           product.reviews,
           product.stock,
+          Boolean(product.isSoldOut),
           product.badge ?? null,
           product.fabric,
           product.description,
           JSON.stringify(product.images || []),
           JSON.stringify(product.colors || []),
           JSON.stringify(product.sizes || []),
+          product.stitchType ?? null,
         ]
       );
     }
@@ -913,15 +951,17 @@ export async function replaceAllProducts(products: Product[]) {
     sqliteDb.prepare("DELETE FROM products").run();
     const insert = sqliteDb.prepare(`
       INSERT INTO products (
-        id, slug, name, category, price, originalPrice, discount, rating, reviews, stock, badge, fabric, description, images, colors, sizes
+        id, slug, name, category, price, originalPrice, discount, rating, reviews, stock, is_sold_out, badge, fabric, description, images, colors, sizes, stitch_type
       ) VALUES (
-        @id, @slug, @name, @category, @price, @originalPrice, @discount, @rating, @reviews, @stock, @badge, @fabric, @description, @images, @colors, @sizes
+        @id, @slug, @name, @category, @price, @originalPrice, @discount, @rating, @reviews, @stock, @is_sold_out, @badge, @fabric, @description, @images, @colors, @sizes, @stitch_type
       )
     `);
 
     for (const product of products) {
       insert.run({
         ...product,
+        is_sold_out: product.isSoldOut ? 1 : 0,
+        stitch_type: product.stitchType ?? null,
         images: JSON.stringify(product.images || []),
         colors: JSON.stringify(product.colors || []),
         sizes: JSON.stringify(product.sizes || []),
@@ -942,6 +982,34 @@ export async function deleteProductById(id: string) {
 
   const result = sqliteDb.prepare("DELETE FROM products WHERE id = ? OR slug = ?").run(id, id);
   return result.changes > 0;
+}
+
+export async function setProductSoldOutStatus(id: string, isSoldOut: boolean): Promise<Product | null> {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query(
+      `UPDATE products
+       SET is_sold_out = $1, updated_at = NOW()
+       WHERE id = $2 OR slug = $2
+       RETURNING *`,
+      [isSoldOut, id]
+    );
+    const row = result.rows[0];
+    return row ? normalizeProductRow(row) : null;
+  }
+
+  const updateResult = sqliteDb.prepare(
+    `UPDATE products
+     SET is_sold_out = ?, updated_at = CURRENT_TIMESTAMP
+     WHERE id = ? OR slug = ?`
+  ).run(isSoldOut ? 1 : 0, id, id);
+
+  if (updateResult.changes === 0) {
+    return null;
+  }
+
+  const row = sqliteDb.prepare("SELECT * FROM products WHERE id = ? OR slug = ? LIMIT 1").get(id, id) as Record<string, any> | undefined;
+  return row ? normalizeProductRow(row) : null;
 }
 
 export async function verifyAdminCredentials(email: string, password: string): Promise<AdminUserRecord | null> {

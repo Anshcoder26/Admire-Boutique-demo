@@ -124,7 +124,7 @@ export default function ForgotPasswordPage() {
                   Reset password
                 </h1>
                 <p className="text-base text-[#5a4b45]">
-                  Enter your email address and we'll send you a link to reset your password.
+                  Enter your email address and we&apos;ll send you a link to reset your password.
                 </p>
               </div>
 
@@ -210,7 +210,7 @@ export default function ForgotPasswordPage() {
                 Check your email for a password reset link. The link will expire in 1 hour.
               </p>
               <p className="text-sm text-[#8a6f5f] mb-6">
-                Don't see the email? Check your spam folder or{" "}
+                Don&apos;t see the email? Check your spam folder or{" "}
                 <button
                   onClick={() => {
                     setSubmitted(false);

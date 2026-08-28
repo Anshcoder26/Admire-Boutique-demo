@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Camera, MessageCircle, Video } from "lucide-react";
+import { Camera, Video } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 

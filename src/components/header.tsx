@@ -5,60 +5,23 @@ import { Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LotusOrnament } from "@/components/lotus-ornament";
+import { useAuth } from "@/providers/auth-provider";
 
 export function Header() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { isAuthenticated, isLoading, userType } = useAuth();
   const [cartCount, setCartCount] = useState(0);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const router = useRouter();
 
+  const accountHref = isAuthenticated
+    ? userType === "admin"
+      ? "/admin"
+      : "/account"
+    : "/login";
+
   useEffect(() => {
-    const syncHeader = async () => {
+    const syncCart = () => {
       try {
-        let isAuth = false;
-        let isAdmin = false;
-
-        // Check for admin session/token
-        const adminToken = window.localStorage.getItem("admire-admin-token");
-        if (adminToken) {
-          try {
-            const adminRes = await fetch("/api/admin/me", {
-              headers: { Authorization: `Bearer ${adminToken}` },
-            });
-            isAdmin = adminRes.ok;
-            isAuth = isAdmin;
-          } catch {
-            // Admin check failed
-          }
-        }
-
-        // Check for customer session
-        if (!isAuth) {
-          try {
-            const response = await fetch("/api/auth/me", {
-              method: "GET",
-              credentials: "include",
-            });
-
-            if (response.ok) {
-              const data = (await response.json()) as { user?: { name: string } };
-              isAuth = !!data.user;
-            }
-          } catch {
-            // Customer check failed
-          }
-        }
-
-        // Fallback to localStorage token check
-        if (!isAuth) {
-          const token = window.localStorage.getItem("admire-user-token");
-          isAuth = Boolean(token);
-        }
-
-        setIsAuthenticated(isAuth);
-
-        // Sync cart
         const rawCart = window.localStorage.getItem("admire-cart");
         const cart = rawCart ? JSON.parse(rawCart) : [];
         setCartCount(
@@ -67,18 +30,15 @@ export function Header() {
             : 0
         );
       } catch {
-        const token = window.localStorage.getItem("admire-user-token") || window.localStorage.getItem("admire-admin-token");
-        setIsAuthenticated(Boolean(token));
-      } finally {
-        setIsLoading(false);
+        setCartCount(0);
       }
     };
 
-    syncHeader();
+    syncCart();
 
-    const events = ["admire-cart-updated", "admire-auth-updated", "storage", "focus", "pageshow"] as const;
+    const events = ["admire-cart-updated", "storage", "focus", "pageshow"] as const;
     for (const eventName of events) {
-      window.addEventListener(eventName, syncHeader);
+      window.addEventListener(eventName, syncCart);
     }
 
     // Keyboard shortcut for search
@@ -92,7 +52,7 @@ export function Header() {
 
     return () => {
       for (const eventName of events) {
-        window.removeEventListener(eventName, syncHeader);
+        window.removeEventListener(eventName, syncCart);
       }
       window.removeEventListener("keydown", handleKeyDown);
     };
@@ -139,7 +99,7 @@ export function Header() {
             <Link href="/products" className="hover:text-[#7D1D1D] transition">Formals</Link>
             <Link href="/products" className="hover:text-[#7D1D1D] transition">Sale</Link>
             <Link href="/faq" className="hover:text-[#7D1D1D] transition">FAQ</Link>
-            <Link href={isAuthenticated ? "/account" : "/login"} className="rounded-full bg-[#7D1D1D] px-4 py-2 text-white hover:bg-[#6B1D1D] transition font-semibold">
+            <Link href={accountHref} className="rounded-full bg-[#7D1D1D] px-4 py-2 text-white hover:bg-[#6B1D1D] transition font-semibold">
               {isLoading ? "..." : isAuthenticated ? "Account" : "Sign in"}
             </Link>
           </nav>
@@ -156,7 +116,7 @@ export function Header() {
             <Link href="/wishlist" className="flex h-12 w-12 items-center justify-center rounded-full border border-[#7D1D1D]/30 bg-white text-[#7D1D1D] hover:bg-[#fff5f0] transition" aria-label="Wishlist">
               <Heart className="h-5 w-5" />
             </Link>
-            <Link href={isAuthenticated ? "/account" : "/login"} className="flex h-12 w-12 items-center justify-center rounded-full border border-[#7D1D1D]/30 bg-white text-[#7D1D1D] hover:bg-[#fff5f0] transition" aria-label="Account">
+            <Link href={accountHref} className="flex h-12 w-12 items-center justify-center rounded-full border border-[#7D1D1D]/30 bg-white text-[#7D1D1D] hover:bg-[#fff5f0] transition" aria-label="Account">
               <User className="h-5 w-5" />
             </Link>
             <Link href="/cart" className="relative flex h-12 w-12 items-center justify-center rounded-full bg-[#7D1D1D] text-white shadow-md hover:shadow-lg transition animate-subtle-pulse" aria-label={`Cart with ${cartCount} items`}>

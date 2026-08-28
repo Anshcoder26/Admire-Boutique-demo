@@ -7,8 +7,14 @@ import { WishlistHeart } from "@/components/wishlist-heart";
 import type { Product } from "@/data/products";
 
 export function ProductCard({ product }: { product: Product }) {
+  const isSoldOut = Boolean(product.isSoldOut) || Number(product.stock) <= 0;
+
   const handleQuickAdd = () => {
     if (typeof window === "undefined") return;
+    if (isSoldOut) {
+      window.alert(`${product.name} is currently sold out.`);
+      return;
+    }
 
     const cart = JSON.parse(window.localStorage.getItem("admire-cart") || "[]");
     const item = {
@@ -23,7 +29,7 @@ export function ProductCard({ product }: { product: Product }) {
     };
 
     const existingIndex = cart.findIndex(
-      (entry: any) =>
+      (entry: { productId: string; color: string; size: string }) =>
         entry.productId === product.id &&
         entry.color === item.color &&
         entry.size === item.size,
@@ -77,7 +83,11 @@ export function ProductCard({ product }: { product: Product }) {
          <WishlistHeart
            productId={product.id}
          />
-         {product.badge ? (
+         {isSoldOut ? (
+           <span className="absolute left-3 top-3 rounded-full bg-[#8a1f1f] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-white shadow-md border border-[#8a1f1f]/40">
+             Sold Out
+           </span>
+         ) : product.badge ? (
            <span className="absolute left-3 top-3 rounded-full bg-gradient-to-r from-[#7D1D1D] to-[#D4AF37] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-white shadow-md border border-[#7D1D1D]/40 animate-shimmer">
              {product.badge}
            </span>
@@ -118,10 +128,15 @@ export function ProductCard({ product }: { product: Product }) {
              e.preventDefault();
              handleQuickAdd();
            }}
-           className="flex w-full min-h-[48px] items-center justify-center gap-2 rounded-full border border-[#7D1D1D]/30 bg-gradient-to-r from-[#7D1D1D] to-[#8B7355] px-4 py-3.5 text-sm font-bold text-white shadow-md transition-all hover:scale-110 hover:animate-subtle-pulse hover:shadow-xl active:scale-95 md:min-h-[44px] md:py-3"
+           disabled={isSoldOut}
+           className={`flex w-full min-h-[48px] items-center justify-center gap-2 rounded-full border px-4 py-3.5 text-sm font-bold shadow-md transition-all md:min-h-[44px] md:py-3 ${
+             isSoldOut
+               ? "cursor-not-allowed border-[#c8b8b1] bg-[#e4dbd7] text-[#7d6f69]"
+               : "border-[#7D1D1D]/30 bg-gradient-to-r from-[#7D1D1D] to-[#8B7355] text-white hover:scale-110 hover:animate-subtle-pulse hover:shadow-xl active:scale-95"
+           }`}
          >
            <ShoppingBag className="h-5 w-5 transition-transform group-hover:scale-110" />
-           Quick Add
+           {isSoldOut ? "Sold Out" : "Quick Add"}
          </button>
        </div>
      </article>

@@ -9,11 +9,14 @@ export interface AuthUser {
   phone?: string;
 }
 
+export type UserType = "customer" | "admin";
+
 interface AuthContextType {
   user: AuthUser | null;
+  userType: UserType | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (user: AuthUser) => void;
+  login: (user: AuthUser, userType?: UserType) => void;
   logout: () => void;
   refreshSession: () => Promise<boolean>;
 }
@@ -22,6 +25,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [userType, setUserType] = useState<UserType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -36,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!response.ok) {
         setUser(null);
+        setUserType(null);
         // Clear stored token if session is invalid
         if (typeof window !== "undefined") {
           window.localStorage.removeItem("admire-user-token");
@@ -43,9 +48,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
-      const data = (await response.json()) as { user?: AuthUser };
+      const data = (await response.json()) as { user?: AuthUser; userType?: UserType };
       if (data.user) {
         setUser(data.user);
+        setUserType(data.userType || "customer");
         // Store token for reference (actual auth is cookie-based)
         if (typeof window !== "undefined") {
           window.localStorage.setItem("admire-user-token", "authenticated");
@@ -54,25 +60,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       setUser(null);
+      setUserType(null);
       return false;
     } catch (error) {
       console.error("[AUTH] Session refresh failed:", error);
       setUser(null);
+      setUserType(null);
       return false;
     }
   }, []);
 
   // Initialize on mount and handle storage events
   useEffect(() => {
-    // Hydrate from localStorage and validate with server
+    // The httpOnly session cookie is the source of truth, so always validate
+    // with the server on mount regardless of any localStorage hint.
     const initAuth = async () => {
       setIsLoading(true);
       try {
-        const storedToken = window.localStorage.getItem("admire-user-token");
-        if (storedToken) {
-          // Token exists, validate with server
-          await refreshSession();
-        }
+        await refreshSession();
       } finally {
         setIsLoading(false);
         setIsHydrated(true);
@@ -111,8 +116,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("admire-auth-updated", handleAuthUpdate);
   }, [refreshSession]);
 
-  const login = (newUser: AuthUser) => {
+  const login = (newUser: AuthUser, newUserType: UserType = "customer") => {
     setUser(newUser);
+    setUserType(newUserType);
     window.localStorage.setItem("admire-user-token", "authenticated");
     window.dispatchEvent(new Event("admire-auth-updated"));
   };
@@ -127,20 +133,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("[AUTH] Logout failed:", error);
     } finally {
       setUser(null);
+      setUserType(null);
       window.localStorage.removeItem("admire-user-token");
+      window.localStorage.removeItem("admire-admin-token");
       window.dispatchEvent(new Event("admire-auth-updated"));
     }
   };
 
-  // Don't render until hydrated (prevents hydration mismatch)
-  if (!isHydrated) {
-    return <>{children}</>;
-  }
-
+  // Always render the provider (even before hydration) so consumers like the
+  // Header/BottomNavigation can call useAuth during SSR/prerender. Initial state
+  // (user=null, isLoading=true) is identical on server and first client render,
+  // so there is no hydration mismatch.
   return (
     <AuthContext.Provider
       value={{
         user,
+        userType,
         isAuthenticated: !!user,
         isLoading,
         login,

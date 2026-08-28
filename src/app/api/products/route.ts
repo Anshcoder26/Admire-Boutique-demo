@@ -8,10 +8,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as Partial<Product> & { images?: string[] | string; colors?: Array<{ name: string; hex: string }>; sizes?: string[] };
+  const body = (await request.json()) as Partial<Product> & { images?: string[] | string; colors?: Array<{ name: string; hex: string }>; sizes?: string[]; stitchType?: string };
 
   const name = String(body.name || "").trim();
-  const category = String(body.category || "Cotton Kurtis").trim();
+  const category = String(body.category || "Premium Cotton").trim();
   const price = Number(body.price || 0);
   const stock = Number(body.stock || 0);
 
@@ -49,6 +49,7 @@ export async function POST(request: Request) {
     rating: 4.8,
     reviews: 0,
     stock,
+    isSoldOut: false,
     badge: "New",
     fabric: String(body.fabric || "Cotton"),
     description: String(body.description || "Newly added premium kurti from the Admire Boutique collection."),
@@ -59,6 +60,7 @@ export async function POST(request: Request) {
     ],
     colors: Array.isArray(body.colors) && body.colors.length ? body.colors : [{ name: "Terracotta", hex: "#c06a4f" }],
     sizes: Array.isArray(body.sizes) && body.sizes.length ? body.sizes : ["XS", "S", "M", "L", "XL"],
+    stitchType: body.stitchType === "Stitched" || body.stitchType === "Unstitched" ? body.stitchType : undefined,
   };
 
   await saveCatalogProducts([created, ...products]);

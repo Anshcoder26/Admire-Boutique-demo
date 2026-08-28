@@ -69,6 +69,10 @@ export async function POST(request: Request) {
           throw new Error(`Product with ID "${productId}" not found`);
         }
 
+        if (product.isSoldOut) {
+          throw new Error(`Product "${product.name}" is currently sold out`);
+        }
+
         // Validate quantity is reasonable (security)
         if (item.qty <= 0 || item.qty > 10) {
           throw new Error(`Invalid quantity: ${item.qty}. Must be between 1 and 10`);
@@ -126,6 +130,10 @@ export async function POST(request: Request) {
     
     // Check if it's a stock error
     if (message.includes("Insufficient stock")) {
+      return NextResponse.json({ error: message }, { status: 409 });
+    }
+
+    if (message.includes("sold out")) {
       return NextResponse.json({ error: message }, { status: 409 });
     }
     

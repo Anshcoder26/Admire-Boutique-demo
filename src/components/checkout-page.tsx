@@ -116,6 +116,7 @@ export function CheckoutPage() {
     // Load cart items
     const stored = JSON.parse(window.localStorage.getItem("admire-cart") || "[]") as CartItem[];
     if (!stored.length) {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
       setError("Your cart is empty");
       setTimeout(() => router.push("/products"), 2000);
       return;
@@ -163,7 +164,7 @@ export function CheckoutPage() {
           shipping,
           discount,
           total,
-          paymentMethod,
+          payment_method: paymentMethod,
           address: selectedAddress, // P3: Send address to API
         }),
       });

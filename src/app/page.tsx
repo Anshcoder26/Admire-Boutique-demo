@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, Quote } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { CategorySection } from "@/components/category-section";
 import { HeroSection } from "@/components/hero-section";
 import { LotusOrnament } from "@/components/lotus-ornament";
@@ -189,7 +189,7 @@ export default async function HomePage() {
                   {"★".repeat(5)}
                 </div>
                 <h3 className="mb-3 font-serif text-xl font-bold text-[#201614]">{review.title}</h3>
-                <p className="mb-6 text-base leading-8 text-[#584942] italic">"{review.text}"</p>
+                <p className="mb-6 text-base leading-8 text-[#584942] italic">&quot;{review.text}&quot;</p>
                 <div className="pt-4 border-t border-[#D4AF37]/20">
                   <p className="bg-gradient-to-r from-[#7D1D1D] to-[#8B7355] bg-clip-text text-sm font-bold uppercase tracking-[0.2em] text-transparent">— {review.name}</p>
                 </div>

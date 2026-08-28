@@ -13,6 +13,7 @@ export function WishlistHeart({ productId }: WishlistHeartProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     const wishlist = JSON.parse(localStorage.getItem("admire_wishlist") || "[]");
     setIsWishlisted(wishlist.includes(productId));

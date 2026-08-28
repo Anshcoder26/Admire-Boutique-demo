@@ -13,6 +13,7 @@ export function WishlistPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     
     const wishlistIds = JSON.parse(localStorage.getItem("admire_wishlist") || "[]");

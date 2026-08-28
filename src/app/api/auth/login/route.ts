@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as { email?: string; password?: string };
     const email = String(body.email || "").trim().toLowerCase();
 
-    const { allowed, remaining, retryAfter } = checkRateLimit(
+    const { allowed, retryAfter } = checkRateLimit(
       email,
       AUTH_RATE_LIMITS.login.maxAttempts,
       AUTH_RATE_LIMITS.login.windowMs

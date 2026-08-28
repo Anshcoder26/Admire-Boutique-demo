@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateUserSessionToken } from "@/lib/db";
+import { validateUserSessionToken, validateSessionToken } from "@/lib/db";
 
 /**
  * GET /api/auth/me
@@ -29,8 +29,41 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Verify token
-    const user = await validateUserSessionToken(token);
+    const userTypeHint = request.cookies.get("user-type")?.value;
+
+    // Validate against both customer and admin session stores.
+    // Prefer the store hinted by the `user-type` cookie, then fall back.
+    let userType: "customer" | "admin" | null = null;
+    let user: { id: string; name: string; email: string; phone?: string } | null = null;
+
+    if (userTypeHint === "admin") {
+      const admin = await validateSessionToken(token);
+      if (admin) {
+        user = { id: admin.id, name: admin.name, email: admin.email };
+        userType = "admin";
+      }
+    }
+
+    if (!user) {
+      const customer = await validateUserSessionToken(token);
+      if (customer) {
+        user = {
+          id: customer.id,
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone || undefined,
+        };
+        userType = "customer";
+      }
+    }
+
+    if (!user) {
+      const admin = await validateSessionToken(token);
+      if (admin) {
+        user = { id: admin.id, name: admin.name, email: admin.email };
+        userType = "admin";
+      }
+    }
 
     if (!user) {
       // Clear invalid session cookie
@@ -46,12 +79,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone || undefined,
-        },
+        userType,
+        user,
       },
       { status: 200 }
     );

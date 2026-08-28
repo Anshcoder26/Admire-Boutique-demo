@@ -14,12 +14,14 @@ export type Product = {
   rating: number;
   reviews: number;
   stock: number;
+  isSoldOut?: boolean;
   badge?: string;
   fabric: string;
   description: string;
   images: string[];
   colors: ProductColor[];
   sizes: string[];
+  stitchType?: "Stitched" | "Unstitched";
 };
 
 export const categories = [

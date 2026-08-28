@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, X } from "lucide-react";
+import { X } from "lucide-react";
 
 export function GlobalSearchModal() {
   const [isOpen, setIsOpen] = useState(false);

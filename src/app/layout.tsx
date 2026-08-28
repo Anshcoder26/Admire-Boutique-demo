@@ -4,8 +4,6 @@ import { BottomNavigation } from "@/components/bottom-navigation";
 import { Footer } from "@/components/footer";
 import { GlobalOrnaments } from "@/components/global-ornaments";
 import { Header } from "@/components/header";
-import { QuickActionsMenu } from "@/components/quick-actions";
-import { WhatsAppButton } from "@/components/whatsapp-button";
 import { AuthProvider } from "@/providers/auth-provider";
 import "./globals.css";
 

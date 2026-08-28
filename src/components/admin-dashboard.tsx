@@ -1,16 +1,74 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Bell, CheckCircle2, LogOut, Package, Plus, Search, ShieldCheck, ShoppingBag, Sparkles, TrendingUp, Users } from "lucide-react";
+import { ArrowRight, Bell, CheckCircle2, LogOut, Package, Plus, Search, ShieldCheck, ShoppingBag, Sparkles, Trash2, TrendingUp, Users } from "lucide-react";
 import { LotusOrnament } from "@/components/lotus-ornament";
+import { categories } from "@/data/products";
 
-const initialCatalog = [
-  { id: 1, name: "Saffron Grace Kurti", category: "Cotton Kurtis", price: "₹1,999", stock: 24, status: "Live" },
-  { id: 2, name: "Lotus Bloom Anarkali", category: "Festive Kurtis", price: "₹2,799", stock: 12, status: "Low stock" },
-  { id: 3, name: "Ivory Calm Straight Kurti", category: "Office Wear", price: "₹2,299", stock: 18, status: "Live" },
+const productCategories = categories.map((category) => category.name);
+
+const STITCH_TYPES = ["Stitched", "Unstitched"] as const;
+
+// Curated palette for common boutique colour names that aren't valid CSS keywords.
+const CURATED_COLORS: Record<string, string> = {
+  "lemon yellow": "#fff44f",
+  "mustard": "#e1ad01",
+  "maroon": "#7d1d1d",
+  "rani pink": "#ff1a8c",
+  "rose gold": "#b76e79",
+  "peach": "#ffb59e",
+  "bottle green": "#006a4e",
+  "off white": "#faf9f6",
+  "sky blue": "#87ceeb",
+  "terracotta": "#c06a4f",
+  "wine": "#722f37",
+  "saffron": "#f4c430",
+  "charcoal": "#36454f",
+  "blush": "#de5d83",
+  "mauve": "#e0b0ff",
+  "emerald": "#046307",
+};
+
+// Resolve a colour name (e.g. "Lemon Yellow") to a hex value using the curated
+// map first, then the browser's own CSS colour parser. Returns null if unknown.
+function resolveColorHex(name: string): string | null {
+  const key = name.trim().toLowerCase().replace(/\s+/g, " ");
+  if (!key) return null;
+  if (CURATED_COLORS[key]) return CURATED_COLORS[key];
+
+  if (typeof document === "undefined") return null;
+  const ctx = document.createElement("canvas").getContext("2d");
+  if (!ctx) return null;
+  const candidate = key.replace(/\s+/g, "");
+  ctx.fillStyle = "#000000";
+  ctx.fillStyle = candidate;
+  const first = ctx.fillStyle;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = candidate;
+  const second = ctx.fillStyle;
+  return first === second ? first : null;
+}
+
+type CatalogStatus = "Live" | "Low stock" | "Sold Out";
+type CatalogItem = {
+  id: string;
+  name: string;
+  category: string;
+  price: string;
+  stock: number;
+  isSoldOut: boolean;
+  status: CatalogStatus;
+};
+
+const initialCatalog: CatalogItem[] = [
+  { id: "seed-1", name: "Saffron Grace Kurti", category: "Premium Cotton", price: "₹1,999", stock: 24, isSoldOut: false, status: "Live" },
+  { id: "seed-2", name: "Lotus Bloom Anarkali", category: "Georgette", price: "₹2,799", stock: 12, isSoldOut: false, status: "Live" },
+  { id: "seed-3", name: "Ivory Calm Straight Kurti", category: "Pure Mul", price: "₹2,299", stock: 18, isSoldOut: false, status: "Live" },
 ];
 
 const formatCurrency = (value: number) => `₹${value.toLocaleString("en-IN")}`;
+const getCatalogStatus = (stock: number, isSoldOut: boolean): CatalogStatus =>
+  isSoldOut ? "Sold Out" : stock < 10 ? "Low stock" : "Live";
 
 const statCards = [
   { label: "Revenue", value: "₹4.8L", change: "+12.4%", accent: "bg-[#f1e2d2] text-[#5e3228]" },
@@ -31,13 +89,18 @@ export function AdminDashboard() {
   const [password, setPassword] = useState("admire123");
   const [form, setForm] = useState({
     name: "",
-    category: "Cotton Kurtis",
+    category: productCategories[0] || "Premium Cotton",
     price: "",
     stock: "",
     fabric: "Cotton",
-    images: "",
+    stitchType: "" as "" | "Stitched" | "Unstitched",
+    images: [] as string[],
+    colors: [] as Array<{ name: string; hex: string }>,
   });
-  const [catalog, setCatalog] = useState(initialCatalog);
+  const [colorNameInput, setColorNameInput] = useState("");
+  const [colorHexInput, setColorHexInput] = useState("#c06a4f");
+  const [catalog, setCatalog] = useState<CatalogItem[]>(initialCatalog);
+  const [updatingProductId, setUpdatingProductId] = useState<string | null>(null);
   const [recentOrders, setRecentOrders] = useState<Array<{ id: string; order_number: string; customer_name: string; status: string; total: number }>>([]);
 
   const totalStock = useMemo(
@@ -45,7 +108,7 @@ export function AdminDashboard() {
     [catalog],
   );
 
-  const loadAdminData = async (token: string) => {
+  const loadAdminData = async (token: string): Promise<boolean> => {
     try {
       const [meRes, productsRes, ordersRes] = await Promise.all([
         fetch("/api/admin/me", {
@@ -58,23 +121,22 @@ export function AdminDashboard() {
       ]);
 
       if (!meRes.ok) {
-        window.localStorage.removeItem("admire-admin-token");
-        setIsAuthenticated(false);
-        return;
+        return false;
       }
 
       setIsAuthenticated(true);
 
       if (productsRes.ok) {
-        const productsData = (await productsRes.json()) as Array<{ id: string; name: string; category: string; price: number; stock: number }>;
+        const productsData = (await productsRes.json()) as Array<{ id: string; name: string; category: string; price: number; stock: number; isSoldOut?: boolean }>;
         setCatalog(
           productsData.map((product) => ({
-            id: Number(product.id.replace(/\D/g, "")) || Date.now(),
+            id: product.id,
             name: product.name,
             category: product.category,
             price: formatCurrency(Number(product.price)),
             stock: Number(product.stock),
-            status: Number(product.stock) < 10 ? "Low stock" : "Live",
+            isSoldOut: Boolean(product.isSoldOut),
+            status: getCatalogStatus(Number(product.stock), Boolean(product.isSoldOut)),
           }))
         );
       }
@@ -83,16 +145,48 @@ export function AdminDashboard() {
         const ordersData = (await ordersRes.json()) as { orders?: Array<{ id: string; order_number: string; customer_name: string; status: string; total: number }> };
         setRecentOrders(ordersData.orders || []);
       }
+
+      return true;
     } catch {
-      window.localStorage.removeItem("admire-admin-token");
-      setIsAuthenticated(false);
+      return false;
     }
   };
 
+  // Smoothly authenticate the owner without forcing a second login:
+  // 1) reuse a real admin token from localStorage, else
+  // 2) exchange the existing unified-login session cookie for an admin token.
+  const bootstrapAdmin = async () => {
+    const storedToken = window.localStorage.getItem("admire-admin-token");
+    if (storedToken && storedToken !== "authenticated") {
+      const ok = await loadAdminData(storedToken);
+      if (ok) return;
+    }
+
+    try {
+      const res = await fetch("/api/admin/me-check", { credentials: "include" });
+      if (res.ok) {
+        const data = (await res.json()) as { token?: string };
+        if (data.token) {
+          window.localStorage.setItem("admire-admin-token", data.token);
+          const ok = await loadAdminData(data.token);
+          if (ok) return;
+        }
+      }
+    } catch {
+      // fall through to unauthenticated state
+    }
+
+    window.localStorage.removeItem("admire-admin-token");
+    setIsAuthenticated(false);
+  };
+
   useEffect(() => {
-    const token = window.localStorage.getItem("admire-admin-token");
-    if (!token) return;
-    void loadAdminData(token);
+    const run = async () => {
+      await Promise.resolve();
+      await bootstrapAdmin();
+    };
+    void run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -116,14 +210,37 @@ export function AdminDashboard() {
     void loadAdminData(data.token);
   };
 
+  const handleColorNameChange = (value: string) => {
+    setColorNameInput(value);
+    const resolved = resolveColorHex(value);
+    if (resolved) setColorHexInput(resolved);
+  };
+
+  const handleAddColor = () => {
+    const name = colorNameInput.trim();
+    if (!name) return;
+    setForm((current) => {
+      if (current.colors.some((color) => color.name.toLowerCase() === name.toLowerCase())) {
+        return current;
+      }
+      return { ...current, colors: [...current.colors, { name, hex: colorHexInput }] };
+    });
+    setColorNameInput("");
+    setColorHexInput("#c06a4f");
+  };
+
   const handleAddProduct = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!form.name || !form.price || !form.stock) return;
 
-    const imageUrls = form.images
-      .split(",")
-      .map((url) => url.trim())
-      .filter(Boolean);
+    const imageUrls = form.images.filter(Boolean);
+
+    // Include any colour the owner typed but didn't explicitly "Add" yet.
+    const finalColors = [...form.colors];
+    const pendingName = colorNameInput.trim();
+    if (pendingName && !finalColors.some((color) => color.name.toLowerCase() === pendingName.toLowerCase())) {
+      finalColors.push({ name: pendingName, hex: resolveColorHex(pendingName) || colorHexInput });
+    }
 
     const payload = {
       name: form.name,
@@ -131,6 +248,8 @@ export function AdminDashboard() {
       price: Number(form.price),
       stock: Number(form.stock),
       fabric: form.fabric,
+      stitchType: form.stitchType || undefined,
+      colors: finalColors.length ? finalColors : undefined,
       description: `${form.name} has been added via the owner dashboard and is ready to be published on the storefront.`,
       images: imageUrls.length ? imageUrls : undefined,
     };
@@ -142,18 +261,19 @@ export function AdminDashboard() {
     });
 
     if (response.ok) {
-      const data = (await response.json()) as { product?: { id: string; name: string; category: string; price: number; stock: number } };
+      const data = (await response.json()) as { product?: { id: string; name: string; category: string; price: number; stock: number; isSoldOut?: boolean } };
       const created = data.product;
 
       if (created) {
         setCatalog((current) => [
           {
-            id: Number(created.id?.replace(/\D/g, "") || Date.now()),
+            id: created.id,
             name: created.name,
             category: created.category,
             price: formatCurrency(Number(created.price)),
             stock: created.stock,
-            status: created.stock < 10 ? "Low stock" : "Live",
+            isSoldOut: Boolean(created.isSoldOut),
+            status: getCatalogStatus(Number(created.stock), Boolean(created.isSoldOut)),
           },
           ...current,
         ]);
@@ -164,7 +284,86 @@ export function AdminDashboard() {
       return;
     }
 
-    setForm({ name: "", category: "Cotton Kurtis", price: "", stock: "", fabric: "Cotton", images: "" });
+    setForm({ name: "", category: productCategories[0] || "Premium Cotton", price: "", stock: "", fabric: "Cotton", stitchType: "", images: [], colors: [] });
+    setColorNameInput("");
+    setColorHexInput("#c06a4f");
+  };
+
+  const handleSoldOutToggle = async (productId: string, currentSoldOutStatus: boolean) => {
+    const token = window.localStorage.getItem("admire-admin-token");
+    if (!token) {
+      alert("Session expired. Please login again.");
+      setIsAuthenticated(false);
+      return;
+    }
+
+    setUpdatingProductId(productId);
+    try {
+      const response = await fetch(`/api/admin/products/${productId}/sold-out`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ isSoldOut: !currentSoldOutStatus }),
+      });
+
+      const data = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        product?: { id: string; stock: number; isSoldOut?: boolean };
+      };
+
+      if (!response.ok || !data.product) {
+        alert(data.error || "Unable to update sold out status.");
+        return;
+      }
+
+      setCatalog((current) =>
+        current.map((item) =>
+          item.id === productId
+            ? {
+                ...item,
+                isSoldOut: Boolean(data.product?.isSoldOut),
+                status: getCatalogStatus(item.stock, Boolean(data.product?.isSoldOut)),
+              }
+            : item
+        )
+      );
+    } finally {
+      setUpdatingProductId(null);
+    }
+  };
+
+  const handleDeleteProduct = async (productId: string, productName: string) => {
+    if (!window.confirm(`Delete "${productName}"? This permanently removes it from the storefront.`)) {
+      return;
+    }
+
+    const token = window.localStorage.getItem("admire-admin-token");
+    if (!token || token === "authenticated") {
+      alert("Session expired. Please login again.");
+      setIsAuthenticated(false);
+      return;
+    }
+
+    setUpdatingProductId(productId);
+    try {
+      const response = await fetch(`/api/admin/products/${productId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = (await response.json().catch(() => ({}))) as { error?: string; success?: boolean };
+
+      if (!response.ok || !data.success) {
+        alert(data.error || "Unable to delete product.");
+        return;
+      }
+
+      setCatalog((current) => current.filter((item) => item.id !== productId));
+    } finally {
+      setUpdatingProductId(null);
+    }
   };
 
   if (!isAuthenticated) {
@@ -334,9 +533,39 @@ export function AdminDashboard() {
                       <div className="text-sm text-[#5b4a45]">{item.price}</div>
                       <div className="text-xs text-[#7a675f]">{item.stock} in stock</div>
                     </div>
-                    <div className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${item.status === "Live" ? "bg-[#eaf4ee] text-[#1f6b42]" : "bg-[#fff1e6] text-[#8a5d2b]"}`}>
+                    <div className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${
+                      item.status === "Live"
+                        ? "bg-[#eaf4ee] text-[#1f6b42]"
+                        : item.status === "Sold Out"
+                          ? "bg-[#ffe6e6] text-[#8a1f1f]"
+                          : "bg-[#fff1e6] text-[#8a5d2b]"
+                    }`}>
                       {item.status}
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => handleSoldOutToggle(item.id, item.isSoldOut)}
+                      disabled={updatingProductId === item.id}
+                      className={`rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] transition ${
+                        item.isSoldOut
+                          ? "border border-[#1f6b42]/30 bg-[#eaf4ee] text-[#1f6b42]"
+                          : "border border-[#8a1f1f]/30 bg-[#fff2f2] text-[#8a1f1f]"
+                      } ${updatingProductId === item.id ? "cursor-not-allowed opacity-60" : ""}`}
+                    >
+                      {updatingProductId === item.id ? "Updating..." : item.isSoldOut ? "Mark Live" : "Mark Sold Out"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteProduct(item.id, item.name)}
+                      disabled={updatingProductId === item.id}
+                      aria-label={`Delete ${item.name}`}
+                      title="Delete product"
+                      className={`flex items-center justify-center rounded-full border border-[#8a1f1f]/30 bg-[#fff2f2] p-2 text-[#8a1f1f] transition hover:bg-[#ffe6e6] ${
+                        updatingProductId === item.id ? "cursor-not-allowed opacity-60" : ""
+                      }`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -419,12 +648,11 @@ export function AdminDashboard() {
                     onChange={(e) => setForm((current) => ({ ...current, category: e.target.value }))}
                     className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
                   >
-                    <option>Cotton Kurtis</option>
-                    <option>Printed Kurtis</option>
-                    <option>Anarkali Kurtis</option>
-                    <option>Straight Kurtis</option>
-                    <option>Festive Kurtis</option>
-                    <option>Office Wear</option>
+                    {productCategories.map((categoryName) => (
+                      <option key={categoryName} value={categoryName}>
+                        {categoryName}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -485,7 +713,7 @@ export function AdminDashboard() {
                           const base64 = event.target?.result as string;
                           setForm((current) => ({
                             ...current,
-                            images: current.images ? `${current.images},${base64}` : base64,
+                            images: [...current.images, base64],
                           }));
                         };
                         reader.readAsDataURL(file);
@@ -504,7 +732,7 @@ export function AdminDashboard() {
                             const base64 = event.target?.result as string;
                             setForm((current) => ({
                               ...current,
-                              images: current.images ? `${current.images},${base64}` : base64,
+                              images: [...current.images, base64],
                             }));
                           };
                           reader.readAsDataURL(file);
@@ -525,7 +753,7 @@ export function AdminDashboard() {
                           const base64 = event.target?.result as string;
                           setForm((current) => ({
                             ...current,
-                            images: current.images ? `${current.images},${base64}` : base64,
+                            images: [...current.images, base64],
                           }));
                         };
                         reader.readAsDataURL(file);
@@ -539,44 +767,111 @@ export function AdminDashboard() {
                   </div>
                 </div>
                 
-                {form.images && (
+                {form.images.length > 0 && (
                   <div className="mt-3 space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="text-xs font-medium uppercase tracking-[0.15em] text-[#7a655d]">
-                        {form.images.split(",").length} image{form.images.split(",").length !== 1 ? "s" : ""} added
+                        {form.images.length} image{form.images.length !== 1 ? "s" : ""} added
                       </div>
                       <button
                         type="button"
-                        onClick={() => setForm((current) => ({ ...current, images: "" }))}
+                        onClick={() => setForm((current) => ({ ...current, images: [] }))}
                         className="text-xs text-[#c85a4d] hover:text-[#a84640]"
                       >
                         Clear all
                       </button>
                     </div>
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-                      {form.images.split(",").map((img, idx) => (
-                        img && (
-                          <div key={idx} className="relative group">
-                            <img
-                              src={img}
-                              alt={`Preview ${idx}`}
-                              className="h-20 w-20 rounded-lg object-cover border border-[#e0d0c3]"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const imgs = form.images.split(",");
-                                imgs.splice(idx, 1);
-                                setForm((current) => ({ ...current, images: imgs.join(",") }));
-                              }}
-                              className="absolute -top-2 -right-2 bg-[#c85a4d] text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        )
+                      {form.images.map((img, idx) => (
+                        <div key={idx} className="relative group">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={img}
+                            alt={`Preview ${idx + 1}`}
+                            className="h-20 w-20 rounded-lg object-cover border border-[#e0d0c3]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setForm((current) => ({
+                                ...current,
+                                images: current.images.filter((_, i) => i !== idx),
+                              }));
+                            }}
+                            className="absolute -top-2 -right-2 bg-[#c85a4d] text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            ×
+                          </button>
+                        </div>
                       ))}
                     </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Stitch type</label>
+                <select
+                  value={form.stitchType}
+                  onChange={(e) => setForm((current) => ({ ...current, stitchType: e.target.value as "" | "Stitched" | "Unstitched" }))}
+                  className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
+                >
+                  <option value="">Not specified</option>
+                  {STITCH_TYPES.map((type) => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Colours</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={colorNameInput}
+                    onChange={(e) => handleColorNameChange(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddColor();
+                      }
+                    }}
+                    className="flex-1 rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
+                    placeholder="e.g. Lemon Yellow"
+                  />
+                  <input
+                    type="color"
+                    value={colorHexInput}
+                    onChange={(e) => setColorHexInput(e.target.value)}
+                    className="h-11 w-12 shrink-0 cursor-pointer rounded-xl border border-[#ead9cf] bg-white"
+                    aria-label="Pick colour shade"
+                    title="Pick or fine-tune the shade"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddColor}
+                    className="shrink-0 rounded-full bg-[#4b1f1d] px-4 py-2.5 text-xs font-semibold text-white"
+                  >
+                    Add
+                  </button>
+                </div>
+                <p className="text-[11px] text-[#8a6f5f]">Type a colour name — the swatch auto-fills. Adjust the shade with the picker if needed.</p>
+                {form.colors.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {form.colors.map((color, idx) => (
+                      <span key={`${color.name}-${idx}`} className="inline-flex items-center gap-2 rounded-full border border-[#ead9cf] bg-white py-1 pl-1.5 pr-2 text-xs text-[#3a2b26]">
+                        <span className="h-5 w-5 rounded-full border border-[#e0d0c3]" style={{ backgroundColor: color.hex }} />
+                        {color.name}
+                        <button
+                          type="button"
+                          onClick={() => setForm((current) => ({ ...current, colors: current.colors.filter((_, i) => i !== idx) }))}
+                          className="text-[#c85a4d] hover:text-[#a84640]"
+                          aria-label={`Remove ${color.name}`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
                   </div>
                 )}
               </div>

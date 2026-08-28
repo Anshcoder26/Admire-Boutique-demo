@@ -1,14 +1,25 @@
+"use client";
+
 import Link from "next/link";
 import { Home, ShoppingBag, Sparkles, UserRound } from "lucide-react";
-
-const navItems = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/products", label: "Shop", icon: Sparkles },
-  { href: "/cart", label: "Bag", icon: ShoppingBag },
-  { href: "/login", label: "Account", icon: UserRound },
-];
+import { useAuth } from "@/providers/auth-provider";
 
 export function BottomNavigation() {
+  const { isAuthenticated, userType } = useAuth();
+
+  const accountHref = isAuthenticated
+    ? userType === "admin"
+      ? "/admin"
+      : "/account"
+    : "/login";
+
+  const navItems = [
+    { href: "/", label: "Home", icon: Home },
+    { href: "/products", label: "Shop", icon: Sparkles },
+    { href: "/cart", label: "Bag", icon: ShoppingBag },
+    { href: accountHref, label: "Account", icon: UserRound },
+  ];
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#eadcd3] bg-[#fffaf6]/90 px-3 py-2 backdrop-blur-md md:hidden">
       <div className="mx-auto grid max-w-md grid-cols-4 gap-2">
