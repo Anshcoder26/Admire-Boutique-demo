@@ -131,6 +131,7 @@ export function AdminDashboard() {
       }
 
       setIsAuthenticated(true);
+      setAdminToken(token);
 
       if (productsRes.ok) {
         const productsData = (await productsRes.json()) as Array<{ id: string; name: string; category: string; price: number; stock: number; isSoldOut?: boolean }>;
@@ -213,6 +214,7 @@ export function AdminDashboard() {
 
     window.localStorage.setItem("admire-admin-token", data.token);
     setIsAuthenticated(true);
+    setAdminToken(data.token);
     void loadAdminData(data.token);
   };
 
