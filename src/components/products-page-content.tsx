@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ProductsSearch } from "@/components/products-search";
 import { ProductGrid } from "@/components/product-grid";
 import type { Product } from "@/data/products";
@@ -11,6 +12,7 @@ interface ProductsPageContentProps {
 }
 
 export function ProductsPageContent({ initialProducts, initialCategory }: ProductsPageContentProps) {
+  const router = useRouter();
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(initialCategory);
 
@@ -28,6 +30,11 @@ export function ProductsPageContent({ initialProducts, initialCategory }: Produc
     setFilteredProducts(filtered);
   };
 
+  const handleClearAll = () => {
+    // Navigate back to /products without category parameter
+    router.push("/products");
+  };
+
   return (
     <div className="space-y-8">
       {/* Search and filters */}
@@ -36,6 +43,7 @@ export function ProductsPageContent({ initialProducts, initialCategory }: Produc
         onFilter={handleFilter}
         initialCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
+        onClearAll={handleClearAll}
       />
 
       {/* Results */}

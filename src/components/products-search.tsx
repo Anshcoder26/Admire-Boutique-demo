@@ -9,9 +9,10 @@ interface ProductsSearchProps {
   onFilter: (filtered: Product[]) => void;
   initialCategory?: string;
   onCategoryChange?: (category: string | undefined) => void;
+  onClearAll?: () => void;
 }
 
-export function ProductsSearch({ products, onFilter, initialCategory, onCategoryChange }: ProductsSearchProps) {
+export function ProductsSearch({ products, onFilter, initialCategory, onCategoryChange, onClearAll }: ProductsSearchProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"featured" | "price-low" | "price-high" | "rating">("featured");
@@ -138,6 +139,7 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
               setSearchTerm("");
               setSelectedCategory(null);
               setSortBy("featured");
+              onClearAll?.();
             }}
             style={{
               background: "none",
