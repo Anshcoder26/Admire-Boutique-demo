@@ -1,0 +1,142 @@
+/* Motif System Global Styles for Admire Boutique */
+/* These classes are used throughout the website for consistent motif styling */
+
+/* Booti Pattern Opacity Classes */
+.booti-pattern-light {
+  opacity: 0.05; /* 5% - Very subtle background texture */
+}
+
+.booti-pattern-medium {
+  opacity: 0.08; /* 8% - Slightly more visible texture */
+}
+
+/* Jaal Pattern Opacity Classes */
+.jaal-pattern-light {
+  opacity: 0.03; /* 3% - Minimal visibility for text readability */
+}
+
+.jaal-pattern-medium {
+  opacity: 0.05; /* 5% - Slightly more prominent */
+}
+
+/* Motif Color Classes */
+.motif-accent {
+  color: var(--brand-gold); /* Use brand gold for accents */
+}
+
+.motif-primary {
+  color: var(--brand-primary); /* Use brand burgundy */
+}
+
+.motif-secondary {
+  color: var(--brand-secondary); /* Use warm brown */
+}
+
+.motif-saffron {
+  color: var(--brand-saffron); /* Use saffron for festive pieces */
+}
+
+/* Motif Size Classes */
+.motif-xs {
+  width: 16px;
+  height: 16px;
+}
+
+.motif-sm {
+  width: 24px;
+  height: 24px;
+}
+
+.motif-md {
+  width: 32px;
+  height: 32px;
+}
+
+.motif-lg {
+  width: 48px;
+  height: 48px;
+}
+
+.motif-xl {
+  width: 64px;
+  height: 64px;
+}
+
+.motif-xxl {
+  width: 96px;
+  height: 96px;
+}
+
+/* Motif Animation Classes */
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translateY(0px);
+    opacity: inherit;
+  }
+  50% {
+    transform: translateY(-8px);
+    opacity: inherit;
+  }
+}
+
+@keyframes fade-in-slow {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: inherit;
+  }
+}
+
+.motif-float-slow {
+  animation: float-gentle 12s ease-in-out infinite;
+}
+
+.motif-float-normal {
+  animation: float-gentle 8s ease-in-out infinite;
+}
+
+.motif-fade-in {
+  animation: fade-in-slow 1s ease-out forwards;
+}
+
+/* Decorative SVG Typography */
+.motif-svg {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* Responsive Hiding */
+@media (max-width: 768px) {
+  .motif-hide-mobile {
+    display: none !important;
+  }
+
+  .motif-sm-desktop {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .motif-md-desktop {
+    width: 24px !important;
+    height: 24px !important;
+  }
+}
+
+/* Accessibility */
+.motif-decoration {
+  aria-hidden: true;
+  pointer-events: none;
+}
+
+/* Print Styles - Hide decorative motifs when printing */
+@media print {
+  .motif-decoration,
+  .booti-pattern-light,
+  .booti-pattern-medium,
+  .jaal-pattern-light,
+  .jaal-pattern-medium {
+    display: none !important;
+  }
+}

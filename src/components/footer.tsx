@@ -6,11 +6,23 @@ import { useState } from "react";
 import { LotusOrnament } from "@/components/lotus-ornament";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NewsletterSignup } from "@/components/newsletter-signup";
+import { FloralBelMotif } from "@/components/motifs/floral-bel-motif";
+import { motifOpacity, motifColors } from "@/components/motifs/motif-utils";
 
 export function Footer() {
   const [open, setOpen] = useState(false);
   return (
     <footer className="relative mt-0 overflow-hidden border-t border-[#e6d9cf] bg-[#f8f2ee]">
+      {/* Floral Bel top border decoration */}
+      <div className="absolute top-0 left-0 right-0 h-12 flex items-center justify-center hidden md:flex">
+        <FloralBelMotif
+          variant="horizontal"
+          opacity={motifOpacity.light}
+          color={motifColors.gold}
+          width="85%"
+        />
+      </div>
+
       {/* Animated lotus motifs - footer corners */}
       <div className="absolute top-6 right-8 w-10 h-10 opacity-30 animate-float-elegant hidden md:block">
         <svg viewBox="0 0 60 60" className="h-full w-full">
