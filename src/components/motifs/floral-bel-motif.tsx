@@ -35,7 +35,7 @@ export function FloralBelMotif({
           className="w-full h-full"
           fill="none"
           stroke={color}
-          strokeWidth="1.2"
+          strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
           preserveAspectRatio="none"

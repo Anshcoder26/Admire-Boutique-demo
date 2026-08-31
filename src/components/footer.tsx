@@ -17,7 +17,7 @@ export function Footer() {
       <div className="absolute top-0 left-0 right-0 h-12 flex items-center justify-center hidden md:flex">
         <FloralBelMotif
           variant="horizontal"
-          opacity={motifOpacity.light}
+          opacity={motifOpacity.prominent}
           color={motifColors.gold}
           width="85%"
         />

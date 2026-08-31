@@ -18,7 +18,7 @@ interface SectionDividerProps {
  */
 export function SectionDivider({
   className = '',
-  opacity = motifOpacity.light,
+  opacity = motifOpacity.prominent,
   color = motifColors.gold,
   variant = 'floral',
   spacing = 'md',
