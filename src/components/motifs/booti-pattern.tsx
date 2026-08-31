@@ -134,7 +134,7 @@ export function BootiBackgroundContainer({
   opacity = motifOpacity.background,
   color = motifColors.secondary,
   density = 'medium',
-  variant = 'pattern' | 'solid' = 'pattern',
+  variant = 'pattern',
 }: {
   children: React.ReactNode;
   className?: string;
