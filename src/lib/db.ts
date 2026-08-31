@@ -549,6 +549,8 @@ if (!usesPostgres) {
 async function ensurePostgresReady() {
   if (!postgresPool || postgresReady) return;
 
+  console.log("[DB] Starting PostgreSQL initialization...");
+
   try {
     // Create each table separately - PostgreSQL doesn't support multiple statements in one query
     await postgresPool.query(`
@@ -585,6 +587,8 @@ async function ensurePostgresReady() {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
+
+    console.log("[DB] ✓ Created admin_users table");
 
     await postgresPool.query(`
       CREATE TABLE IF NOT EXISTS customers (
@@ -698,11 +702,16 @@ async function ensurePostgresReady() {
   }
 
   const adminCount = await postgresPool.query("SELECT COUNT(*) as count FROM admin_users");
+  console.log("[DB] Admin users count:", adminCount.rows[0]?.count ?? 0);
   if (Number(adminCount.rows[0]?.count ?? 0) === 0) {
+    console.log("[DB] Inserting seed admin user...");
     await postgresPool.query(
       "INSERT INTO admin_users (id, name, email, password_hash) VALUES ($1, $2, $3, $4)",
       ["admin-owner-1", "Boutique Owner", "owner@admireboutique.in", await hashPassword("admire123")]
     );
+    console.log("[DB] ✓ Admin user seeded successfully");
+  } else {
+    console.log("[DB] Admin users already exist, skipping seed");
   }
 
   const customerCount = await postgresPool.query("SELECT COUNT(*) as count FROM customers");
@@ -1034,11 +1043,21 @@ export async function setProductSoldOutStatus(id: string, isSoldOut: boolean): P
 
 export async function verifyAdminCredentials(email: string, password: string): Promise<AdminUserRecord | null> {
   if (usesPostgres) {
+    console.log("[DB] Verifying admin credentials using PostgreSQL for:", email);
     await ensurePostgresReady();
     const result = await postgresPool!.query("SELECT * FROM admin_users WHERE email = $1", [email]);
+    console.log("[DB] Query result - found:", result.rows.length, "users");
     const user = result.rows[0];
-    if (!user) return null;
-    if (!(await verifyPassword(password, user.password_hash))) return null;
+    if (!user) {
+      console.log("[DB] No admin user found with email:", email);
+      return null;
+    }
+    console.log("[DB] Admin user found, verifying password...");
+    if (!(await verifyPassword(password, user.password_hash))) {
+      console.log("[DB] Password mismatch for admin:", email);
+      return null;
+    }
+    console.log("[DB] ✓ Admin credentials verified");
     return { id: user.id, name: user.name, email: user.email };
   }
 
