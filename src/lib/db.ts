@@ -1059,7 +1059,7 @@ export async function setProductSoldOutStatus(id: string, isSoldOut: boolean): P
 
 export async function verifyAdminCredentials(email: string, password: string): Promise<AdminUserRecord | null> {
   // Temporary hardcoded credential for testing - REMOVE THIS LATER
-  if (email === "test@admireboutique.in" && password === "test123") {
+  if (email === "test@admireboutique.in" && password === "test123456") {
     console.log("[DB] ⚠️  USING HARDCODED TEST CREDENTIAL - REMOVE BEFORE PRODUCTION");
     return { id: "test-admin", name: "Test Admin", email: "test@admireboutique.in" };
   }
