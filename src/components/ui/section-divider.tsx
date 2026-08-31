@@ -32,12 +32,14 @@ export function SectionDivider({
   if (variant === 'floral') {
     return (
       <div className={`w-full flex justify-center ${spacingClass} ${className}`}>
-        <FloralBelMotif
-          variant="horizontal"
-          opacity={opacity}
-          color={color}
-          width="80%"
-        />
+        <div style={{ height: '60px', width: '80%' }}>
+          <FloralBelMotif
+            variant="horizontal"
+            opacity={opacity}
+            color={color}
+            width="100%"
+          />
+        </div>
       </div>
     );
   }
