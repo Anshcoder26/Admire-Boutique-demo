@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { PaisleyMotif } from "./motifs/paisley-motif";
+import { motifOpacity, motifColors } from "./motifs/motif-utils";
 
 export function HeroSection() {
   return (
@@ -21,6 +23,16 @@ export function HeroSection() {
         </svg>
       </div>
 
+      {/* Paisley motif - top-left corner */}
+      <div className="absolute top-8 left-2 w-16 h-16 opacity-25 animate-float-elegant hidden md:block">
+        <PaisleyMotif
+          size="lg"
+          opacity={motifOpacity.light}
+          color={motifColors.primary}
+          variant="filled"
+        />
+      </div>
+
       {/* Animated lotus motifs - top right */}
       <div className="absolute top-40 right-8 w-10 h-10 opacity-20 animate-float-elegant md:opacity-35" style={{ animationDelay: "1s" }}>
         <svg viewBox="0 0 60 60" className="h-full w-full">
@@ -35,6 +47,16 @@ export function HeroSection() {
           <path d="M30 10 C 40 15, 45 25, 45 35 C 40 40, 35 41, 30 37 C 25 41, 20 40, 15 35 C 15 25, 20 15, 30 10 Z" fill="none" stroke="#D4AF37" strokeWidth="1.5" />
           <circle cx="30" cy="30" r="3" fill="#7D1D1D" />
         </svg>
+      </div>
+
+      {/* Paisley motif - bottom-right corner */}
+      <div className="absolute bottom-12 right-4 w-20 h-20 opacity-30 animate-float-elegant hidden md:block" style={{ animationDelay: "1.5s" }}>
+       <PaisleyMotif
+         size="xl"
+         opacity={motifOpacity.light}
+         color={motifColors.secondary}
+         variant="outline"
+       />
       </div>
 
       {/* Branch ornament with vibrant colors */}
