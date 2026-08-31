@@ -16,6 +16,9 @@ export async function POST(request: NextRequest) {
     // Rate limiting: max 5 attempts per 15 minutes per email
     const body = (await request.json()) as { email?: string; password?: string };
     const email = String(body.email || "").trim().toLowerCase();
+    
+    // Debug logging for Vercel
+    console.log("[AUTH] Login attempt:", { email, hasDbUrl: !!process.env.DATABASE_URL, env: process.env.NODE_ENV });
 
     const { allowed, retryAfter } = checkRateLimit(
       email,
