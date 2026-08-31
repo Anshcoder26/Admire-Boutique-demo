@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { Heart, Shield, Truck, Check } from "lucide-react";
 import { ProductGallery } from "@/components/product-gallery";
 import { DecorativeMotif, MotifDivider, MotifCorner } from "@/components/decorative-motif";
+import { BootiPattern } from "@/components/motifs/booti-pattern";
+import { motifOpacity } from "@/components/motifs/motif-utils";
 import type { Product } from "@/data/products";
 
 export function ProductDetail({ product }: { product: Product }) {
@@ -175,25 +177,37 @@ export function ProductDetail({ product }: { product: Product }) {
 
           {/* Size Selection */}
           {!isUnstitched && (
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <label className="text-sm font-bold uppercase tracking-[0.1em] text-[#1a1612]">Select Size</label>
-                <Link href="#size-guide" className="text-xs font-semibold text-[#6f2fbf] hover:text-[#7D1D1D] transition">Size Guide</Link>
+            <div className="relative p-6 rounded-lg bg-gradient-to-br from-[#fff5f0]/50 to-[#f7efe8]/50 border border-[#D4AF37]/15">
+              {/* Booti background pattern */}
+              <div className="absolute inset-0 opacity-5 pointer-events-none rounded-lg">
+                <BootiPattern
+                  density="medium"
+                  opacity={motifOpacity.background}
+                  width="100%"
+                  height="100%"
+                />
               </div>
-              <div className="flex flex-wrap gap-3">
-                {product.sizes.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`h-11 min-w-[44px] px-4 flex items-center justify-center rounded border text-sm font-semibold transition-all ${
-                      selectedSize === size
-                        ? "border-[#7D1D1D] bg-[#7D1D1D] text-white shadow-md"
-                        : "border-[#7D1D1D]/30 bg-white text-[#1a1612] hover:border-[#7D1D1D]/60"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+              
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <label className="text-sm font-bold uppercase tracking-[0.1em] text-[#1a1612]">Select Size</label>
+                  <Link href="#size-guide" className="text-xs font-semibold text-[#6f2fbf] hover:text-[#7D1D1D] transition">Size Guide</Link>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`h-11 min-w-[44px] px-4 flex items-center justify-center rounded border text-sm font-semibold transition-all ${
+                        selectedSize === size
+                          ? "border-[#7D1D1D] bg-[#7D1D1D] text-white shadow-md"
+                          : "border-[#7D1D1D]/30 bg-white text-[#1a1612] hover:border-[#7D1D1D]/60"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
