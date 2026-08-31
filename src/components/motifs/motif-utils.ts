@@ -56,3 +56,4 @@ export const getOpacityCss = (opacity: number): string => {
 export const getSizeCss = (size: string): string => {
   return `width: ${size}; height: ${size};`;
 };
+// Motif system ready for production
