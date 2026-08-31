@@ -549,109 +549,124 @@ if (!usesPostgres) {
 async function ensurePostgresReady() {
   if (!postgresPool || postgresReady) return;
 
-  await postgresPool.query(`
-    CREATE TABLE IF NOT EXISTS products (
-      id TEXT PRIMARY KEY,
-      slug TEXT UNIQUE NOT NULL,
-      name TEXT NOT NULL,
-      category TEXT NOT NULL,
-      price DOUBLE PRECISION NOT NULL,
-      "originalPrice" DOUBLE PRECISION NOT NULL,
-      discount INTEGER NOT NULL,
-      rating DOUBLE PRECISION NOT NULL,
-      reviews INTEGER NOT NULL,
-      stock INTEGER NOT NULL,
-      is_sold_out BOOLEAN NOT NULL DEFAULT FALSE,
-      badge TEXT,
-      fabric TEXT NOT NULL,
-      description TEXT NOT NULL,
-      images TEXT NOT NULL,
-      colors TEXT NOT NULL,
-      sizes TEXT NOT NULL,
-      stitch_type TEXT,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
+  try {
+    // Create each table separately - PostgreSQL doesn't support multiple statements in one query
+    await postgresPool.query(`
+      CREATE TABLE IF NOT EXISTS products (
+        id TEXT PRIMARY KEY,
+        slug TEXT UNIQUE NOT NULL,
+        name TEXT NOT NULL,
+        category TEXT NOT NULL,
+        price DOUBLE PRECISION NOT NULL,
+        "originalPrice" DOUBLE PRECISION NOT NULL,
+        discount INTEGER NOT NULL,
+        rating DOUBLE PRECISION NOT NULL,
+        reviews INTEGER NOT NULL,
+        stock INTEGER NOT NULL,
+        is_sold_out BOOLEAN NOT NULL DEFAULT FALSE,
+        badge TEXT,
+        fabric TEXT NOT NULL,
+        description TEXT NOT NULL,
+        images TEXT NOT NULL,
+        colors TEXT NOT NULL,
+        sizes TEXT NOT NULL,
+        stitch_type TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
 
-    CREATE TABLE IF NOT EXISTS admin_users (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
+    await postgresPool.query(`
+      CREATE TABLE IF NOT EXISTS admin_users (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
 
-    CREATE TABLE IF NOT EXISTS customers (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      phone TEXT NOT NULL,
-      password_hash TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
+    await postgresPool.query(`
+      CREATE TABLE IF NOT EXISTS customers (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        phone TEXT NOT NULL,
+        password_hash TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
 
-    CREATE TABLE IF NOT EXISTS addresses (
-      id TEXT PRIMARY KEY,
-      customer_id TEXT NOT NULL,
-      label TEXT NOT NULL,
-      full_name TEXT NOT NULL,
-      phone TEXT NOT NULL,
-      line1 TEXT NOT NULL,
-      line2 TEXT,
-      city TEXT NOT NULL,
-      state TEXT NOT NULL,
-      pincode TEXT NOT NULL,
-      country TEXT NOT NULL DEFAULT 'India',
-      is_default INTEGER NOT NULL DEFAULT 0,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
+    await postgresPool.query(`
+      CREATE TABLE IF NOT EXISTS addresses (
+        id TEXT PRIMARY KEY,
+        customer_id TEXT NOT NULL,
+        label TEXT NOT NULL,
+        full_name TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        line1 TEXT NOT NULL,
+        line2 TEXT,
+        city TEXT NOT NULL,
+        state TEXT NOT NULL,
+        pincode TEXT NOT NULL,
+        country TEXT NOT NULL DEFAULT 'India',
+        is_default INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
 
-    CREATE TABLE IF NOT EXISTS orders (
-      id TEXT PRIMARY KEY,
-      customer_id TEXT NOT NULL,
-      order_number TEXT UNIQUE NOT NULL,
-      status TEXT NOT NULL,
-      sub_total DOUBLE PRECISION NOT NULL,
-      shipping DOUBLE PRECISION NOT NULL,
-      discount DOUBLE PRECISION NOT NULL,
-      total DOUBLE PRECISION NOT NULL,
-      payment_status TEXT NOT NULL,
-      payment_method TEXT NOT NULL,
-      delivery_partner TEXT,
-      tracking_id TEXT,
-      estimated_delivery TEXT,
-      items_json TEXT NOT NULL,
-      address_json TEXT DEFAULT '{}',
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
+    await postgresPool.query(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id TEXT PRIMARY KEY,
+        customer_id TEXT NOT NULL,
+        order_number TEXT UNIQUE NOT NULL,
+        status TEXT NOT NULL,
+        sub_total DOUBLE PRECISION NOT NULL,
+        shipping DOUBLE PRECISION NOT NULL,
+        discount DOUBLE PRECISION NOT NULL,
+        total DOUBLE PRECISION NOT NULL,
+        payment_status TEXT NOT NULL,
+        payment_method TEXT NOT NULL,
+        delivery_partner TEXT,
+        tracking_id TEXT,
+        estimated_delivery TEXT,
+        items_json TEXT NOT NULL,
+        address_json TEXT DEFAULT '{}',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
 
-    CREATE TABLE IF NOT EXISTS faq_items (
-      id TEXT PRIMARY KEY,
-      question TEXT NOT NULL,
-      answer TEXT NOT NULL,
-      category TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
+    await postgresPool.query(`
+      CREATE TABLE IF NOT EXISTS faq_items (
+        id TEXT PRIMARY KEY,
+        question TEXT NOT NULL,
+        answer TEXT NOT NULL,
+        category TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
 
-    CREATE TABLE IF NOT EXISTS subscribers (
-      id TEXT PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
-      name TEXT,
-      subscribed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      unsubscribed_at TIMESTAMPTZ,
-      status TEXT DEFAULT 'active'
-    );
-  `);
+    await postgresPool.query(`
+      CREATE TABLE IF NOT EXISTS subscribers (
+        id TEXT PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        name TEXT,
+        subscribed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        unsubscribed_at TIMESTAMPTZ,
+        status TEXT DEFAULT 'active'
+      )
+    `);
 
-  await postgresPool.query(`
-    ALTER TABLE products
-    ADD COLUMN IF NOT EXISTS is_sold_out BOOLEAN NOT NULL DEFAULT FALSE
-  `);
+  } catch (err) {
+    console.error("[DB] PostgreSQL initialization error:", err);
+    throw err;
+  }
 
-  await postgresPool.query(`
-    ALTER TABLE products
-    ADD COLUMN IF NOT EXISTS stitch_type TEXT
-  `);
+  try {
+    await postgresPool.query(`
+      ALTER TABLE products
+      ADD COLUMN IF NOT EXISTS stitch_type TEXT
+    `);
 
   const productCount = await postgresPool.query("SELECT COUNT(*) as count FROM products");
   if (Number(productCount.rows[0]?.count ?? 0) === 0) {
@@ -759,6 +774,11 @@ async function ensurePostgresReady() {
   }
 
   postgresReady = true;
+  console.log("[DB] PostgreSQL initialization completed successfully");
+  } catch (err) {
+    console.error("[DB] PostgreSQL seed data error:", err);
+    throw err;
+  }
 }
 
 export function getDb() {
