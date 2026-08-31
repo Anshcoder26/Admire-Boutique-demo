@@ -6,6 +6,7 @@ import { HeroSection } from "@/components/hero-section";
 import { LotusOrnament } from "@/components/lotus-ornament";
 import { ProductGrid } from "@/components/product-grid";
 import { InstagramFeed } from "@/components/instagram-feed";
+import { SectionDivider } from "@/components/ui/section-divider";
 import { reviews } from "@/data/products";
 import { getCatalogProducts } from "@/lib/catalog-store";
 
@@ -103,6 +104,8 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <SectionDivider className="mb-4" />
+
       <section className="px-4 py-12 md:px-8 lg:px-10">
         <div className="mx-auto max-w-7xl overflow-hidden rounded-[40px] border border-[#D4AF37]/20 bg-gradient-to-br from-[#fff5f0] via-[#f7efe8] to-[#f0e7de] p-8 shadow-[0_20px_50px_rgba(125,29,29,0.1)] md:p-12">
           <div className="grid gap-8 lg:grid-cols-[1fr_0.95fr] lg:items-center">
@@ -129,6 +132,8 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      <SectionDivider className="mb-4" />
 
       <section className="bg-gradient-to-b from-transparent via-[#f4ece6]/50 to-transparent px-4 py-12 md:px-8 lg:px-10">
         <div className="mx-auto max-w-7xl">

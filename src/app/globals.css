@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@/components/motifs/motif-styles.css";
+@import "../components/motifs/motif-styles.css";
 
 :root {
   /* Subtle festive palette - warm dusty rose & gold */
