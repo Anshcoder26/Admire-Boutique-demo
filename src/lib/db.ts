@@ -705,11 +705,27 @@ async function ensurePostgresReady() {
   console.log("[DB] Admin users count:", adminCount.rows[0]?.count ?? 0);
   if (Number(adminCount.rows[0]?.count ?? 0) === 0) {
     console.log("[DB] Inserting seed admin user...");
-    await postgresPool.query(
-      "INSERT INTO admin_users (id, name, email, password_hash) VALUES ($1, $2, $3, $4)",
-      ["admin-owner-1", "Boutique Owner", "owner@admireboutique.in", await hashPassword("admire123")]
-    );
-    console.log("[DB] ✓ Admin user seeded successfully");
+    try {
+      const hashedPassword = await hashPassword("admire123");
+      console.log("[DB] Password hashed, inserting user...");
+      await postgresPool.query(
+        "INSERT INTO admin_users (id, name, email, password_hash) VALUES ($1, $2, $3, $4)",
+        ["admin-owner-1", "Boutique Owner", "owner@admireboutique.in", hashedPassword]
+      );
+      console.log("[DB] ✓ Admin user seeded successfully");
+    } catch (insertErr) {
+      console.error("[DB] INSERT admin user error:", insertErr);
+      // Check if user exists anyway (constraint violation)
+      const existing = await postgresPool.query(
+        "SELECT * FROM admin_users WHERE email = $1",
+        ["owner@admireboutique.in"]
+      );
+      if (existing.rows.length > 0) {
+        console.log("[DB] Admin user already exists in database:", existing.rows[0].email);
+      } else {
+        throw insertErr;
+      }
+    }
   } else {
     console.log("[DB] Admin users already exist, skipping seed");
   }
