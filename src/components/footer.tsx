@@ -6,23 +6,18 @@ import { useState } from "react";
 import { LotusOrnament } from "@/components/lotus-ornament";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NewsletterSignup } from "@/components/newsletter-signup";
-import { FloralBelMotif } from "@/components/motifs/floral-bel-motif";
-import { motifOpacity, motifColors } from "@/components/motifs/motif-utils";
+import { SectionDivider } from "@/components/ui/section-divider";
+import { FabricBooti } from "@/components/motifs/fabric-booti";
 
 export function Footer() {
   const [open, setOpen] = useState(false);
   return (
-    <footer className="relative mt-0 overflow-hidden border-t border-[#e6d9cf] bg-[#f8f2ee]">
-      {/* Floral Bel top border decoration */}
-      <div className="absolute top-0 left-0 right-0 h-16 flex items-center justify-center hidden md:flex">
-        <div style={{ width: '85%', height: '50px' }}>
-          <FloralBelMotif
-            variant="horizontal"
-            opacity={motifOpacity.prominent}
-            color={motifColors.gold}
-            width="100%"
-          />
-        </div>
+    <footer className="relative isolate mt-0 overflow-hidden border-t border-[#e6d9cf] bg-[#f8f2ee]">
+      {/* Subtle Indian suit-fabric booti texture */}
+      <FabricBooti opacity={0.12} size={140} motif="lotus" className="-z-10" />
+      {/* Lotus section divider along the top of the footer */}
+      <div className="absolute top-0 left-0 right-0 hidden items-center justify-center md:flex">
+        <SectionDivider className="my-4 w-[85%]" opacity={0.6} />
       </div>
 
       {/* Animated lotus motifs - footer corners */}

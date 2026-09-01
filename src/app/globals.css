@@ -413,49 +413,49 @@ a {
 }
 
 .global-ornaments svg {
-  opacity: 1;
-  filter: drop-shadow(0 8px 18px rgba(125, 29, 29, 0.08));
+  opacity: 0.5;
+  filter: none;
 }
 
 .ornament-branch {
-  stroke: rgba(111, 47, 191, 0.9);
-  stroke-width: 3.2;
+  stroke: rgba(125, 29, 29, 0.16);
+  stroke-width: 2.4;
   fill: none;
 }
 
 .ornament-branch.warm {
-  stroke: rgba(125, 29, 29, 0.88);
+  stroke: rgba(139, 115, 85, 0.16);
 }
 
 .ornament-leaf {
-  fill: rgba(27, 160, 152, 0.38);
-  stroke: rgba(27, 160, 152, 0.7);
-  stroke-width: 1.5;
+  fill: rgba(139, 115, 85, 0.08);
+  stroke: rgba(139, 115, 85, 0.2);
+  stroke-width: 1.3;
 }
 
 .ornament-leaf.warm {
-  fill: rgba(212, 175, 55, 0.35);
-  stroke: rgba(212, 175, 55, 0.7);
+  fill: rgba(212, 175, 55, 0.08);
+  stroke: rgba(212, 175, 55, 0.22);
 }
 
 .ornament-arch {
-  stroke: rgba(77, 184, 216, 0.9);
-  stroke-width: 2.8;
+  stroke: rgba(125, 29, 29, 0.14);
+  stroke-width: 2;
   fill: none;
 }
 
 .ornament-arch.warm {
-  stroke: rgba(255, 107, 53, 0.85);
+  stroke: rgba(139, 115, 85, 0.16);
 }
 
 .ornament-dot {
-  fill: rgba(125, 29, 29, 0.8);
-  stroke: rgba(111, 47, 191, 0.42);
+  fill: rgba(125, 29, 29, 0.2);
+  stroke: rgba(139, 115, 85, 0.18);
 }
 
 .ornament-dot.warm {
-  fill: rgba(212, 175, 55, 0.8);
-  stroke: rgba(255, 107, 53, 0.38);
+  fill: rgba(212, 175, 55, 0.24);
+  stroke: rgba(139, 115, 85, 0.16);
 }
 
 .lotus-ornament {

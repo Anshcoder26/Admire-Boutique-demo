@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Mail, Check, AlertCircle } from "lucide-react";
+import { FabricBooti } from "@/components/motifs/fabric-booti";
 
 export function NewsletterSignup() {
   const [email, setEmail] = useState("");
@@ -46,9 +47,10 @@ export function NewsletterSignup() {
   };
 
   return (
-    <div className="rounded-[20px] border border-[#eadcd3] bg-gradient-to-br from-[#fffaf6] to-[#f5ede7] p-8 shadow-[0_8px_24px_rgba(84,58,45,0.08)]">
+    <div className="relative isolate overflow-hidden rounded-[20px] border border-[#eadcd3] bg-gradient-to-br from-[#fffaf6] to-[#f5ede7] p-8 shadow-[0_8px_24px_rgba(84,58,45,0.08)]">
+      <FabricBooti opacity={0.05} size={130} motif="lotus" className="-z-10" />
       <div className="mb-4 flex items-center gap-2">
-        <Mail className="h-5 w-5 text-[#c94a6a]" />
+        <Mail className="h-5 w-5 text-[#7D1D1D]" />
         <h3 className="font-serif text-xl font-semibold text-[#201614]">
           Join Our Newsletter
         </h3>
@@ -74,7 +76,7 @@ export function NewsletterSignup() {
             placeholder="Your name (optional)"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-[8px] border border-[#d7c1af] bg-white px-4 py-2.5 text-sm text-[#201614] placeholder-[#8a6f5f] outline-none transition-all focus:border-[#c94a6a] focus:ring-2 focus:ring-[#c94a6a]/20"
+            className="w-full rounded-[8px] border border-[#d7c1af] bg-white px-4 py-2.5 text-sm text-[#201614] placeholder-[#8a6f5f] outline-none transition-all focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/20"
           />
           <div className="flex gap-2">
             <input
@@ -83,12 +85,12 @@ export function NewsletterSignup() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="flex-1 rounded-[8px] border border-[#d7c1af] bg-white px-4 py-2.5 text-sm text-[#201614] placeholder-[#8a6f5f] outline-none transition-all focus:border-[#c94a6a] focus:ring-2 focus:ring-[#c94a6a]/20"
+              className="flex-1 rounded-[8px] border border-[#d7c1af] bg-white px-4 py-2.5 text-sm text-[#201614] placeholder-[#8a6f5f] outline-none transition-all focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/20"
             />
             <button
               type="submit"
               disabled={status === "loading"}
-              className="rounded-[8px] bg-[#c94a6a] px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#b03a5a] disabled:opacity-60"
+              className="rounded-[8px] bg-[#7D1D1D] px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#6a1818] disabled:opacity-60"
             >
               {status === "loading" ? "..." : "Subscribe"}
             </button>

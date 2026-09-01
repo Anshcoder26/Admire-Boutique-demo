@@ -2,94 +2,33 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { PaisleyMotif } from "./motifs/paisley-motif";
+import { FabricBooti } from "./motifs/fabric-booti";
 import { motifOpacity, motifColors } from "./motifs/motif-utils";
 
 export function HeroSection() {
   return (
-    <section className="indian-branch relative overflow-hidden bg-gradient-to-br from-[#fef9f5] via-[#f7efe8] to-[#efe5dc] px-4 pb-12 pt-6 md:px-8 lg:px-10">
-      {/* Vibrant gradient overlay ornaments */}
-      <div className="absolute inset-0 pointer-events-none opacity-40">
-        <div className="absolute top-10 left-10 w-72 h-72 bg-gradient-to-br from-[#7D1D1D]/20 to-transparent rounded-full blur-3xl animate-pulse" />
-        <div className="absolute top-32 right-20 w-96 h-96 bg-gradient-to-bl from-[#D4AF37]/15 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
-        <div className="absolute bottom-0 right-1/3 w-80 h-80 bg-gradient-to-tl from-[#8B7355]/12 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: "2s" }} />
-      </div>
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#fef9f5] via-[#f7efe8] to-[#efe5dc] px-4 pb-12 pt-6 md:px-8 lg:px-10">
+      {/* Subtle Indian suit-fabric booti texture */}
+      <FabricBooti opacity={0.16} size={150} motif="lotus" />
 
-      {/* Animated lotus motifs - top left */}
-      <div className="absolute top-20 left-5 w-12 h-12 opacity-30 animate-float-elegant md:opacity-40">
-        <svg viewBox="0 0 60 60" className="h-full w-full">
-          <path d="M30 10 C 40 15, 45 25, 45 35 C 40 40, 35 41, 30 37 C 25 41, 20 40, 15 35 C 15 25, 20 15, 30 10 Z" fill="none" stroke="#7D1D1D" strokeWidth="1.5" />
-          <path d="M30 10 C 35 18, 38 25, 38 35 C 34 39, 30 40, 30 35" fill="none" stroke="#D4AF37" strokeWidth="0.8" opacity="0.6" />
-          <circle cx="30" cy="30" r="3" fill="#D4AF37" />
-        </svg>
-      </div>
-
-      {/* Paisley motif - top-left corner */}
-      <div className="absolute top-8 left-2 w-16 h-16 opacity-25 animate-float-elegant hidden md:block">
+      {/* Subtle paisley accent - top-left corner */}
+      <div className="absolute top-8 left-3 w-16 h-16 hidden md:block">
         <PaisleyMotif
           size="lg"
           opacity={motifOpacity.light}
           color={motifColors.primary}
-          variant="filled"
+          variant="outline"
         />
       </div>
 
-      {/* Animated lotus motifs - top right */}
-      <div className="absolute top-40 right-8 w-10 h-10 opacity-20 animate-float-elegant md:opacity-35" style={{ animationDelay: "1s" }}>
-        <svg viewBox="0 0 60 60" className="h-full w-full">
-          <path d="M30 10 C 40 15, 45 25, 45 35 C 40 40, 35 41, 30 37 C 25 41, 20 40, 15 35 C 15 25, 20 15, 30 10 Z" fill="none" stroke="#8B7355" strokeWidth="1.2" />
-          <circle cx="30" cy="30" r="2.5" fill="#7D1D1D" />
-        </svg>
-      </div>
-
-      {/* Animated lotus motifs - bottom right */}
-      <div className="absolute bottom-20 right-12 w-14 h-14 opacity-25 animate-float-elegant md:opacity-40" style={{ animationDelay: "2s" }}>
-        <svg viewBox="0 0 60 60" className="h-full w-full">
-          <path d="M30 10 C 40 15, 45 25, 45 35 C 40 40, 35 41, 30 37 C 25 41, 20 40, 15 35 C 15 25, 20 15, 30 10 Z" fill="none" stroke="#D4AF37" strokeWidth="1.5" />
-          <circle cx="30" cy="30" r="3" fill="#7D1D1D" />
-        </svg>
-      </div>
-
-      {/* Paisley motif - bottom-right corner */}
-      <div className="absolute bottom-12 right-4 w-20 h-20 opacity-30 animate-float-elegant hidden md:block" style={{ animationDelay: "1.5s" }}>
+      {/* Subtle paisley accent - bottom-right corner */}
+      <div className="absolute bottom-12 right-5 w-20 h-20 hidden md:block">
        <PaisleyMotif
-         size="xl"
+         size="lg"
          opacity={motifOpacity.light}
          color={motifColors.secondary}
          variant="outline"
        />
-      </div>
-
-      {/* Branch ornament with vibrant colors */}
-      <div className="branch-ornament hidden md:block" aria-hidden="true">
-        <svg viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid meet">
-          <path className="branch animate-spin-slow" d="M120 600 C 200 520, 220 420, 310 360 C 360 330, 400 280, 420 230" />
-          <path className="branch branch-warm" d="M140 540 C 245 470, 260 410, 340 360 C 395 322, 455 270, 470 210" style={{ animationDelay: "-2s" }} />
-          <path className="branch" d="M760 620 C 680 540, 670 430, 620 360 C 580 300, 540 250, 490 220" style={{ animationDelay: "-4s" }} />
-          <path className="branch branch-warm" d="M820 580 C 720 500, 710 420, 655 350 C 620 296, 570 260, 520 220" style={{ animationDelay: "-6s" }} />
-          <path className="branch" d="M340 330 C 290 260, 300 190, 325 150" />
-          <path className="branch branch-warm" d="M635 345 C 685 268, 675 192, 650 145" />
-          <ellipse className="leaf-node animate-pulse" cx="290" cy="410" rx="24" ry="18" transform="rotate(-18 290 410)" />
-          <ellipse className="leaf-node leaf-node-warm" cx="368" cy="332" rx="22" ry="18" transform="rotate(24 368 332)" />
-          <ellipse className="leaf-node" cx="510" cy="285" rx="22" ry="16" transform="rotate(-10 510 285)" />
-          <ellipse className="leaf-node leaf-node-warm" cx="695" cy="372" rx="26" ry="18" transform="rotate(12 695 372)" />
-          <ellipse className="leaf-node" cx="620" cy="252" rx="24" ry="17" transform="rotate(22 620 252)" />
-          <ellipse className="leaf-node leaf-node-warm" cx="350" cy="205" rx="18" ry="14" transform="rotate(-25 350 205)" />
-          <ellipse className="leaf-node" cx="660" cy="192" rx="18" ry="14" transform="rotate(30 660 192)" />
-        </svg>
-      </div>
-
-      {/* Animated leaf clusters */}
-      <div className="leaf-cluster hidden md:block animate-float" aria-hidden="true">
-        <div className="botanical-leaf" />
-        <div className="botanical-leaf terracotta" />
-        <div className="botanical-leaf" />
-        <div className="botanical-leaf terracotta" />
-      </div>
-
-      <div className="hero-leaf-cluster hidden md:block animate-float" style={{ animationDelay: "-3s" }} aria-hidden="true">
-        <div className="botanical-leaf terracotta" />
-        <div className="botanical-leaf" />
-        <div className="botanical-leaf terracotta" />
       </div>
 
       <div className="mx-auto max-w-7xl relative z-10">
@@ -101,7 +40,7 @@ export function HeroSection() {
               Festival Collection
             </div>
             
-            <h1 className="font-serif text-5xl leading-tight text-transparent bg-clip-text bg-gradient-to-r from-[#7D1D1D] via-[#8B7355] to-[#D4AF37] md:text-6xl lg:text-7xl font-bold hover:animate-float">
+            <h1 className="font-serif text-4xl leading-tight text-[#7D1D1D] sm:text-5xl md:text-6xl lg:text-7xl font-bold">
               Rooted in tradition.
               <span className="mt-2 block text-[#8B7355]">Made for today.</span>
             </h1>
@@ -145,23 +84,8 @@ export function HeroSection() {
 
           {/* Right side - Feature card with vibrant gradient */}
           <div className="relative min-h-[450px] overflow-hidden rounded-[32px] bg-gradient-to-br from-[#fff5f0] via-[#f7efe8] to-[#f0e7de] p-6 shadow-[0_25px_50px_rgba(125,29,29,0.15)] border border-[#D4AF37]/20">
-            {/* Animated background pattern */}
-            <div className="absolute inset-0 opacity-30">
-              <div className="absolute top-0 right-0 h-48 w-48 rounded-full bg-gradient-to-bl from-[#7D1D1D] blur-3xl animate-pulse" />
-              <div className="absolute bottom-0 left-0 h-48 w-48 rounded-full bg-gradient-to-tr from-[#8B7355] blur-3xl animate-pulse" style={{ animationDelay: "-1s" }} />
-            </div>
-
-            {/* Leaf spray SVG */}
-            <div className="leaf-spray hidden sm:block animate-float" aria-hidden="true">
-              <svg viewBox="0 0 500 500">
-                <path d="M120 330 C 180 250, 210 180, 180 120 C 120 150, 90 220, 80 290" />
-                <path d="M250 360 C 315 268, 352 190, 325 120 C 255 150, 225 220, 220 300" className="accent" />
-                <path d="M350 330 C 392 260, 425 200, 410 120 C 360 150, 328 230, 320 285" />
-              </svg>
-            </div>
-
             <div className="relative flex h-full items-end justify-center">
-              <div className="group relative h-[380px] w-[280px] overflow-hidden rounded-[28px] bg-gradient-to-b from-[#fff5f0] to-[#f5e8f5] shadow-lg transition-all duration-300 hover:shadow-2xl">
+              <div className="group relative h-[380px] w-[280px] overflow-hidden rounded-[28px] bg-gradient-to-b from-[#fff5f0] to-[#f5ede7] shadow-lg transition-all duration-300 hover:shadow-2xl">
                 <Image
                   src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80"
                   alt="Featured Saffron Silk Kurti"

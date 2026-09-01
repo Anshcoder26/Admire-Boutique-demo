@@ -266,9 +266,9 @@ export default function SignupPage() {
 
               {/* Success message */}
               {successMessage && (
-                <div className="rounded-[16px] border-2 border-[#6f2fbf] bg-[#f0f0ff] p-4 flex gap-3">
-                  <CheckCircle className="h-5 w-5 text-[#6f2fbf] flex-shrink-0 mt-0.5" />
-                  <p className="text-sm font-semibold text-[#6f2fbf]">
+                <div className="rounded-[16px] border-2 border-[#8B7355] bg-[#f7efe8] p-4 flex gap-3">
+                  <CheckCircle className="h-5 w-5 text-[#8B7355] flex-shrink-0 mt-0.5" />
+                  <p className="text-sm font-semibold text-[#8B7355]">
                     {successMessage}
                   </p>
                 </div>

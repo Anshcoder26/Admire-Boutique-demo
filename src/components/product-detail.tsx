@@ -68,7 +68,7 @@ export function ProductDetail({ product }: { product: Product }) {
   return (
     <div className="mx-auto max-w-7xl px-4 pb-24 pt-8 md:px-8 lg:px-10">
       {/* Breadcrumb */}
-      <div className="mb-8 flex items-center gap-2 text-sm text-[#6f2fbf]/70">
+      <div className="mb-8 flex items-center gap-2 text-sm text-[#8B7355]/70">
         <Link href="/" className="hover:text-[#7D1D1D] transition">Home</Link>
         <span className="text-[#ccc]">—</span>
         <Link href="/products" className="hover:text-[#7D1D1D] transition">Collection</Link>
@@ -84,7 +84,7 @@ export function ProductDetail({ product }: { product: Product }) {
         <div className="space-y-8">
           {/* Header */}
           <div className="border-b border-[#7D1D1D]/15 pb-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#6f2fbf]/80">{product.category}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#8B7355]/80">{product.category}</p>
             <div className="mt-3 flex items-start gap-3">
               <DecorativeMotif className="w-6 h-6 flex-shrink-0 mt-1" color="#D4AF37" variant="lotus" />
               <h1 className="font-serif text-4xl leading-tight text-[#1a1612] md:text-5xl">{product.name}</h1>
@@ -134,14 +134,14 @@ export function ProductDetail({ product }: { product: Product }) {
             <div className="flex items-start gap-3 p-4 bg-[#fafaf9] rounded border border-[#ddd]/30">
               <Shield className="w-5 h-5 text-[#7D1D1D] flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#6f2fbf]">7-Day Returns</p>
+                <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#8B7355]">7-Day Returns</p>
                 <p className="text-sm text-[#584942] mt-1">Easy, no-questions-asked</p>
               </div>
             </div>
             <div className="flex items-start gap-3 p-4 bg-[#fafaf9] rounded border border-[#ddd]/30">
               <Truck className="w-5 h-5 text-[#7D1D1D] flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#6f2fbf]">3-5 Day Delivery</p>
+                <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#8B7355]">3-5 Day Delivery</p>
                 <p className="text-sm text-[#584942] mt-1">Free shipping included</p>
               </div>
             </div>
@@ -151,7 +151,7 @@ export function ProductDetail({ product }: { product: Product }) {
           <div>
             <div className="flex items-center justify-between mb-4">
               <label className="text-sm font-bold uppercase tracking-[0.1em] text-[#1a1612]">Select Color</label>
-              <span className="text-sm text-[#6f2fbf] font-semibold">{selectedColor}</span>
+              <span className="text-sm text-[#8B7355] font-semibold">{selectedColor}</span>
             </div>
             <div className="flex gap-3 flex-wrap items-center">
               {product.colors && product.colors.length > 0 ? (
@@ -183,15 +183,13 @@ export function ProductDetail({ product }: { product: Product }) {
                 <BootiPattern
                   density="medium"
                   opacity={motifOpacity.background}
-                  width="100%"
-                  height="100%"
                 />
               </div>
               
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
                   <label className="text-sm font-bold uppercase tracking-[0.1em] text-[#1a1612]">Select Size</label>
-                  <Link href="#size-guide" className="text-xs font-semibold text-[#6f2fbf] hover:text-[#7D1D1D] transition">Size Guide</Link>
+                  <Link href="#size-guide" className="text-xs font-semibold text-[#8B7355] hover:text-[#7D1D1D] transition">Size Guide</Link>
                 </div>
                 <div className="flex flex-wrap gap-3">
                   {product.sizes.map((size) => (
@@ -280,11 +278,11 @@ export function ProductDetail({ product }: { product: Product }) {
 
           <div className="grid grid-cols-2 gap-8">
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-[#6f2fbf] mb-3">Fabric</h3>
+              <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-[#8B7355] mb-3">Fabric</h3>
               <p className="text-base font-semibold text-[#1a1612]">{product.fabric}</p>
             </div>
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-[#6f2fbf] mb-3">Care Instructions</h3>
+              <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-[#8B7355] mb-3">Care Instructions</h3>
               <p className="text-base font-semibold text-[#1a1612]">Cold wash, line dry, minimal ironing</p>
             </div>
           </div>
@@ -293,14 +291,14 @@ export function ProductDetail({ product }: { product: Product }) {
         {/* Info Cards */}
         <div className="space-y-4">
           <div className="border border-[#7D1D1D]/15 rounded p-5 bg-[#fafaf9]">
-            <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#6f2fbf] flex items-center gap-2">
+            <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#8B7355] flex items-center gap-2">
               <span className="text-lg">🚚</span> Shipping
             </p>
             <p className="text-sm font-semibold mt-3 text-[#1a1612]">Free worldwide shipping</p>
           </div>
 
           <div className="border border-[#7D1D1D]/15 rounded p-5 bg-[#fafaf9]">
-            <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#6f2fbf] flex items-center gap-2">
+            <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#8B7355] flex items-center gap-2">
               <Check className="w-4 h-4" /> Guarantee
             </p>
             <p className="text-sm font-semibold mt-3 text-[#1a1612]">7-day money-back guarantee</p>

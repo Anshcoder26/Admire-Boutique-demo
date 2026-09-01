@@ -10,7 +10,7 @@ export function CategorySection() {
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
             <p className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.18em] text-[#8a6f5f]">
-              <Leaf className="h-3.5 w-3.5 text-[#577053]" />
+              <Leaf className="h-3.5 w-3.5 text-[#8B7355]" />
               Curated categories
             </p>
             <h2 className="font-serif text-4xl text-[#201614]">Shop by mood</h2>

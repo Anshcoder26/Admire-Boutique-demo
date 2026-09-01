@@ -238,7 +238,7 @@ export function PremiumCollectionBadge({
       }}
     >
       <PeacockMotif
-        size="sm"
+        size="md"
         color={motifColors.gold}
         variant="simple"
       />
@@ -246,7 +246,7 @@ export function PremiumCollectionBadge({
         {label}
       </span>
       <PeacockMotif
-        size="sm"
+        size="md"
         color={motifColors.gold}
         variant="simple"
       />

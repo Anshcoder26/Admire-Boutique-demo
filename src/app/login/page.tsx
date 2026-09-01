@@ -243,8 +243,8 @@ export default function LoginPage() {
 
               {/* Success message */}
               {successMessage && (
-                <div className="rounded-[16px] border-2 border-[#6f2fbf] bg-[#f0f0ff] p-4 flex gap-3">
-                  <div className="text-sm font-semibold text-[#6f2fbf]">
+                <div className="rounded-[16px] border-2 border-[#8B7355] bg-[#f7efe8] p-4 flex gap-3">
+                  <div className="text-sm font-semibold text-[#8B7355]">
                     ✓ {successMessage}
                   </div>
                 </div>
