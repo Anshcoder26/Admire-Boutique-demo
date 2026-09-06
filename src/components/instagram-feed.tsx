@@ -13,19 +13,19 @@ interface InstagramPost {
 const curatedFallbackPosts: InstagramPost[] = [
   {
     id: "fallback-1",
-    image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
+    image: "https://images.unsplash.com/photo-1759840278862-ef629e9b0f64?auto=format&fit=crop&w=900&q=80",
     caption: "Saffron festive edits for your next celebration ✨",
     link: "https://www.instagram.com/admire_boutique.ab/",
   },
   {
     id: "fallback-2",
-    image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
+    image: "https://images.unsplash.com/photo-1759840278471-462cf3fcebd3?auto=format&fit=crop&w=900&q=80",
     caption: "Curated silhouettes with rich ornamental detail 🌸",
     link: "https://www.instagram.com/admire_boutique.ab/",
   },
   {
     id: "fallback-3",
-    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
+    image: "https://images.unsplash.com/photo-1740992556357-f7fe9afff763?auto=format&fit=crop&w=900&q=80",
     caption: "Elegant everyday looks in maroon and gold.",
     link: "https://www.instagram.com/admire_boutique.ab/",
   },
@@ -87,7 +87,7 @@ export function InstagramFeed() {
               className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300"
               loading="lazy"
               onError={(e) => {
-                e.currentTarget.src = "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80";
+                e.currentTarget.src = "https://images.unsplash.com/photo-1759840278471-462cf3fcebd3?auto=format&fit=crop&w=900&q=80";
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">

@@ -133,9 +133,9 @@ const seedProducts = [
     description:
       "A softly draped festive kurti with a refined sheen and elegant neckline, made for celebrations and evening transitions.",
     images: [
-      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278862-ef629e9b0f64?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1740992556357-f7fe9afff763?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278471-462cf3fcebd3?auto=format&fit=crop&w=900&q=80",
     ],
     colors: [
       { name: "Saffron", hex: "#c96b2d" },
@@ -160,9 +160,9 @@ const seedProducts = [
     description:
       "Minimal, breathable and tailored for all-day comfort. A classic straight silhouette that keeps your wardrobe refined and versatile.",
     images: [
-      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1769063382706-8156b3b33eac?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1740992556357-f7fe9afff763?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278471-462cf3fcebd3?auto=format&fit=crop&w=900&q=80",
     ],
     colors: [
       { name: "Ivory", hex: "#f7efe5" },
@@ -187,9 +187,9 @@ const seedProducts = [
     description:
       "Flattering A-line cut with a modern print story and airy fit, ideal for both day errands and relaxed festive evenings.",
     images: [
-      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278862-ef629e9b0f64?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1769063382706-8156b3b33eac?auto=format&fit=crop&w=900&q=80",
     ],
     colors: [
       { name: "Terracotta", hex: "#b75b42" },
@@ -214,9 +214,9 @@ const seedProducts = [
     description:
       "An elegant flared silhouette with a contemporary floral palette, designed to feel festive without being ostentatious.",
     images: [
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278471-462cf3fcebd3?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1740992556357-f7fe9afff763?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=900&q=80",
     ],
     colors: [
       { name: "Maroon", hex: "#4d1d21" },
@@ -241,9 +241,9 @@ const seedProducts = [
     description:
       "Built for polished mornings and effortless transitions, this sharp kurti balances comfort and professionalism.",
     images: [
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278471-462cf3fcebd3?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1769063382706-8156b3b33eac?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278862-ef629e9b0f64?auto=format&fit=crop&w=900&q=80",
     ],
     colors: [
       { name: "Charcoal", hex: "#2a2c2f" },
@@ -901,9 +901,9 @@ export async function createProduct(input: {
     fabric: input.fabric,
     description: input.description || "Curated for the Admire Boutique collection.",
     images: input.images || [
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278471-462cf3fcebd3?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1740992556357-f7fe9afff763?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278862-ef629e9b0f64?auto=format&fit=crop&w=900&q=80",
     ],
     colors: input.colors || [{ name: "Terracotta", hex: "#c06a4f" }],
     sizes: input.sizes || ["XS", "S", "M", "L", "XL"],

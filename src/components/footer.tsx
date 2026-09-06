@@ -14,7 +14,7 @@ export function Footer() {
   return (
     <footer className="relative isolate mt-0 overflow-hidden border-t border-[#e6d9cf] bg-[#f8f2ee]">
       {/* Subtle Indian suit-fabric booti texture */}
-      <FabricBooti opacity={0.12} size={140} motif="lotus" className="-z-10" />
+      <FabricBooti opacity={0.12} mobileOpacity={0.05} size={140} motif="lotus" className="-z-10" />
       {/* Lotus section divider along the top of the footer */}
       <div className="absolute top-0 left-0 right-0 hidden items-center justify-center md:flex">
         <SectionDivider className="my-4 w-[85%]" opacity={0.6} />

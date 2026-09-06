@@ -23,9 +23,9 @@ export default async function HomePage() {
       <div className="relative overflow-hidden">
         <div className="relative z-10">
 
-      <section className="bg-gradient-to-b from-transparent via-[#f4ece6]/60 to-transparent px-4 py-12 md:px-8 lg:px-10">
+      <section className="bg-gradient-to-b from-transparent via-[#f4ece6]/60 to-transparent px-4 py-8 md:py-12 md:px-8 lg:px-10">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-8 flex items-end justify-between gap-4">
+          <div className="mb-6 md:mb-8 flex items-end justify-between gap-4">
             <div className="flex items-center gap-4">
               <LotusOrnament className="h-12 w-12 rounded-full border-2 border-[#7D1D1D]/30 bg-gradient-to-br from-[#7D1D1D]/10 to-[#D4AF37]/10 p-2.5" />
               <div>
@@ -43,8 +43,8 @@ export default async function HomePage() {
 
       <SectionDivider className="mb-4" />
 
-      <section className="px-4 py-12 md:px-8 lg:px-10">
-        <div className="relative isolate mx-auto max-w-7xl overflow-hidden rounded-[40px] border border-[#D4AF37]/20 bg-gradient-to-br from-[#fff5f0] via-[#f7efe8] to-[#f0e7de] p-8 shadow-[0_20px_50px_rgba(125,29,29,0.1)] md:p-12">
+      <section className="px-4 py-8 md:py-12 md:px-8 lg:px-10">
+        <div className="relative isolate mx-auto max-w-7xl overflow-hidden rounded-[40px] border border-[#D4AF37]/20 bg-gradient-to-br from-[#fff5f0] via-[#f7efe8] to-[#f0e7de] p-6 md:p-12 shadow-[0_20px_50px_rgba(125,29,29,0.1)]">
           <FabricBooti opacity={0.045} size={140} motif="lotus" className="-z-10" />
           <div className="grid gap-8 lg:grid-cols-[1fr_0.95fr] lg:items-center">
             <div className="space-y-6">
@@ -61,10 +61,10 @@ export default async function HomePage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="overflow-hidden rounded-[32px] shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105">
-                <Image src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80" alt="Feature portfolio one" width={700} height={1000} className="h-[280px] w-full object-cover" priority loading="eager" />
+                <Image src="https://images.unsplash.com/photo-1765529374927-052599af9c82?auto=format&fit=crop&w=900&q=80" alt="Feature portfolio one" width={700} height={1000} className="h-[280px] w-full object-cover" priority loading="eager" />
               </div>
               <div className="overflow-hidden rounded-[32px] shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105">
-                <Image src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80" alt="Feature portfolio two" width={700} height={1000} className="h-[280px] w-full object-cover" loading="eager" />
+                <Image src="https://images.unsplash.com/photo-1740992556750-e238834c3228?auto=format&fit=crop&w=900&q=80" alt="Feature portfolio two" width={700} height={1000} className="h-[280px] w-full object-cover" loading="eager" />
               </div>
             </div>
           </div>
@@ -73,9 +73,9 @@ export default async function HomePage() {
 
       <SectionDivider className="mb-4" />
 
-      <section className="bg-gradient-to-b from-transparent via-[#f4ece6]/50 to-transparent px-4 py-12 md:px-8 lg:px-10">
+      <section className="bg-gradient-to-b from-transparent via-[#f4ece6]/50 to-transparent px-4 py-8 md:py-12 md:px-8 lg:px-10">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-8 flex items-end justify-between gap-4">
+          <div className="mb-6 md:mb-8 flex items-end justify-between gap-4">
             <div className="flex items-center gap-4">
               <LotusOrnament className="h-12 w-12 rounded-full border-2 border-[#8B7355]/30 bg-gradient-to-br from-[#8B7355]/10 to-[#D4AF37]/10 p-2.5" />
               <div>
@@ -88,10 +88,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="px-4 py-12 md:px-8 lg:px-10">
-        <div className="relative isolate mx-auto max-w-7xl overflow-hidden rounded-[40px] border border-[#7D1D1D]/20 bg-gradient-to-br from-[#fff5f0] via-[#f7efe8] to-[#f4ece6] p-8 shadow-[0_20px_50px_rgba(125,29,29,0.1)] md:p-12">
+      <section className="px-4 py-8 md:py-12 md:px-8 lg:px-10">
+        <div className="relative isolate mx-auto max-w-7xl overflow-hidden rounded-[40px] border border-[#7D1D1D]/20 bg-gradient-to-br from-[#fff5f0] via-[#f7efe8] to-[#f4ece6] p-6 md:p-12 shadow-[0_20px_50px_rgba(125,29,29,0.1)]">
           <FabricBooti opacity={0.045} size={140} motif="lotus" className="-z-10" />
-          <div className="mb-10">
+          <div className="mb-6 md:mb-10">
             <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#7D1D1D]">Why Choose Us</p>
             <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[#7D1D1D] lg:text-6xl">Designed for Confidence</h2>
           </div>
@@ -114,9 +114,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="bg-gradient-to-b from-transparent via-[#f4ece6]/60 to-transparent px-4 py-12 md:px-8 lg:px-10">
+      <section className="bg-gradient-to-b from-transparent via-[#f4ece6]/60 to-transparent px-4 py-8 md:py-12 md:px-8 lg:px-10">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-10 flex items-end justify-between gap-4">
+          <div className="mb-6 md:mb-10 flex items-end justify-between gap-4">
             <div className="flex items-center gap-4">
               <LotusOrnament className="h-12 w-12 rounded-full border-2 border-[#D4AF37]/30 bg-gradient-to-br from-[#D4AF37]/10 to-[#8B7355]/10 p-2.5" />
               <div>
@@ -143,8 +143,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="px-4 pb-16 pt-12 md:px-8 lg:px-10">
-        <div className="mx-auto max-w-7xl rounded-[40px] border border-[#D4AF37]/20 bg-gradient-to-br from-[#2b1b1b] via-[#1a1612] to-[#1f1814] p-10 text-white shadow-[0_25px_50px_rgba(125,29,29,0.2)]">
+      <section className="px-4 pb-10 pt-8 md:pb-16 md:pt-12 md:px-8 lg:px-10">
+        <div className="mx-auto max-w-7xl rounded-[40px] border border-[#D4AF37]/20 bg-gradient-to-br from-[#2b1b1b] via-[#1a1612] to-[#1f1814] p-6 md:p-10 text-white shadow-[0_25px_50px_rgba(125,29,29,0.2)]">
           <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#D4AF37]">Follow Our Style</p>

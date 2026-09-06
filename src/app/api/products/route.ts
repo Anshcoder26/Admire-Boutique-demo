@@ -32,9 +32,9 @@ export async function POST(request: Request) {
     : typeof rawImages === "string"
       ? rawImages.split(",").map((url: string) => url.trim()).filter(Boolean)
       : [
-          "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
-          "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
-          "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1759840278471-462cf3fcebd3?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1740992556357-f7fe9afff763?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1759840278862-ef629e9b0f64?auto=format&fit=crop&w=900&q=80",
         ];
 
   const originalPrice = Math.round(price * 1.35);
@@ -54,9 +54,9 @@ export async function POST(request: Request) {
     fabric: String(body.fabric || "Cotton"),
     description: String(body.description || "Newly added premium kurti from the Admire Boutique collection."),
     images: imageList.length ? imageList : [
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278471-462cf3fcebd3?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1740992556357-f7fe9afff763?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278862-ef629e9b0f64?auto=format&fit=crop&w=900&q=80",
     ],
     colors: Array.isArray(body.colors) && body.colors.length ? body.colors : [{ name: "Terracotta", hex: "#c06a4f" }],
     sizes: Array.isArray(body.sizes) && body.sizes.length ? body.sizes : ["XS", "S", "M", "L", "XL"],

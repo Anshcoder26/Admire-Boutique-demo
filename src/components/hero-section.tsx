@@ -9,7 +9,7 @@ export function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#fef9f5] via-[#f7efe8] to-[#efe5dc] px-4 pb-12 pt-6 md:px-8 lg:px-10">
       {/* Subtle Indian suit-fabric booti texture */}
-      <FabricBooti opacity={0.16} size={150} motif="lotus" />
+      <FabricBooti opacity={0.16} mobileOpacity={0.1} size={150} motif="lotus" />
 
       {/* Subtle paisley accent - top-left corner */}
       <div className="absolute top-8 left-3 w-16 h-16 hidden md:block">
@@ -32,62 +32,62 @@ export function HeroSection() {
       </div>
 
       <div className="mx-auto max-w-7xl relative z-10">
-        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+        <div className="grid gap-5 md:gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           {/* Left content with vibrant design */}
-          <div className="rounded-[32px] bg-gradient-to-br from-[#fff5f0] to-[#f4ece6] p-8 shadow-[0_20px_50px_rgba(125,29,29,0.12)] md:p-10 lg:p-12 border border-[#D4AF37]/20 hover:shadow-[0_20px_60px_rgba(125,29,29,0.18)] transition-all duration-300">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#7D1D1D]/30 bg-gradient-to-r from-[#7D1D1D]/10 to-[#D4AF37]/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.25em] text-[#7D1D1D] hover:bg-gradient-to-r hover:from-[#7D1D1D]/15 hover:to-[#D4AF37]/15 transition-all">
+          <div className="rounded-[32px] bg-gradient-to-br from-[#fff5f0] to-[#f4ece6] p-6 shadow-[0_20px_50px_rgba(125,29,29,0.12)] md:p-10 lg:p-12 border border-[#D4AF37]/20 hover:shadow-[0_20px_60px_rgba(125,29,29,0.18)] transition-all duration-300">
+            <div className="mb-4 md:mb-6 inline-flex items-center gap-2 rounded-full border border-[#7D1D1D]/30 bg-gradient-to-r from-[#7D1D1D]/10 to-[#D4AF37]/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.25em] text-[#7D1D1D] hover:bg-gradient-to-r hover:from-[#7D1D1D]/15 hover:to-[#D4AF37]/15 transition-all">
               <Sparkles className="h-4 w-4 animate-pulse" />
               Festival Collection
             </div>
             
             <h1 className="font-serif text-4xl leading-tight text-[#7D1D1D] sm:text-5xl md:text-6xl lg:text-7xl font-bold">
               Rooted in tradition.
-              <span className="mt-2 block text-[#8B7355]">Made for today.</span>
+              <span className="mt-1 md:mt-2 block text-[#7D1D1D]">Made for today.</span>
             </h1>
             
-            <p className="mt-6 max-w-xl text-lg leading-8 text-[#5d413d]">
+            <p className="mt-4 md:mt-6 max-w-xl text-base md:text-lg leading-7 md:leading-8 text-[#5d413d]">
               Discover premium kurtis, festive edits and effortless everyday pieces curated for the modern Indian woman.
             </p>
             
-            <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:gap-3">
+            <div className="mt-6 md:mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/products"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#7D1D1D] to-[#8B7355] px-8 py-4 text-base font-semibold text-white shadow-lg shadow-[#7D1D1D]/30 transition-all hover:shadow-2xl hover:shadow-[#7D1D1D]/50 hover:scale-110 active:scale-95 hover:animate-subtle-pulse"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#7D1D1D] to-[#8B7355] px-8 py-3 md:py-4 text-base font-semibold text-white shadow-lg shadow-[#7D1D1D]/30 transition-all hover:shadow-2xl hover:shadow-[#7D1D1D]/50 hover:scale-105 active:scale-95 hover:animate-subtle-pulse"
               >
                 Shop Now
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link
                 href="/products"
-                className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-[#8B7355] bg-white/60 px-8 py-4 text-base font-semibold text-[#7D1D1D] transition-all hover:bg-[#8B7355]/10 hover:scale-110 active:scale-95 hover:border-[#7D1D1D]"
+                className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-[#8B7355] bg-white/60 px-8 py-3 md:py-4 text-base font-semibold text-[#7D1D1D] transition-all hover:bg-[#8B7355]/10 hover:scale-105 active:scale-95 hover:border-[#7D1D1D]"
               >
                 Explore Collection
               </Link>
             </div>
             
             {/* Stats with vibrant badges */}
-            <div className="mt-12 flex flex-wrap items-center gap-4">
-              <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#7D1D1D]/10 to-[#D4AF37]/10 px-5 py-3 border border-[#7D1D1D]/20">
+            <div className="mt-6 md:mt-10 flex flex-wrap items-center gap-3 md:gap-4">
+              <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#7D1D1D]/10 to-[#D4AF37]/10 px-4 py-2 md:px-5 md:py-3 border border-[#7D1D1D]/20">
                 <div className="flex flex-col">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-[#8B7355]">Happy Customers</span>
-                  <span className="text-2xl font-bold text-[#7D1D1D]">14k+</span>
+                  <span className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-[#8B7355]">Happy Customers</span>
+                  <span className="text-xl md:text-2xl font-bold text-[#7D1D1D]">14k+</span>
                 </div>
               </div>
-              <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#D4AF37]/10 to-[#8B7355]/10 px-5 py-3 border border-[#D4AF37]/20">
+              <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#D4AF37]/10 to-[#8B7355]/10 px-4 py-2 md:px-5 md:py-3 border border-[#D4AF37]/20">
                 <div className="flex flex-col">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-[#8B7355]">Rating</span>
-                  <span className="text-2xl font-bold text-[#D4AF37]">4.8★</span>
+                  <span className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-[#8B7355]">Rating</span>
+                  <span className="text-xl md:text-2xl font-bold text-[#D4AF37]">4.8★</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Right side - Feature card with vibrant gradient */}
-          <div className="relative min-h-[450px] overflow-hidden rounded-[32px] bg-gradient-to-br from-[#fff5f0] via-[#f7efe8] to-[#f0e7de] p-6 shadow-[0_25px_50px_rgba(125,29,29,0.15)] border border-[#D4AF37]/20">
+          <div className="relative min-h-[340px] md:min-h-[450px] overflow-hidden rounded-[32px] bg-gradient-to-br from-[#fff5f0] via-[#f7efe8] to-[#f0e7de] p-4 md:p-6 shadow-[0_25px_50px_rgba(125,29,29,0.15)] border border-[#D4AF37]/20">
             <div className="relative flex h-full items-end justify-center">
-              <div className="group relative h-[380px] w-[280px] overflow-hidden rounded-[28px] bg-gradient-to-b from-[#fff5f0] to-[#f5ede7] shadow-lg transition-all duration-300 hover:shadow-2xl">
+              <div className="group relative h-[300px] w-[240px] md:h-[380px] md:w-[280px] overflow-hidden rounded-[28px] bg-gradient-to-b from-[#fff5f0] to-[#f5ede7] shadow-lg transition-all duration-300 hover:shadow-2xl">
                 <Image
-                  src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80"
+                  src="https://images.unsplash.com/photo-1759840278862-ef629e9b0f64?auto=format&fit=crop&w=900&q=80"
                   alt="Featured Saffron Silk Kurti"
                   width={560}
                   height={760}

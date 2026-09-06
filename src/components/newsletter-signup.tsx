@@ -78,19 +78,19 @@ export function NewsletterSignup() {
             onChange={(e) => setName(e.target.value)}
             className="w-full rounded-[8px] border border-[#d7c1af] bg-white px-4 py-2.5 text-sm text-[#201614] placeholder-[#8a6f5f] outline-none transition-all focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/20"
           />
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <input
               type="email"
               placeholder="your@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="flex-1 rounded-[8px] border border-[#d7c1af] bg-white px-4 py-2.5 text-sm text-[#201614] placeholder-[#8a6f5f] outline-none transition-all focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/20"
+              className="w-full sm:flex-1 rounded-[8px] border border-[#d7c1af] bg-white px-4 py-2.5 text-sm text-[#201614] placeholder-[#8a6f5f] outline-none transition-all focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/20"
             />
             <button
               type="submit"
               disabled={status === "loading"}
-              className="rounded-[8px] bg-[#7D1D1D] px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#6a1818] disabled:opacity-60"
+              className="w-full sm:w-auto rounded-[8px] bg-[#7D1D1D] px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#6a1818] disabled:opacity-60"
             >
               {status === "loading" ? "..." : "Subscribe"}
             </button>

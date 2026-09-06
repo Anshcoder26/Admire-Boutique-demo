@@ -501,3 +501,14 @@ a {
 .app-shell > .fixed {
   z-index: 0;
 }
+
+/* FabricBooti textile texture: lighter on mobile, full opacity on md+ */
+.fabric-booti {
+  opacity: var(--fb-op, 0.05);
+}
+
+@media (min-width: 768px) {
+  .fabric-booti {
+    opacity: var(--fb-op-md, var(--fb-op, 0.05));
+  }
+}

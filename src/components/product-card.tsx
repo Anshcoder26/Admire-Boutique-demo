@@ -52,11 +52,11 @@ export function ProductCard({ product }: { product: Product }) {
        <div className="relative overflow-hidden rounded-t-[28px] bg-[#f7efe8]">
          <div className="block relative overflow-hidden">
            <Image
-             src={product.images?.[0] || "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80"}
+             src={product.images?.[0] || "https://images.unsplash.com/photo-1759840278862-ef629e9b0f64?auto=format&fit=crop&w=900&q=80"}
              alt={product.name}
              width={800}
              height={980}
-             className="h-72 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+             className="h-60 md:h-72 w-full object-cover transition-transform duration-500 group-hover:scale-105"
            />
          </div>
          <WishlistHeart

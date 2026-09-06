@@ -29,37 +29,37 @@ export const categories = [
     name: "Premium Cotton",
     subtitle: "Comfort meets elegance",
     image:
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1740992556750-e238834c3228?auto=format&fit=crop&w=800&q=80",
   },
   {
     name: "Pure Mul",
     subtitle: "Lightweight luxury",
     image:
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1597897545984-a0c9dafbb807?auto=format&fit=crop&w=800&q=80",
   },
   {
     name: "Georgette",
     subtitle: "Fluid sophistication",
     image:
-      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1765529374927-052599af9c82?auto=format&fit=crop&w=800&q=80",
   },
   {
     name: "Maheshwari Suits",
     subtitle: "Timeless heritage",
     image:
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80",
   },
   {
     name: "Parsi Work",
     subtitle: "Intricate craftsmanship",
     image:
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1512676052261-98bab4919138?auto=format&fit=crop&w=800&q=80",
   },
   {
     name: "Muslins",
     subtitle: "Pure elegance",
     image:
-      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1768289222318-fd35f29a8403?auto=format&fit=crop&w=800&q=80",
   },
 ];
 
@@ -80,9 +80,9 @@ export const products: Product[] = [
     description:
       "A softly draped festive kurti with a refined sheen and elegant neckline, made for celebrations and evening transitions.",
     images: [
-      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278862-ef629e9b0f64?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1740992556357-f7fe9afff763?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278471-462cf3fcebd3?auto=format&fit=crop&w=900&q=80",
     ],
     colors: [
       { name: "Saffron", hex: "#c96b2d" },
@@ -107,9 +107,9 @@ export const products: Product[] = [
     description:
       "Minimal, breathable and tailored for all-day comfort. A classic straight silhouette that keeps your wardrobe refined and versatile.",
     images: [
-      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1769063382706-8156b3b33eac?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1740992556357-f7fe9afff763?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278471-462cf3fcebd3?auto=format&fit=crop&w=900&q=80",
     ],
     colors: [
       { name: "Ivory", hex: "#f7efe5" },
@@ -133,9 +133,9 @@ export const products: Product[] = [
     description:
       "Flattering A-line cut with a modern print story and airy fit, ideal for both day errands and relaxed festive evenings.",
     images: [
-      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278862-ef629e9b0f64?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1769063382706-8156b3b33eac?auto=format&fit=crop&w=900&q=80",
     ],
     colors: [
       { name: "Terracotta", hex: "#b75b42" },
@@ -159,9 +159,9 @@ export const products: Product[] = [
     description:
       "An elegant flared silhouette with a contemporary floral palette, designed to feel festive without being ostentatious.",
     images: [
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278471-462cf3fcebd3?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1740992556357-f7fe9afff763?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=900&q=80",
     ],
     colors: [
       { name: "Maroon", hex: "#4d1d21" },
@@ -185,9 +185,9 @@ export const products: Product[] = [
     description:
       "Built for polished mornings and effortless transitions, this sharp kurti balances comfort and professionalism.",
     images: [
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278471-462cf3fcebd3?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1769063382706-8156b3b33eac?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278862-ef629e9b0f64?auto=format&fit=crop&w=900&q=80",
     ],
     colors: [
       { name: "Charcoal", hex: "#2a2c2f" },
@@ -212,9 +212,9 @@ export const products: Product[] = [
     description:
       "A celebratory silhouette with a luxe finish and warm metallic undertone for family gatherings and weddings.",
     images: [
-      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278471-462cf3fcebd3?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1769063382706-8156b3b33eac?auto=format&fit=crop&w=900&q=80",
     ],
     colors: [
       { name: "Rose Gold", hex: "#dcb09f" },
@@ -238,9 +238,9 @@ export const products: Product[] = [
     description:
       "Airy and sculpted, this warm neutral kurti brings effortless structure and ease to everyday wear.",
     images: [
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1740992556357-f7fe9afff763?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1759840278862-ef629e9b0f64?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1769063382706-8156b3b33eac?auto=format&fit=crop&w=900&q=80",
     ],
     colors: [
       { name: "Sand", hex: "#c8b49b" },

@@ -6,6 +6,8 @@ interface FabricBootiProps {
   className?: string;
   /** Final visible opacity of the textile layer (keep low: 0.04–0.12). */
   opacity?: number;
+  /** Optional lighter opacity applied on small (mobile) screens. Defaults to `opacity`. */
+  mobileOpacity?: number;
   /** Motif colour (defaults to brand maroon). */
   color?: string;
   /** Tile size in px. Larger = more spaced out. */
@@ -29,6 +31,7 @@ interface FabricBootiProps {
 export function FabricBooti({
   className = "",
   opacity = 0.05,
+  mobileOpacity,
   color = motifColors.primary,
   size = 150,
   motif = "flower",
@@ -39,15 +42,20 @@ export function FabricBooti({
 
   const backgroundImage = `url("data:image/svg+xml,${encodeURIComponent(tile)}")`;
 
+  const mOpacity = mobileOpacity ?? opacity;
+
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none absolute inset-0 ${className}`}
+      className={`fabric-booti pointer-events-none absolute inset-0 ${className}`}
       style={{
         backgroundImage,
         backgroundSize: `${size}px ${size}px`,
         backgroundRepeat: "repeat",
-        opacity,
+        // Consumed by the .fabric-booti rule in globals.css: lighter on mobile,
+        // full opacity on md+ screens.
+        ["--fb-op" as string]: `${mOpacity}`,
+        ["--fb-op-md" as string]: `${opacity}`,
       }}
     />
   );

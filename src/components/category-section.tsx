@@ -13,7 +13,7 @@ export function CategorySection() {
               <Leaf className="h-3.5 w-3.5 text-[#8B7355]" />
               Curated categories
             </p>
-            <h2 className="font-serif text-4xl text-[#201614]">Shop by mood</h2>
+            <h2 className="font-serif text-3xl md:text-4xl text-[#201614]">Shop by mood</h2>
           </div>
           <Link href="/products" className="hidden items-center gap-2 text-sm font-medium text-[#5d2a25] md:inline-flex">
             Explore all <ArrowUpRight className="h-4 w-4" />
@@ -29,11 +29,11 @@ export function CategorySection() {
                   alt={category.name}
                   width={800}
                   height={1040}
-                  className="h-72 w-full object-cover transition duration-500 group-hover:scale-105"
+                  className="h-60 md:h-72 w-full object-cover transition duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#190f0d]/75 via-[#190f0d]/20 to-transparent p-4 text-white">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#f1d8c4]">{category.subtitle}</p>
-                  <h3 className="mt-2 font-serif text-3xl">{category.name}</h3>
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#190f0d]/90 via-[#190f0d]/45 to-transparent p-4 pt-10 text-white [text-shadow:0_1px_4px_rgba(0,0,0,0.6)]">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#f5e3d3]">{category.subtitle}</p>
+                  <h3 className="mt-1.5 font-serif text-2xl md:text-3xl">{category.name}</h3>
                 </div>
               </div>
             </Link>
