@@ -24,7 +24,8 @@ export async function GET(request: Request) {
   // Get newsletter subscribers
   const subscribersStmt = db.prepare(`
     SELECT email, subscribed_at 
-    FROM newsletter_subscribers 
+    FROM subscribers 
+    WHERE status = 'active'
     ORDER BY subscribed_at DESC 
     LIMIT 500
   `);

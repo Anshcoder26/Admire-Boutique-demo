@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import fs from "node:fs";
 import path from "node:path";
+import { randomBytes } from "node:crypto";
 import Database from "better-sqlite3";
 import { Pool } from "pg";
 import bcryptjs from "bcryptjs";
@@ -456,6 +457,15 @@ if (!usesPostgres) {
       unsubscribed_at TEXT,
       status TEXT DEFAULT 'active'
     );
+
+    CREATE TABLE IF NOT EXISTS password_resets (
+      token TEXT PRIMARY KEY,
+      customer_id TEXT NOT NULL,
+      email TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      used INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   const sqliteProductColumns = sqliteDb.prepare("PRAGMA table_info(products)").all() as Array<{ name: string }>;
@@ -464,6 +474,11 @@ if (!usesPostgres) {
   }
   if (!sqliteProductColumns.some((column) => column.name === "stitch_type")) {
     sqliteDb.exec("ALTER TABLE products ADD COLUMN stitch_type TEXT;");
+  }
+
+  const sqliteOrderColumns = sqliteDb.prepare("PRAGMA table_info(orders)").all() as Array<{ name: string }>;
+  if (!sqliteOrderColumns.some((column) => column.name === "address_json")) {
+    sqliteDb.exec("ALTER TABLE orders ADD COLUMN address_json TEXT DEFAULT '{}';");
   }
 
   const productsCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM products").get() as { count: number };
@@ -661,6 +676,17 @@ async function ensurePostgresReady() {
       )
     `);
 
+    await postgresPool.query(`
+      CREATE TABLE IF NOT EXISTS password_resets (
+        token TEXT PRIMARY KEY,
+        customer_id TEXT NOT NULL,
+        email TEXT NOT NULL,
+        expires_at TIMESTAMPTZ NOT NULL,
+        used INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+
   } catch (err) {
     console.error("[DB] PostgreSQL initialization error:", err);
     throw err;
@@ -670,6 +696,11 @@ async function ensurePostgresReady() {
     await postgresPool.query(`
       ALTER TABLE products
       ADD COLUMN IF NOT EXISTS stitch_type TEXT
+    `);
+
+    await postgresPool.query(`
+      ALTER TABLE orders
+      ADD COLUMN IF NOT EXISTS address_json TEXT DEFAULT '{}'
     `);
 
   const productCount = await postgresPool.query("SELECT COUNT(*) as count FROM products");
@@ -1185,6 +1216,74 @@ export async function getCustomerById(id: string): Promise<CustomerRecord | null
   } satisfies CustomerRecord;
 }
 
+export async function createPasswordResetToken(email: string): Promise<string | null> {
+  const normalized = email.trim().toLowerCase();
+  const customer = await getCustomerByEmail(normalized);
+  if (!customer) return null;
+
+  const token = randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 minutes
+
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    await postgresPool!.query(
+      "INSERT INTO password_resets (token, customer_id, email, expires_at, used) VALUES ($1, $2, $3, $4, 0)",
+      [token, customer.id, customer.email, expiresAt]
+    );
+    return token;
+  }
+
+  sqliteDb.prepare(
+    "INSERT INTO password_resets (token, customer_id, email, expires_at, used) VALUES (?, ?, ?, ?, 0)"
+  ).run(token, customer.id, customer.email, expiresAt);
+  return token;
+}
+
+export async function consumePasswordResetToken(
+  token: string
+): Promise<{ customerId: string; email: string } | null> {
+  if (!token) return null;
+
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query(
+      "SELECT * FROM password_resets WHERE token = $1",
+      [token]
+    );
+    const row = result.rows[0];
+    if (!row || row.used) return null;
+    if (new Date(row.expires_at).getTime() < Date.now()) return null;
+    await postgresPool!.query("UPDATE password_resets SET used = 1 WHERE token = $1", [token]);
+    return { customerId: row.customer_id, email: row.email };
+  }
+
+  const row = sqliteDb.prepare("SELECT * FROM password_resets WHERE token = ?").get(token) as
+    | Record<string, any>
+    | undefined;
+  if (!row || row.used) return null;
+  if (new Date(row.expires_at).getTime() < Date.now()) return null;
+  sqliteDb.prepare("UPDATE password_resets SET used = 1 WHERE token = ?").run(token);
+  return { customerId: row.customer_id, email: row.email };
+}
+
+export async function updateCustomerPassword(customerId: string, newPassword: string): Promise<boolean> {
+  const passwordHash = await hashPassword(newPassword);
+
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query(
+      "UPDATE customers SET password_hash = $1 WHERE id = $2",
+      [passwordHash, customerId]
+    );
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  const result = sqliteDb
+    .prepare("UPDATE customers SET password_hash = ? WHERE id = ?")
+    .run(passwordHash, customerId);
+  return result.changes > 0;
+}
+
 export async function createCustomer(input: { name: string; email: string; phone: string; password: string }): Promise<CustomerRecord | null> {
   const name = input.name.trim();
   const email = input.email.trim().toLowerCase();
@@ -1318,6 +1417,26 @@ export async function listCustomerOrders(customerId: string) {
     ...row,
     items: parseJsonArray(row.items_json),
   }));
+}
+
+export async function getCustomerOrderById(customerId: string, orderId: string) {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query(
+      "SELECT * FROM orders WHERE id = $1 AND customer_id = $2",
+      [orderId, customerId]
+    );
+    if (!result.rows[0]) return null;
+    const row = result.rows[0];
+    return { ...row, items: parseJsonArray(row.items_json) };
+  }
+
+  const row = sqliteDb.prepare(`
+    SELECT * FROM orders WHERE id = ? AND customer_id = ?
+  `).get(orderId, customerId) as Record<string, any> | undefined;
+
+  if (!row) return null;
+  return { ...row, items: parseJsonArray(row.items_json) };
 }
 
 export async function getOrderByNumber(orderNumber: string) {

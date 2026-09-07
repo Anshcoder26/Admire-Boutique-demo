@@ -46,40 +46,12 @@ export default function OrderDetailPage() {
     fetch(`/api/me/orders?id=${orderId}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && data.data) {
-          setOrder(data.data);
+        if (data.success && data.order) {
+          setOrder(data.order);
         }
       })
       .catch(() => {
-        // Demo order
-        setOrder({
-          id: orderId,
-          date: "2024-12-20",
-          total: 5999,
-          status: "delivered",
-          shippingAddress: {
-            name: "Ansh Agar",
-            email: "ansh@example.com",
-            phone: "+91 99999 99999",
-            address: "123 Fashion Street",
-            city: "New Delhi",
-            state: "Delhi",
-            zip: "110001",
-          },
-          items: [
-            {
-              name: "Banarasi Silk Saree",
-              image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=500&q=60",
-              quantity: 1,
-              price: 5999,
-              color: "Maroon",
-              size: "Free Size",
-            },
-          ],
-          subtotal: 5999,
-          shipping: 0,
-          discount: 0,
-        });
+        setOrder(null);
       })
       .finally(() => setLoading(false));
   }, [orderId]);
@@ -144,8 +116,10 @@ export default function OrderDetailPage() {
           <div className="space-y-4">
             {order.items.map((item, idx) => (
               <div key={idx} className="flex gap-4">
-                <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg">
-                  <Image src={item.image} alt={item.name} fill className="object-cover" />
+                <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-[#f5e9e4]">
+                  {item.image ? (
+                    <Image src={item.image} alt={item.name} fill className="object-cover" />
+                  ) : null}
                 </div>
                 <div className="flex-1">
                   <h3 className="font-medium text-[#241915]">{item.name}</h3>

@@ -107,13 +107,23 @@ export async function POST(request: Request) {
       );
     }
 
+    // Recompute all money values server-side from validated items to prevent
+    // total/subtotal tampering (client-supplied amounts are never trusted).
+    const computedSubtotal = validatedItems.reduce(
+      (sum, item) => sum + item.price * item.qty,
+      0
+    );
+    const computedShipping = computedSubtotal > 2499 ? 0 : 149;
+    const computedDiscount = 0; // No coupon system yet; discounts stay server-controlled.
+    const computedTotal = computedSubtotal + computedShipping - computedDiscount;
+
     const order = await createOrder(user.id, {
       order_number: orderNumber,
       status: "Confirmed",
-      subtotal: Number(body.subtotal ?? 0),
-      shipping: Number(body.shipping ?? 0),
-      discount: Number(body.discount ?? 0),
-      total: Number(body.total ?? 0),
+      subtotal: computedSubtotal,
+      shipping: computedShipping,
+      discount: computedDiscount,
+      total: computedTotal,
       payment_status: paymentMethod === "Cash on Delivery" ? "Pending" : "Paid",
       payment_method: paymentMethod,
       delivery_partner: "BlueDart",
