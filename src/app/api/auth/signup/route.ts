@@ -6,10 +6,21 @@ import {
   getSecureCookieOptions,
   getSessionExpiryTime,
   getRefreshTokenExpiryTime,
+  AUTH_RATE_LIMITS,
 } from "@/lib/auth-utils";
+import { checkRateLimit, getClientIp, tooManyRequests } from "@/lib/rate-limiter";
 
 export async function POST(request: Request) {
   try {
+    const ipRate = await checkRateLimit(
+      `signup:${getClientIp(request)}`,
+      AUTH_RATE_LIMITS.signup.maxAttempts,
+      AUTH_RATE_LIMITS.signup.windowMs
+    );
+    if (!ipRate.allowed) {
+      return tooManyRequests(ipRate.retryAfter);
+    }
+
     const body = (await request.json()) as {
       name?: string;
       email?: string;

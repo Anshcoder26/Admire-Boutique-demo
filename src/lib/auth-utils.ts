@@ -94,8 +94,11 @@ export interface RateLimitConfig {
 
 export const AUTH_RATE_LIMITS = {
   login: { maxAttempts: 5, windowMs: 15 * 60 * 1000 }, // 5 attempts per 15 minutes
+  adminLogin: { maxAttempts: 5, windowMs: 15 * 60 * 1000 }, // 5 attempts per 15 minutes
   signup: { maxAttempts: 3, windowMs: 60 * 60 * 1000 }, // 3 attempts per hour
   passwordReset: { maxAttempts: 3, windowMs: 60 * 60 * 1000 }, // 3 attempts per hour
+  checkout: { maxAttempts: 20, windowMs: 10 * 60 * 1000 }, // 20 orders per 10 minutes
+  newsletter: { maxAttempts: 5, windowMs: 60 * 60 * 1000 }, // 5 signups per hour
 };
 
 /**

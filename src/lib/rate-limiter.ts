@@ -1,112 +1,58 @@
 /**
- * In-memory rate limiter for authentication endpoints
- * Production: prevents brute force attacks
- * Note: Use Redis in production for distributed rate limiting across multiple servers
+ * Rate limiter backed by the database (see `consumeRateLimit` in lib/db).
+ *
+ * Unlike a per-instance in-memory Map, this survives serverless cold starts and
+ * is shared across all running instances, so brute-force protection actually
+ * holds in production. For very high throughput a dedicated store (Redis /
+ * Upstash) is still recommended, but the DB approach needs no extra infra.
  */
-
-interface RateLimitEntry {
-  attempts: number;
-  resetTime: number;
-}
-
-const rateLimitStore = new Map<string, RateLimitEntry>();
+import { consumeRateLimit, resetRateLimitKey, type RateLimitResult } from "@/lib/db";
 
 /**
- * Check if request exceeds rate limit
- * @param key - Unique identifier (e.g., email or IP address)
- * @param maxAttempts - Maximum attempts allowed
- * @param windowMs - Time window in milliseconds
- * @returns { allowed: boolean; remaining: number; retryAfter?: number }
+ * Record one attempt against `key` and report whether it is allowed.
  */
-export function checkRateLimit(
+export async function checkRateLimit(
   key: string,
   maxAttempts: number,
   windowMs: number
-): { allowed: boolean; remaining: number; retryAfter?: number } {
-  const now = Date.now();
-  const entry = rateLimitStore.get(key);
-
-  if (!entry || now > entry.resetTime) {
-    // No entry or time window has expired
-    rateLimitStore.set(key, { attempts: 1, resetTime: now + windowMs });
-    return { allowed: true, remaining: maxAttempts - 1 };
-  }
-
-  entry.attempts += 1;
-
-  if (entry.attempts > maxAttempts) {
-    const retryAfterSeconds = Math.ceil((entry.resetTime - now) / 1000);
-    return {
-      allowed: false,
-      remaining: 0,
-      retryAfter: retryAfterSeconds,
-    };
-  }
-
-  return {
-    allowed: true,
-    remaining: maxAttempts - entry.attempts,
-  };
+): Promise<RateLimitResult> {
+  return consumeRateLimit(key, maxAttempts, windowMs);
 }
 
 /**
- * Reset rate limit for a key (e.g., after successful login)
+ * Reset the rate limit for a key (e.g. after a successful login).
  */
-export function resetRateLimit(key: string): void {
-  rateLimitStore.delete(key);
+export async function resetRateLimit(key: string): Promise<void> {
+  await resetRateLimitKey(key);
 }
 
 /**
- * Clear all rate limits (for testing only)
+ * Extract a best-effort client IP from a request for use in rate-limit keys.
  */
-export function clearAllRateLimits(): void {
-  rateLimitStore.clear();
+export function getClientIp(request: Request): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip")?.trim() ||
+    "unknown"
+  );
 }
 
 /**
- * Middleware for rate limiting
+ * Build a standard 429 JSON response.
  */
-export function withRateLimit(
-  handler: (
-    request: Request,
-    { params }: { params: Record<string, string> }
-  ) => Promise<Response>,
-  getLimitKey: (request: Request) => string,
-  maxAttempts: number,
-  windowMs: number
-) {
-  return async (
-    request: Request,
-    { params }: { params: Record<string, string> }
-  ): Promise<Response> => {
-    const limitKey = getLimitKey(request);
-    const { allowed, remaining, retryAfter } = checkRateLimit(
-      limitKey,
-      maxAttempts,
-      windowMs
-    );
-
-    if (!allowed) {
-      return new Response(
-        JSON.stringify({
-          error: "Too many attempts. Please try again later.",
-          retryAfter,
-        }),
-        {
-          status: 429,
-          headers: {
-            "Content-Type": "application/json",
-            "Retry-After": retryAfter?.toString() || "60",
-          },
-        }
-      );
+export function tooManyRequests(retryAfter: number): Response {
+  return new Response(
+    JSON.stringify({
+      error: "Too many attempts. Please try again later.",
+      retryAfter,
+      nextRetryIn: `${retryAfter} seconds`,
+    }),
+    {
+      status: 429,
+      headers: {
+        "Content-Type": "application/json",
+        "Retry-After": String(retryAfter || 60),
+      },
     }
-
-    const response = await handler(request, { params });
-
-    // Add remaining attempts to response header
-    response.headers.set("X-RateLimit-Remaining", remaining.toString());
-
-    return response;
-  };
+  );
 }

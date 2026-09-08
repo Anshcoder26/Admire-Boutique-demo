@@ -1,48 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
-import { randomUUID } from "crypto";
+import { addSubscriber } from "@/lib/db";
+import { AUTH_RATE_LIMITS } from "@/lib/auth-utils";
+import { checkRateLimit, getClientIp, tooManyRequests } from "@/lib/rate-limiter";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { email, name } = body;
-
-    if (!email || !email.includes("@")) {
-      return NextResponse.json(
-        { error: "Valid email required" },
-        { status: 400 }
-      );
+    const rate = await checkRateLimit(
+      `newsletter:${getClientIp(request)}`,
+      AUTH_RATE_LIMITS.newsletter.maxAttempts,
+      AUTH_RATE_LIMITS.newsletter.windowMs
+    );
+    if (!rate.allowed) {
+      return tooManyRequests(rate.retryAfter);
     }
 
-    const db = getDb();
-    const id = randomUUID();
+    const body = await request.json();
+    const email = String(body?.email || "").trim();
+    const name = body?.name ? String(body.name).trim() : null;
 
-    // Use prepare/run for SQLite through statement execution
-    const stmt = db.prepare(
-      "INSERT INTO subscribers (id, email, name, status) VALUES (?, ?, ?, 'active')"
-    );
-    stmt.run(id, email, name || null);
+    if (!email || !email.includes("@") || email.length > 254) {
+      return NextResponse.json({ error: "Valid email required" }, { status: 400 });
+    }
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Successfully subscribed to our newsletter",
-      },
-      { status: 201 }
-    );
-  } catch (error) {
-    // Check if it's a duplicate email error
-    if (error instanceof Error && error.message.includes("UNIQUE")) {
+    const outcome = await addSubscriber(email, name);
+    if (outcome === "already") {
       return NextResponse.json(
         { error: "This email is already subscribed" },
         { status: 409 }
       );
     }
 
-    console.error("Newsletter signup error:", error);
     return NextResponse.json(
-      { error: "Failed to subscribe" },
-      { status: 500 }
+      { success: true, message: "Successfully subscribed to our newsletter" },
+      { status: 201 }
     );
+  } catch (error) {
+    console.error("Newsletter signup error:", error);
+    return NextResponse.json({ error: "Failed to subscribe" }, { status: 500 });
   }
 }

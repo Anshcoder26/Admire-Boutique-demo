@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createOrder, validateUserSessionToken, getProductById, getProductByName, getOrderByNumber } from "@/lib/db";
+import { AUTH_RATE_LIMITS } from "@/lib/auth-utils";
+import { checkRateLimit, tooManyRequests } from "@/lib/rate-limiter";
 
 async function getUserFromRequest(request: Request) {
   // Try Authorization header first
@@ -24,6 +26,15 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: "Please log in to place an order" }, { status: 401 });
+  }
+
+  const rate = await checkRateLimit(
+    `checkout:${user.id}`,
+    AUTH_RATE_LIMITS.checkout.maxAttempts,
+    AUTH_RATE_LIMITS.checkout.windowMs
+  );
+  if (!rate.allowed) {
+    return tooManyRequests(rate.retryAfter);
   }
 
   const body = (await request.json()) as {

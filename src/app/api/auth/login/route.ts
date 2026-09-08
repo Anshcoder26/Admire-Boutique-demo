@@ -9,19 +9,17 @@ import {
   getRefreshTokenExpiryTime,
   AUTH_RATE_LIMITS,
 } from "@/lib/auth-utils";
-import { checkRateLimit, resetRateLimit } from "@/lib/rate-limiter";
+import { checkRateLimit, resetRateLimit, getClientIp } from "@/lib/rate-limiter";
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting: max 5 attempts per 15 minutes per email
+    // Rate limiting: max attempts per window per email + IP
     const body = (await request.json()) as { email?: string; password?: string };
     const email = String(body.email || "").trim().toLowerCase();
-    
-    // Debug logging for Vercel
-    console.log("[AUTH] Login attempt:", { email, hasDbUrl: !!process.env.DATABASE_URL, env: process.env.NODE_ENV });
 
-    const { allowed, retryAfter } = checkRateLimit(
-      email,
+    const rateKey = `login:${email}:${getClientIp(request)}`;
+    const { allowed, retryAfter } = await checkRateLimit(
+      rateKey,
       AUTH_RATE_LIMITS.login.maxAttempts,
       AUTH_RATE_LIMITS.login.windowMs
     );
@@ -66,7 +64,7 @@ export async function POST(request: NextRequest) {
     // Try admin login first
     const adminUser = await verifyAdminCredentials(email, password);
     if (adminUser) {
-      resetRateLimit(email);
+      await resetRateLimit(rateKey);
       
       const sessionToken = generateSessionToken();
       const refreshToken = generateRefreshToken();
@@ -119,7 +117,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    resetRateLimit(email);
+    await resetRateLimit(rateKey);
 
     const sessionToken = generateSessionToken();
     const refreshToken = generateRefreshToken();

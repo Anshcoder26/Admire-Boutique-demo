@@ -31,6 +31,38 @@ const postgresPool = usesPostgres ? new Pool({
   connectionTimeoutMillis: 5000,
 }) : null;
 
+const ADMIN_BOOTSTRAP_EMAIL = (process.env.ADMIN_BOOTSTRAP_EMAIL || "owner@admireboutique.in")
+  .trim()
+  .toLowerCase();
+
+/**
+ * Resolve the password used to seed the initial admin account.
+ * - Prefer ADMIN_BOOTSTRAP_PASSWORD from the environment.
+ * - In production, refuse to fall back to a hardcoded default (throws) so we
+ *   never ship a publicly-known admin password.
+ * - In development, generate a random password and log it once so local setup
+ *   still works without extra configuration.
+ */
+function resolveAdminBootstrapPassword(): string {
+  const fromEnv = process.env.ADMIN_BOOTSTRAP_PASSWORD;
+  if (fromEnv && fromEnv.length >= 8) {
+    return fromEnv;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "ADMIN_BOOTSTRAP_PASSWORD must be set (min 8 chars) to seed the admin account in production. " +
+        "Set it in your environment (e.g. Vercel → Settings → Environment Variables)."
+    );
+  }
+
+  const generated = randomBytes(12).toString("base64url");
+  console.warn(
+    `[DB] ADMIN_BOOTSTRAP_PASSWORD not set — seeding admin (${ADMIN_BOOTSTRAP_EMAIL}) with a generated dev password: ${generated}`
+  );
+  return generated;
+}
+
 let postgresReady = false;
 
 // Graceful pool shutdown handler
@@ -474,6 +506,12 @@ if (!usesPostgres) {
       expires_at TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS rate_limits (
+      key TEXT PRIMARY KEY,
+      count INTEGER NOT NULL,
+      reset_at TEXT NOT NULL
+    );
   `);
 
   const sqliteProductColumns = sqliteDb.prepare("PRAGMA table_info(products)").all() as Array<{ name: string }>;
@@ -518,7 +556,7 @@ if (!usesPostgres) {
   if (adminCount.count === 0) {
     sqliteDb.prepare(`
       INSERT INTO admin_users (id, name, email, password_hash) VALUES (?, ?, ?, ?)
-    `).run("admin-owner-1", "Boutique Owner", "owner@admireboutique.in", bcryptjs.hashSync("admire123", 12));
+    `).run("admin-owner-1", "Boutique Owner", ADMIN_BOOTSTRAP_EMAIL, bcryptjs.hashSync(resolveAdminBootstrapPassword(), 12));
   }
 
   const customerCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM customers").get() as { count: number };
@@ -705,6 +743,14 @@ async function ensurePostgresReady() {
       )
     `);
 
+    await postgresPool.query(`
+      CREATE TABLE IF NOT EXISTS rate_limits (
+        key TEXT PRIMARY KEY,
+        count INTEGER NOT NULL,
+        reset_at TIMESTAMPTZ NOT NULL
+      )
+    `);
+
   } catch (err) {
     console.error("[DB] PostgreSQL initialization error:", err);
     throw err;
@@ -755,11 +801,11 @@ async function ensurePostgresReady() {
   if (Number(adminCount.rows[0]?.count ?? 0) === 0) {
     console.log("[DB] Inserting seed admin user...");
     try {
-      const hashedPassword = await hashPassword("admire123");
+      const hashedPassword = await hashPassword(resolveAdminBootstrapPassword());
       console.log("[DB] Password hashed, inserting user...");
       await postgresPool.query(
         "INSERT INTO admin_users (id, name, email, password_hash) VALUES ($1, $2, $3, $4)",
-        ["admin-owner-1", "Boutique Owner", "owner@admireboutique.in", hashedPassword]
+        ["admin-owner-1", "Boutique Owner", ADMIN_BOOTSTRAP_EMAIL, hashedPassword]
       );
       console.log("[DB] ✓ Admin user seeded successfully");
     } catch (insertErr) {
@@ -767,7 +813,7 @@ async function ensurePostgresReady() {
       // Check if user exists anyway (constraint violation)
       const existing = await postgresPool.query(
         "SELECT * FROM admin_users WHERE email = $1",
-        ["owner@admireboutique.in"]
+        [ADMIN_BOOTSTRAP_EMAIL]
       );
       if (existing.rows.length > 0) {
         console.log("[DB] Admin user already exists in database:", existing.rows[0].email);
@@ -1215,6 +1261,81 @@ export async function destroySession(token: string) {
     return;
   }
   sqliteDb.prepare("DELETE FROM sessions WHERE token = ?").run(token);
+}
+
+export type RateLimitResult = { allowed: boolean; remaining: number; retryAfter: number };
+
+/**
+ * Atomically record one hit against `key` and report whether it is within the
+ * allowed budget. DB-backed so limits survive serverless cold starts and are
+ * shared across all server instances (unlike an in-memory Map).
+ */
+export async function consumeRateLimit(
+  key: string,
+  maxAttempts: number,
+  windowMs: number
+): Promise<RateLimitResult> {
+  const now = Date.now();
+
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const resetAt = new Date(now + windowMs).toISOString();
+    const result = await postgresPool!.query(
+      `INSERT INTO rate_limits (key, count, reset_at)
+       VALUES ($1, 1, $2)
+       ON CONFLICT (key) DO UPDATE SET
+         count = CASE WHEN rate_limits.reset_at < NOW() THEN 1 ELSE rate_limits.count + 1 END,
+         reset_at = CASE WHEN rate_limits.reset_at < NOW() THEN $2 ELSE rate_limits.reset_at END
+       RETURNING count, reset_at`,
+      [key, resetAt]
+    );
+    const row = result.rows[0];
+    const count = Number(row.count);
+    const resetMs = new Date(row.reset_at).getTime();
+    const allowed = count <= maxAttempts;
+    return {
+      allowed,
+      remaining: Math.max(0, maxAttempts - count),
+      retryAfter: allowed ? 0 : Math.max(1, Math.ceil((resetMs - now) / 1000)),
+    };
+  }
+
+  const row = sqliteDb
+    .prepare("SELECT count, reset_at FROM rate_limits WHERE key = ?")
+    .get(key) as { count: number; reset_at: string } | undefined;
+
+  let count: number;
+  let resetMs: number;
+  if (!row || new Date(row.reset_at).getTime() < now) {
+    count = 1;
+    resetMs = now + windowMs;
+    sqliteDb
+      .prepare(
+        `INSERT INTO rate_limits (key, count, reset_at) VALUES (?, ?, ?)
+         ON CONFLICT(key) DO UPDATE SET count = excluded.count, reset_at = excluded.reset_at`
+      )
+      .run(key, count, new Date(resetMs).toISOString());
+  } else {
+    count = row.count + 1;
+    resetMs = new Date(row.reset_at).getTime();
+    sqliteDb.prepare("UPDATE rate_limits SET count = ? WHERE key = ?").run(count, key);
+  }
+
+  const allowed = count <= maxAttempts;
+  return {
+    allowed,
+    remaining: Math.max(0, maxAttempts - count),
+    retryAfter: allowed ? 0 : Math.max(1, Math.ceil((resetMs - now) / 1000)),
+  };
+}
+
+export async function resetRateLimitKey(key: string): Promise<void> {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    await postgresPool!.query("DELETE FROM rate_limits WHERE key = $1", [key]);
+    return;
+  }
+  sqliteDb.prepare("DELETE FROM rate_limits WHERE key = ?").run(key);
 }
 
 export async function storeSessionToken(token: string, email: string) {
@@ -1880,6 +2001,47 @@ export async function getNotificationRecipients(): Promise<Array<{ email: string
   customers.forEach((c) => emailMap.set(c.email.toLowerCase(), c));
   subscribers.forEach((s) => emailMap.set(s.email.toLowerCase(), s));
   return Array.from(emailMap.values());
+}
+
+/**
+ * Subscribe an email to the newsletter. Works on both SQLite and Postgres and
+ * is idempotent: re-subscribing an existing active email reports "already".
+ */
+export async function addSubscriber(
+  email: string,
+  name?: string | null
+): Promise<"subscribed" | "already"> {
+  const normalized = email.trim().toLowerCase();
+  const id = randomBytes(12).toString("hex");
+
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query(
+      `INSERT INTO subscribers (id, email, name, status)
+       VALUES ($1, $2, $3, 'active')
+       ON CONFLICT (email) DO UPDATE
+         SET status = 'active',
+             name = COALESCE(EXCLUDED.name, subscribers.name)
+       RETURNING (xmax = 0) AS inserted`,
+      [id, normalized, name || null]
+    );
+    return result.rows[0]?.inserted ? "subscribed" : "already";
+  }
+
+  const existing = sqliteDb
+    .prepare("SELECT status FROM subscribers WHERE email = ?")
+    .get(normalized) as { status: string } | undefined;
+  if (existing) {
+    if (existing.status !== "active") {
+      sqliteDb.prepare("UPDATE subscribers SET status = 'active' WHERE email = ?").run(normalized);
+      return "subscribed";
+    }
+    return "already";
+  }
+  sqliteDb
+    .prepare("INSERT INTO subscribers (id, email, name, status) VALUES (?, ?, ?, 'active')")
+    .run(id, normalized, name || null);
+  return "subscribed";
 }
 
 

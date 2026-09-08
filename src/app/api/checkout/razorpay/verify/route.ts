@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import crypto from "crypto";
-import { validateUserSessionToken, updateOrder } from "@/lib/db";
+import { validateUserSessionToken, updateOrder, getOrderById } from "@/lib/db";
 
 function getRazorpay() {
   return new Razorpay({
@@ -70,6 +70,20 @@ export async function POST(request: Request) {
 
     // Update order with payment details
     if (body.order_id) {
+      // Prevent tampering / IDOR: the order must belong to the authenticated
+      // user, and the Razorpay order id in the (verified) signature must match
+      // the one we stored when creating the order.
+      const order = await getOrderById(body.order_id);
+      if (!order || order.customer_id !== user.id) {
+        return NextResponse.json({ error: "Order not found" }, { status: 404 });
+      }
+      if (order.razorpay_order_id && order.razorpay_order_id !== body.razorpay_order_id) {
+        return NextResponse.json(
+          { error: "Payment does not match this order" },
+          { status: 400 }
+        );
+      }
+
       await updateOrder(body.order_id, {
         razorpay_order_id: body.razorpay_order_id,
         razorpay_payment_id: body.razorpay_payment_id,

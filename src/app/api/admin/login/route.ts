@@ -2,7 +2,8 @@ import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { storeSessionToken, verifyAdminCredentials } from "@/lib/db";
 import { ADMIN_SESSION_COOKIE } from "@/lib/admin-auth";
-import { getSecureCookieOptions } from "@/lib/auth-utils";
+import { getSecureCookieOptions, AUTH_RATE_LIMITS } from "@/lib/auth-utils";
+import { checkRateLimit, resetRateLimit, getClientIp, tooManyRequests } from "@/lib/rate-limiter";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as { email?: string; password?: string };
@@ -13,10 +14,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
   }
 
+  const rateKey = `admin-login:${email}:${getClientIp(request)}`;
+  const rate = await checkRateLimit(
+    rateKey,
+    AUTH_RATE_LIMITS.adminLogin.maxAttempts,
+    AUTH_RATE_LIMITS.adminLogin.windowMs
+  );
+  if (!rate.allowed) {
+    return tooManyRequests(rate.retryAfter);
+  }
+
   const user = await verifyAdminCredentials(email, password);
   if (!user) {
     return NextResponse.json({ error: "Invalid admin credentials" }, { status: 401 });
   }
+
+  await resetRateLimit(rateKey);
 
   const token = crypto.randomBytes(24).toString("hex");
   await storeSessionToken(token, email);

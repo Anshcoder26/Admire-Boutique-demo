@@ -1,26 +1,14 @@
 import { NextResponse } from "next/server";
 import { createPasswordResetToken } from "@/lib/db";
 import { sendEmail } from "@/lib/mailer";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limiter";
 
-// Simple in-memory rate limiter (per email + IP). Best-effort only.
-const attempts = new Map<string, { count: number; resetAt: number }>();
 const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 const MAX_ATTEMPTS = 5;
 
 function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email) && email.length <= 254;
-}
-
-function rateLimited(key: string): boolean {
-  const now = Date.now();
-  const entry = attempts.get(key);
-  if (!entry || now > entry.resetAt) {
-    attempts.set(key, { count: 1, resetAt: now + WINDOW_MS });
-    return false;
-  }
-  entry.count += 1;
-  return entry.count > MAX_ATTEMPTS;
 }
 
 function resetLinkEmail(resetUrl: string): string {
@@ -53,8 +41,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    if (rateLimited(`${email}:${ip}`)) {
+    const ip = getClientIp(request);
+    const { allowed } = await checkRateLimit(`forgot-password:${email}:${ip}`, MAX_ATTEMPTS, WINDOW_MS);
+    if (!allowed) {
       return NextResponse.json(
         { success: false, error: "Too many attempts. Please try again later.", nextRetryIn: "in 15 minutes" },
         { status: 429 }
