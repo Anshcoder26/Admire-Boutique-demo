@@ -12,7 +12,7 @@ const isProduction = process.env.NODE_ENV === "production";
 const SENSITIVE_KEY_PATTERN =
   /(password|passwd|secret|token|signature|authorization|cookie|api[-_]?key|otp|hash)/i;
 
-function redact(value: unknown, depth = 0): unknown {
+export function redact(value: unknown, depth = 0): unknown {
   if (value === null || value === undefined) return value;
   if (depth > 4) return "[Truncated]";
 

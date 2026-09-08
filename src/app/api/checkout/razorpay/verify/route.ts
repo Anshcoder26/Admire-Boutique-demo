@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import { validateUserSessionToken, updateOrder, getOrderById } from "@/lib/db";
+import { captureException } from "@/lib/error-tracking";
 
 function getRazorpay() {
   return new Razorpay({
@@ -95,6 +96,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("[RAZORPAY VERIFY] Error:", error);
+    void captureException(error, { route: "checkout/razorpay/verify" });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Payment verification failed" },
       { status: 500 }

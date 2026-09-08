@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { logger } from "@/lib/logger";
+import { captureException } from "@/lib/error-tracking";
 
 export default function Error({
   error,
@@ -13,6 +14,7 @@ export default function Error({
 }) {
   useEffect(() => {
     logger.error("[APP] Unhandled route error:", error);
+    void captureException(error, { digest: error.digest });
   }, [error]);
 
   return (

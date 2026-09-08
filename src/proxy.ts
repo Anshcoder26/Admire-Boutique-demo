@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-
-// State-changing HTTP methods that must be protected against CSRF.
-const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+import { checkOrigin } from "@/lib/csrf";
 
 /**
  * Defense-in-depth CSRF protection for cookie-authenticated API mutations.
@@ -18,53 +16,22 @@ const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
  * through. Only a *present but mismatched* origin is rejected.
  */
 export function proxy(request: NextRequest) {
-  if (!MUTATING_METHODS.has(request.method)) {
-    return NextResponse.next();
-  }
+  const result = checkOrigin({
+    method: request.method,
+    host: request.headers.get("host"),
+    origin: request.headers.get("origin"),
+    referer: request.headers.get("referer"),
+    appUrl: process.env.NEXT_PUBLIC_APP_URL ?? null,
+  });
 
-  const requestHost = request.headers.get("host");
-  const originHeader = request.headers.get("origin");
-  const refererHeader = request.headers.get("referer");
-
-  const sourceUrl = originHeader ?? refererHeader;
-
-  // No origin/referer to check (non-browser client) — allow.
-  if (!sourceUrl) {
-    return NextResponse.next();
-  }
-
-  let sourceHost: string | null = null;
-  try {
-    sourceHost = new URL(sourceUrl).host;
-  } catch {
-    // Malformed Origin/Referer header on a mutating request — reject.
-    return csrfRejection();
-  }
-
-  const allowedHosts = new Set<string>();
-  if (requestHost) allowedHosts.add(requestHost);
-
-  const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (configuredAppUrl) {
-    try {
-      allowedHosts.add(new URL(configuredAppUrl).host);
-    } catch {
-      // Ignore an invalid NEXT_PUBLIC_APP_URL configuration.
-    }
-  }
-
-  if (!allowedHosts.has(sourceHost)) {
-    return csrfRejection();
+  if (result === "reject") {
+    return NextResponse.json(
+      { error: "Cross-origin request blocked" },
+      { status: 403 },
+    );
   }
 
   return NextResponse.next();
-}
-
-function csrfRejection() {
-  return NextResponse.json(
-    { error: "Cross-origin request blocked" },
-    { status: 403 },
-  );
 }
 
 export const config = {
