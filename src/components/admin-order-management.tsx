@@ -25,7 +25,7 @@ export function OrderManagement({ token }: { token: string }) {
     const fetchOrders = async () => {
       try {
         const res = await fetch("/api/admin/orders", {
-          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
         });
         if (res.ok) {
           const data = await res.json();
@@ -48,8 +48,8 @@ export function OrderManagement({ token }: { token: string }) {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify({ orderId, status: newStatus }),
       });
 
@@ -72,8 +72,8 @@ export function OrderManagement({ token }: { token: string }) {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify({ orderId, paymentStatus: newPaymentStatus }),
       });
 

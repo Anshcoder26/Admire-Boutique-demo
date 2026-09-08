@@ -114,15 +114,15 @@ export function AdminDashboard() {
     [catalog],
   );
 
-  const loadAdminData = async (token: string): Promise<boolean> => {
+  const loadAdminData = async (): Promise<boolean> => {
     try {
       const [meRes, productsRes, ordersRes] = await Promise.all([
         fetch("/api/admin/me", {
-          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
         }),
         fetch("/api/products"),
         fetch("/api/admin/orders", {
-          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
         }),
       ]);
 
@@ -131,7 +131,7 @@ export function AdminDashboard() {
       }
 
       setIsAuthenticated(true);
-      setAdminToken(token);
+      setAdminToken("cookie");
 
       if (productsRes.ok) {
         const productsData = (await productsRes.json()) as Array<{ id: string; name: string; category: string; price: number; stock: number; isSoldOut?: boolean }>;
@@ -163,27 +163,18 @@ export function AdminDashboard() {
   // 1) reuse a real admin token from localStorage, else
   // 2) exchange the existing unified-login session cookie for an admin token.
   const bootstrapAdmin = async () => {
-    const storedToken = window.localStorage.getItem("admire-admin-token");
-    if (storedToken && storedToken !== "authenticated") {
-      const ok = await loadAdminData(storedToken);
-      if (ok) return;
-    }
+    // 1) An existing httpOnly admin session cookie authenticates us directly.
+    if (await loadAdminData()) return;
 
+    // 2) Otherwise exchange a unified-login session cookie for an admin
+    //    session cookie, then load again.
     try {
       const res = await fetch("/api/admin/me-check", { credentials: "include" });
-      if (res.ok) {
-        const data = (await res.json()) as { token?: string };
-        if (data.token) {
-          window.localStorage.setItem("admire-admin-token", data.token);
-          const ok = await loadAdminData(data.token);
-          if (ok) return;
-        }
-      }
+      if (res.ok && (await loadAdminData())) return;
     } catch {
       // fall through to unauthenticated state
     }
 
-    window.localStorage.removeItem("admire-admin-token");
     setIsAuthenticated(false);
   };
 
@@ -212,10 +203,9 @@ export function AdminDashboard() {
       return;
     }
 
-    window.localStorage.setItem("admire-admin-token", data.token);
     setIsAuthenticated(true);
-    setAdminToken(data.token);
-    void loadAdminData(data.token);
+    setAdminToken("cookie");
+    void loadAdminData();
   };
 
   const handleColorNameChange = (value: string) => {
@@ -265,6 +255,7 @@ export function AdminDashboard() {
     const response = await fetch("/api/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify(payload),
     });
 
@@ -298,21 +289,14 @@ export function AdminDashboard() {
   };
 
   const handleSoldOutToggle = async (productId: string, currentSoldOutStatus: boolean) => {
-    const token = window.localStorage.getItem("admire-admin-token");
-    if (!token) {
-      alert("Session expired. Please login again.");
-      setIsAuthenticated(false);
-      return;
-    }
-
     setUpdatingProductId(productId);
     try {
       const response = await fetch(`/api/admin/products/${productId}/sold-out`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify({ isSoldOut: !currentSoldOutStatus }),
       });
 
@@ -347,18 +331,11 @@ export function AdminDashboard() {
       return;
     }
 
-    const token = window.localStorage.getItem("admire-admin-token");
-    if (!token || token === "authenticated") {
-      alert("Session expired. Please login again.");
-      setIsAuthenticated(false);
-      return;
-    }
-
     setUpdatingProductId(productId);
     try {
       const response = await fetch(`/api/admin/products/${productId}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
 
       const data = (await response.json().catch(() => ({}))) as { error?: string; success?: boolean };
@@ -487,7 +464,8 @@ export function AdminDashboard() {
           <button
             type="button"
             onClick={() => {
-              window.localStorage.removeItem("admire-admin-token");
+              void fetch("/api/admin/logout", { method: "POST", credentials: "include" });
+              setAdminToken(null);
               setIsAuthenticated(false);
             }}
             className="inline-flex items-center gap-2 rounded-full border border-[#dcc5b4] bg-white px-4 py-2.5 text-sm font-medium text-[#402320]"

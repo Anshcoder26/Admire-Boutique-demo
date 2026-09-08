@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import { listRecentAdminOrders, validateSessionToken, getDb } from "@/lib/db";
+import { listRecentAdminOrders, updateAdminOrder } from "@/lib/db";
+import { authenticateAdmin } from "@/lib/admin-auth";
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization") || "";
-  const token = authHeader.startsWith("Bearer ") ? authHeader.replace("Bearer ", "") : "";
-  const user = token ? await validateSessionToken(token) : null;
+  const user = await authenticateAdmin(request);
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -23,9 +22,7 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  const authHeader = request.headers.get("authorization") || "";
-  const token = authHeader.startsWith("Bearer ") ? authHeader.replace("Bearer ", "") : "";
-  const user = token ? await validateSessionToken(token) : null;
+  const user = await authenticateAdmin(request);
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -38,39 +35,14 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Order ID is required" }, { status: 400 });
   }
 
-  const db = getDb();
-  
-  // Check if order exists
-  const checkStmt = db.prepare("SELECT id FROM orders WHERE id = ?");
-  const exists = checkStmt.get(orderId);
-  if (!exists) {
-    return NextResponse.json({ error: "Order not found" }, { status: 404 });
-  }
-
-  // Update order status and/or payment status
-  let updateQuery = "UPDATE orders SET ";
-  const params: any[] = [];
-  const updates: string[] = [];
-
-  if (status) {
-    updates.push("status = ?");
-    params.push(status);
-  }
-
-  if (paymentStatus) {
-    updates.push("payment_status = ?");
-    params.push(paymentStatus);
-  }
-
-  if (updates.length === 0) {
+  if (!status && !paymentStatus) {
     return NextResponse.json({ error: "No updates provided" }, { status: 400 });
   }
 
-  updateQuery += updates.join(", ") + " WHERE id = ?";
-  params.push(orderId);
-
-  const updateStmt = db.prepare(updateQuery);
-  updateStmt.run(...params);
+  const updated = await updateAdminOrder(orderId, { status, paymentStatus });
+  if (!updated) {
+    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
 
   return NextResponse.json({ success: true, orderId });
 }

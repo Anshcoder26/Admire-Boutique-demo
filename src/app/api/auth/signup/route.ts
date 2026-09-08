@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     const sessionExpiry = getSessionExpiryTime();
     const refreshTokenExpiry = getRefreshTokenExpiryTime();
 
-    storeUserSessionToken(sessionToken, email);
+    await storeUserSessionToken(sessionToken, email);
 
     const response = NextResponse.json(
       {

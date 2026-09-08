@@ -1,15 +1,8 @@
 import { NextResponse } from "next/server";
-import { validateSessionToken } from "@/lib/db";
+import { authenticateAdmin } from "@/lib/admin-auth";
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization") || "";
-  const token = authHeader.startsWith("Bearer ") ? authHeader.replace("Bearer ", "") : "";
-
-  if (!token) {
-    return NextResponse.json({ error: "Missing token" }, { status: 401 });
-  }
-
-  const user = await validateSessionToken(token);
+  const user = await authenticateAdmin(request);
   if (!user) {
     return NextResponse.json({ error: "Session invalid" }, { status: 401 });
   }

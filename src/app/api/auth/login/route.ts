@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       const refreshTokenExpiry = getRefreshTokenExpiryTime();
 
       // Store session for admin
-      storeSessionToken(sessionToken, email);
+      await storeSessionToken(sessionToken, email);
 
       console.log(`[AUTH] Successful admin login for user: ${adminUser.id}`);
 
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
     const sessionExpiry = getSessionExpiryTime();
     const refreshTokenExpiry = getRefreshTokenExpiryTime();
 
-    storeUserSessionToken(sessionToken, email);
+    await storeUserSessionToken(sessionToken, email);
 
     console.log(`[AUTH] Successful customer login for user: ${customer.id}`);
 

@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { setProductSoldOutStatus, validateSessionToken } from "@/lib/db";
-
-async function verifyAdminAuth(request: NextRequest) {
-  const authHeader = request.headers.get("authorization") || "";
-  const token = authHeader.startsWith("Bearer ") ? authHeader.replace("Bearer ", "") : "";
-  if (!token) return null;
-  return await validateSessionToken(token);
-}
+import { setProductSoldOutStatus } from "@/lib/db";
+import { authenticateAdmin } from "@/lib/admin-auth";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const admin = await verifyAdminAuth(request);
+  const admin = await authenticateAdmin(request);
   if (!admin) {
     return NextResponse.json({ error: "Unauthorized - Admin token required" }, { status: 401 });
   }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { Product } from "@/data/products";
 import { getCatalogProducts, saveCatalogProducts } from "@/lib/catalog-store";
+import { authenticateAdmin } from "@/lib/admin-auth";
 
 export async function GET() {
   const products = await getCatalogProducts();
@@ -8,6 +9,11 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const admin = await authenticateAdmin(request);
+  if (!admin) {
+    return NextResponse.json({ error: "Unauthorized - Admin token required" }, { status: 401 });
+  }
+
   const body = (await request.json()) as Partial<Product> & { images?: string[] | string; colors?: Array<{ name: string; hex: string }>; sizes?: string[]; stitchType?: string };
 
   const name = String(body.name || "").trim();

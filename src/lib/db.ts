@@ -466,6 +466,14 @@ if (!usesPostgres) {
       used INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS sessions (
+      token TEXT PRIMARY KEY,
+      email TEXT NOT NULL,
+      user_type TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   const sqliteProductColumns = sqliteDb.prepare("PRAGMA table_info(products)").all() as Array<{ name: string }>;
@@ -683,6 +691,16 @@ async function ensurePostgresReady() {
         email TEXT NOT NULL,
         expires_at TIMESTAMPTZ NOT NULL,
         used INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+
+    await postgresPool.query(`
+      CREATE TABLE IF NOT EXISTS sessions (
+        token TEXT PRIMARY KEY,
+        email TEXT NOT NULL,
+        user_type TEXT NOT NULL,
+        expires_at TIMESTAMPTZ NOT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
@@ -1140,14 +1158,71 @@ export async function getAdminByEmail(email: string): Promise<AdminUserRecord | 
   } satisfies AdminUserRecord;
 }
 
-export const adminSessions = new Map<string, string>();
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
-export function storeSessionToken(token: string, email: string) {
-  adminSessions.set(token, email);
+async function persistSession(token: string, email: string, userType: "admin" | "customer") {
+  const expiresAt = new Date(Date.now() + SESSION_TTL_MS).toISOString();
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    await postgresPool!.query(
+      `INSERT INTO sessions (token, email, user_type, expires_at)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (token) DO UPDATE SET email = EXCLUDED.email, user_type = EXCLUDED.user_type, expires_at = EXCLUDED.expires_at`,
+      [token, email, userType, expiresAt]
+    );
+    return;
+  }
+  sqliteDb
+    .prepare(
+      `INSERT INTO sessions (token, email, user_type, expires_at) VALUES (?, ?, ?, ?)
+       ON CONFLICT(token) DO UPDATE SET email = excluded.email, user_type = excluded.user_type, expires_at = excluded.expires_at`
+    )
+    .run(token, email, userType, expiresAt);
+}
+
+async function readSession(token: string, userType: "admin" | "customer"): Promise<string | null> {
+  if (!token) return null;
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query(
+      "SELECT email, expires_at FROM sessions WHERE token = $1 AND user_type = $2",
+      [token, userType]
+    );
+    const row = result.rows[0];
+    if (!row) return null;
+    if (new Date(row.expires_at).getTime() < Date.now()) {
+      await postgresPool!.query("DELETE FROM sessions WHERE token = $1", [token]);
+      return null;
+    }
+    return row.email;
+  }
+  const row = sqliteDb
+    .prepare("SELECT email, expires_at FROM sessions WHERE token = ? AND user_type = ?")
+    .get(token, userType) as { email: string; expires_at: string } | undefined;
+  if (!row) return null;
+  if (new Date(row.expires_at).getTime() < Date.now()) {
+    sqliteDb.prepare("DELETE FROM sessions WHERE token = ?").run(token);
+    return null;
+  }
+  return row.email;
+}
+
+export async function destroySession(token: string) {
+  if (!token) return;
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    await postgresPool!.query("DELETE FROM sessions WHERE token = $1", [token]);
+    return;
+  }
+  sqliteDb.prepare("DELETE FROM sessions WHERE token = ?").run(token);
+}
+
+export async function storeSessionToken(token: string, email: string) {
+  await persistSession(token, email, "admin");
 }
 
 export async function validateSessionToken(token: string): Promise<AdminUserRecord | null> {
-  const email = adminSessions.get(token);
+  const email = await readSession(token, "admin");
   if (!email) return null;
   return getAdminByEmail(email);
 }
@@ -1608,18 +1683,16 @@ export async function listFaqs() {
   return sqliteDb.prepare(`SELECT * FROM faq_items ORDER BY created_at DESC`).all() as Record<string, any>[];
 }
 
-export function getCustomerSessionToken(token: string) {
-  return adminSessions.get(token) || null;
+export async function getCustomerSessionToken(token: string) {
+  return readSession(token, "customer");
 }
 
-export const userSessions = new Map<string, string>();
-
-export function storeUserSessionToken(token: string, email: string) {
-  userSessions.set(token, email);
+export async function storeUserSessionToken(token: string, email: string) {
+  await persistSession(token, email, "customer");
 }
 
 export async function validateUserSessionToken(token: string): Promise<CustomerRecord | null> {
-  const email = userSessions.get(token);
+  const email = await readSession(token, "customer");
   if (!email) return null;
   return getCustomerByEmail(email);
 }
@@ -1647,6 +1720,168 @@ export async function listRecentAdminOrders() {
 
   return rows.map((row) => ({ ...row, total: Number(row.total) }));
 }
+
+export async function listAdminCustomers() {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const customersResult = await postgresPool!.query(
+      `SELECT c.id, c.email, c.name, c.phone, c.created_at,
+              (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.id) AS "totalOrders"
+       FROM customers c
+       ORDER BY c.created_at DESC
+       LIMIT 500`
+    );
+    const subscribersResult = await postgresPool!.query(
+      `SELECT email, subscribed_at FROM subscribers WHERE status = 'active' ORDER BY subscribed_at DESC LIMIT 500`
+    );
+    return {
+      customers: customersResult.rows.map((c) => ({ ...c, totalOrders: Number(c.totalOrders) })),
+      subscribers: subscribersResult.rows,
+    };
+  }
+
+  const customers = sqliteDb.prepare(`
+    SELECT id, email, name, phone, created_at FROM customers ORDER BY created_at DESC LIMIT 500
+  `).all() as Array<Record<string, any>>;
+  const subscribers = sqliteDb.prepare(`
+    SELECT email, subscribed_at FROM subscribers WHERE status = 'active' ORDER BY subscribed_at DESC LIMIT 500
+  `).all() as Array<Record<string, any>>;
+
+  return {
+    customers: customers.map((c) => ({
+      ...c,
+      totalOrders: (sqliteDb.prepare("SELECT COUNT(*) as count FROM orders WHERE customer_id = ?").get(c.id) as { count: number }).count,
+    })),
+    subscribers,
+  };
+}
+
+export async function updateAdminOrder(
+  orderId: string,
+  updates: { status?: string; paymentStatus?: string }
+): Promise<boolean> {
+  const sets: string[] = [];
+  const values: any[] = [];
+
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const exists = await postgresPool!.query("SELECT id FROM orders WHERE id = $1", [orderId]);
+    if (!exists.rows[0]) return false;
+    let i = 1;
+    if (updates.status) { sets.push(`status = $${i++}`); values.push(updates.status); }
+    if (updates.paymentStatus) { sets.push(`payment_status = $${i++}`); values.push(updates.paymentStatus); }
+    if (sets.length === 0) return false;
+    values.push(orderId);
+    await postgresPool!.query(`UPDATE orders SET ${sets.join(", ")} WHERE id = $${i}`, values);
+    return true;
+  }
+
+  const exists = sqliteDb.prepare("SELECT id FROM orders WHERE id = ?").get(orderId);
+  if (!exists) return false;
+  if (updates.status) { sets.push("status = ?"); values.push(updates.status); }
+  if (updates.paymentStatus) { sets.push("payment_status = ?"); values.push(updates.paymentStatus); }
+  if (sets.length === 0) return false;
+  values.push(orderId);
+  sqliteDb.prepare(`UPDATE orders SET ${sets.join(", ")} WHERE id = ?`).run(...values);
+  return true;
+}
+
+export async function getAdminProductById(id: string) {
+  const parse = (v: any) => {
+    if (Array.isArray(v)) return v;
+    if (typeof v === "string") { try { return JSON.parse(v || "[]"); } catch { return []; } }
+    return [];
+  };
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query("SELECT * FROM products WHERE id = $1", [id]);
+    const row = result.rows[0];
+    if (!row) return null;
+    return { ...row, images: parse(row.images), colors: parse(row.colors) };
+  }
+  const row = sqliteDb.prepare("SELECT * FROM products WHERE id = ?").get(id) as Record<string, any> | undefined;
+  if (!row) return null;
+  return { ...row, images: parse(row.images), colors: parse(row.colors) };
+}
+
+export async function updateProductById(
+  id: string,
+  input: {
+    name: string;
+    category?: string;
+    price: number;
+    stock?: number;
+    fabric?: string;
+    description?: string;
+    images?: string[];
+    colors?: Array<{ name: string; hex: string }>;
+    stitchType?: string;
+  }
+): Promise<boolean> {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const exists = await postgresPool!.query("SELECT id FROM products WHERE id = $1", [id]);
+    if (!exists.rows[0]) return false;
+    await postgresPool!.query(
+      `UPDATE products SET name = $1, category = $2, price = $3, stock = $4, fabric = $5,
+        description = $6, images = $7, colors = $8, stitch_type = $9, updated_at = NOW()
+       WHERE id = $10`,
+      [
+        input.name,
+        input.category || "Other",
+        Number(input.price),
+        Number(input.stock) || 0,
+        input.fabric || "Cotton",
+        input.description || "",
+        JSON.stringify(input.images || []),
+        JSON.stringify(input.colors || []),
+        input.stitchType || "",
+        id,
+      ]
+    );
+    return true;
+  }
+
+  const exists = sqliteDb.prepare("SELECT id FROM products WHERE id = ?").get(id);
+  if (!exists) return false;
+  sqliteDb.prepare(`
+    UPDATE products SET name = ?, category = ?, price = ?, stock = ?, fabric = ?,
+      description = ?, images = ?, colors = ?, stitch_type = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `).run(
+    input.name,
+    input.category || "Other",
+    Number(input.price),
+    Number(input.stock) || 0,
+    input.fabric || "Cotton",
+    input.description || "",
+    JSON.stringify(input.images || []),
+    JSON.stringify(input.colors || []),
+    input.stitchType || "",
+    id
+  );
+  return true;
+}
+
+export async function getNotificationRecipients(): Promise<Array<{ email: string; name?: string }>> {
+  let customers: Array<{ email: string; name?: string }> = [];
+  let subscribers: Array<{ email: string; name?: string }> = [];
+
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    customers = (await postgresPool!.query("SELECT email, name FROM customers")).rows;
+    subscribers = (await postgresPool!.query("SELECT email, name FROM subscribers WHERE status = 'active'")).rows;
+  } else {
+    customers = sqliteDb.prepare("SELECT email, name FROM customers").all() as Array<{ email: string; name?: string }>;
+    subscribers = sqliteDb.prepare("SELECT email, name FROM subscribers WHERE status = 'active'").all() as Array<{ email: string; name?: string }>;
+  }
+
+  const emailMap = new Map<string, { email: string; name?: string }>();
+  customers.forEach((c) => emailMap.set(c.email.toLowerCase(), c));
+  subscribers.forEach((s) => emailMap.set(s.email.toLowerCase(), s));
+  return Array.from(emailMap.values());
+}
+
 
 export async function getOrderById(orderId: string) {
   if (usesPostgres) {

@@ -28,7 +28,7 @@ export function CustomerManagement({ token }: { token: string }) {
     const fetchData = async () => {
       try {
         const res = await fetch("/api/admin/customers", {
-          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
         });
         if (res.ok) {
           const data = await res.json();

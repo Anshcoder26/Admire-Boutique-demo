@@ -66,7 +66,7 @@ export function ProductEditor({
     const fetchProduct = async () => {
       try {
         const res = await fetch(`/api/admin/products/${productId}`, {
-          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
         });
         if (res.ok) {
           const data = await res.json();
@@ -124,8 +124,8 @@ export function ProductEditor({
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify(form),
       });
 
