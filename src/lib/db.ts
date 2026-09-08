@@ -6,6 +6,7 @@ import Database from "better-sqlite3";
 import { Pool } from "pg";
 import bcryptjs from "bcryptjs";
 import type { Product } from "@/data/products";
+import { logger } from "@/lib/logger";
 
 const databaseUrl = process.env.DATABASE_URL || "";
 const usesPostgres = Boolean(databaseUrl);
@@ -512,6 +513,11 @@ if (!usesPostgres) {
       count INTEGER NOT NULL,
       reset_at TEXT NOT NULL
     );
+
+    CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id);
+    CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
+    CREATE INDEX IF NOT EXISTS idx_password_resets_expires_at ON password_resets(expires_at);
+    CREATE INDEX IF NOT EXISTS idx_rate_limits_reset_at ON rate_limits(reset_at);
   `);
 
   const sqliteProductColumns = sqliteDb.prepare("PRAGMA table_info(products)").all() as Array<{ name: string }>;
@@ -610,7 +616,7 @@ if (!usesPostgres) {
 async function ensurePostgresReady() {
   if (!postgresPool || postgresReady) return;
 
-  console.log("[DB] Starting PostgreSQL initialization...");
+  logger.debug("[DB] Starting PostgreSQL initialization...");
 
   try {
     // Create each table separately - PostgreSQL doesn't support multiple statements in one query
@@ -649,7 +655,7 @@ async function ensurePostgresReady() {
       )
     `);
 
-    console.log("[DB] ✓ Created admin_users table");
+    logger.debug("[DB] ✓ Created admin_users table");
 
     await postgresPool.query(`
       CREATE TABLE IF NOT EXISTS customers (
@@ -751,6 +757,13 @@ async function ensurePostgresReady() {
       )
     `);
 
+    // Indexes for frequent lookups and expired-row cleanup (each as a separate
+    // statement — pg does not allow multiple statements in one query() call).
+    await postgresPool.query("CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id)");
+    await postgresPool.query("CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at)");
+    await postgresPool.query("CREATE INDEX IF NOT EXISTS idx_password_resets_expires_at ON password_resets(expires_at)");
+    await postgresPool.query("CREATE INDEX IF NOT EXISTS idx_rate_limits_reset_at ON rate_limits(reset_at)");
+
   } catch (err) {
     console.error("[DB] PostgreSQL initialization error:", err);
     throw err;
@@ -797,17 +810,17 @@ async function ensurePostgresReady() {
   }
 
   const adminCount = await postgresPool.query("SELECT COUNT(*) as count FROM admin_users");
-  console.log("[DB] Admin users count:", adminCount.rows[0]?.count ?? 0);
+  logger.debug("[DB] Admin users count:", adminCount.rows[0]?.count ?? 0);
   if (Number(adminCount.rows[0]?.count ?? 0) === 0) {
-    console.log("[DB] Inserting seed admin user...");
+    logger.debug("[DB] Inserting seed admin user...");
     try {
       const hashedPassword = await hashPassword(resolveAdminBootstrapPassword());
-      console.log("[DB] Password hashed, inserting user...");
+      logger.debug("[DB] Password hashed, inserting user...");
       await postgresPool.query(
         "INSERT INTO admin_users (id, name, email, password_hash) VALUES ($1, $2, $3, $4)",
         ["admin-owner-1", "Boutique Owner", ADMIN_BOOTSTRAP_EMAIL, hashedPassword]
       );
-      console.log("[DB] ✓ Admin user seeded successfully");
+      logger.debug("[DB] ✓ Admin user seeded successfully");
     } catch (insertErr) {
       console.error("[DB] INSERT admin user error:", insertErr);
       // Check if user exists anyway (constraint violation)
@@ -816,13 +829,13 @@ async function ensurePostgresReady() {
         [ADMIN_BOOTSTRAP_EMAIL]
       );
       if (existing.rows.length > 0) {
-        console.log("[DB] Admin user already exists in database:", existing.rows[0].email);
+        logger.debug("[DB] Admin user already exists in database:", existing.rows[0].email);
       } else {
         throw insertErr;
       }
     }
   } else {
-    console.log("[DB] Admin users already exist, skipping seed");
+    logger.debug("[DB] Admin users already exist, skipping seed");
   }
 
   const customerCount = await postgresPool.query("SELECT COUNT(*) as count FROM customers");
@@ -894,7 +907,7 @@ async function ensurePostgresReady() {
   }
 
   postgresReady = true;
-  console.log("[DB] PostgreSQL initialization completed successfully");
+  logger.debug("[DB] PostgreSQL initialization completed successfully");
   } catch (err) {
     console.error("[DB] PostgreSQL seed data error:", err);
     throw err;
@@ -910,6 +923,50 @@ export function getDb() {
       run: () => ({ changes: 0 }),
     }),
   };
+}
+
+/**
+ * Lightweight connectivity check for health probes. Returns the active backend
+ * and whether a trivial query succeeded. Never throws.
+ */
+export async function pingDatabase(): Promise<{ backend: "postgres" | "sqlite"; ok: boolean; error?: string }> {
+  try {
+    if (usesPostgres) {
+      await ensurePostgresReady();
+      await postgresPool!.query("SELECT 1");
+      return { backend: "postgres", ok: true };
+    }
+    sqliteDb.prepare("SELECT 1").get();
+    return { backend: "sqlite", ok: true };
+  } catch (err) {
+    return {
+      backend: usesPostgres ? "postgres" : "sqlite",
+      ok: false,
+      error: err instanceof Error ? err.message : "unknown error",
+    };
+  }
+}
+
+/**
+ * Deletes expired/used rows from housekeeping tables. Safe to call opportunistically
+ * (e.g. at server cold-start); never throws.
+ */
+export async function cleanupExpiredRows(): Promise<void> {
+  try {
+    if (usesPostgres) {
+      await ensurePostgresReady();
+      await postgresPool!.query("DELETE FROM sessions WHERE expires_at < NOW()");
+      await postgresPool!.query("DELETE FROM password_resets WHERE expires_at < NOW() OR used = 1");
+      await postgresPool!.query("DELETE FROM rate_limits WHERE reset_at < NOW()");
+      return;
+    }
+    const nowIso = new Date().toISOString();
+    sqliteDb.prepare("DELETE FROM sessions WHERE expires_at < ?").run(nowIso);
+    sqliteDb.prepare("DELETE FROM password_resets WHERE expires_at < ? OR used = 1").run(nowIso);
+    sqliteDb.prepare("DELETE FROM rate_limits WHERE reset_at < ?").run(nowIso);
+  } catch (err) {
+    logger.warn("[DB] Expired-row cleanup failed:", err instanceof Error ? err.message : err);
+  }
 }
 
 export async function listProducts(): Promise<Product[]> {
@@ -1154,21 +1211,19 @@ export async function setProductSoldOutStatus(id: string, isSoldOut: boolean): P
 
 export async function verifyAdminCredentials(email: string, password: string): Promise<AdminUserRecord | null> {
   if (usesPostgres) {
-    console.log("[DB] Verifying admin credentials using PostgreSQL for:", email);
+    logger.debug("[DB] Verifying admin credentials using PostgreSQL");
     await ensurePostgresReady();
     const result = await postgresPool!.query("SELECT * FROM admin_users WHERE email = $1", [email]);
-    console.log("[DB] Query result - found:", result.rows.length, "users");
     const user = result.rows[0];
     if (!user) {
-      console.log("[DB] No admin user found with email:", email);
+      logger.debug("[DB] No admin user found for supplied email");
       return null;
     }
-    console.log("[DB] Admin user found, verifying password...");
     if (!(await verifyPassword(password, user.password_hash))) {
-      console.log("[DB] Password mismatch for admin:", email);
+      logger.debug("[DB] Password mismatch for admin login");
       return null;
     }
-    console.log("[DB] ✓ Admin credentials verified");
+    logger.debug("[DB] ✓ Admin credentials verified");
     return { id: user.id, name: user.name, email: user.email };
   }
 

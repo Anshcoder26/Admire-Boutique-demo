@@ -58,10 +58,7 @@ export async function POST(request: Request) {
       .digest("hex");
 
     if (generated_signature !== body.razorpay_signature) {
-      console.error("[RAZORPAY] Signature mismatch:", {
-        expected: generated_signature,
-        received: body.razorpay_signature,
-      });
+      console.error("[RAZORPAY] Signature verification failed for order:", body.order_id ?? "unknown");
       return NextResponse.json(
         { error: "Payment signature verification failed" },
         { status: 400 }

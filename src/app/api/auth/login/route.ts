@@ -10,6 +10,7 @@ import {
   AUTH_RATE_LIMITS,
 } from "@/lib/auth-utils";
 import { checkRateLimit, resetRateLimit, getClientIp } from "@/lib/rate-limiter";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
       // Store session for admin
       await storeSessionToken(sessionToken, email);
 
-      console.log(`[AUTH] Successful admin login for user: ${adminUser.id}`);
+      logger.debug(`[AUTH] Successful admin login for user: ${adminUser.id}`);
 
       const response = NextResponse.json(
         {
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
     // Try customer login
     const customer = await verifyCustomerCredentials(email, password);
     if (!customer) {
-      console.warn(`[AUTH] Failed login attempt for email: ${email}`);
+      logger.warn(`[AUTH] Failed login attempt for email: ${email}`);
       return NextResponse.json(
         {
           error: "Invalid email or password",
@@ -126,7 +127,7 @@ export async function POST(request: NextRequest) {
 
     await storeUserSessionToken(sessionToken, email);
 
-    console.log(`[AUTH] Successful customer login for user: ${customer.id}`);
+    logger.debug(`[AUTH] Successful customer login for user: ${customer.id}`);
 
     const response = NextResponse.json(
       {
