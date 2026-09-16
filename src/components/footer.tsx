@@ -6,44 +6,20 @@ import { useState } from "react";
 import { LotusOrnament } from "@/components/lotus-ornament";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NewsletterSignup } from "@/components/newsletter-signup";
-import { SectionDivider } from "@/components/ui/section-divider";
 import { FabricBooti } from "@/components/motifs/fabric-booti";
 
 export function Footer() {
   const [open, setOpen] = useState(false);
   return (
-    <footer className="relative isolate mt-0 overflow-hidden border-t border-[#e6d9cf] bg-[#f8f2ee]">
+    <footer className="relative isolate mt-0 overflow-hidden border-t border-[var(--ink)]/10 bg-white">
       {/* Subtle Indian suit-fabric booti texture */}
-      <FabricBooti opacity={0.12} mobileOpacity={0.05} size={140} motif="lotus" className="-z-10" />
-      {/* Lotus section divider along the top of the footer */}
-      <div className="absolute top-0 left-0 right-0 hidden items-center justify-center md:flex">
-        <SectionDivider className="my-4 w-[85%]" opacity={0.6} />
-      </div>
+      <FabricBooti opacity={0.05} mobileOpacity={0.03} size={140} motif="lotus" className="-z-10" />
 
-      {/* Animated lotus motifs - footer corners */}
-      <div className="absolute top-6 right-8 w-10 h-10 opacity-30 animate-float-elegant hidden md:block">
-        <svg viewBox="0 0 60 60" className="h-full w-full">
-          <path d="M30 10 C 40 15, 45 25, 45 35 C 40 40, 35 41, 30 37 C 25 41, 20 40, 15 35 C 15 25, 20 15, 30 10 Z" fill="none" stroke="#7D1D1D" strokeWidth="1.2" opacity="0.8" />
-          <circle cx="30" cy="30" r="2.5" fill="#D4AF37" />
-        </svg>
-      </div>
-
-      <div className="absolute bottom-12 left-5 w-12 h-12 opacity-25 animate-float-elegant hidden md:block" style={{ animationDelay: '1.5s' }}>
-        <svg viewBox="0 0 60 60" className="h-full w-full">
-          <path d="M30 10 C 40 15, 45 25, 45 35 C 40 40, 35 41, 30 37 C 25 41, 20 40, 15 35 C 15 25, 20 15, 30 10 Z" fill="none" stroke="#8b6b47" strokeWidth="1.5" opacity="0.7" />
-          <circle cx="30" cy="30" r="3" fill="#7D1D1D" />
-        </svg>
-      </div>
-
-      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-0 pt-12 md:px-8 lg:px-10">
-        <div className="mb-8 flex items-center justify-center gap-3 text-[#7d645a]">
-          <svg viewBox="0 0 100 18" className="h-4 w-16 opacity-70 hover:opacity-100 transition-opacity hover:animate-rotate-gentle">
-            <path d="M8 13 C 18 6, 28 5, 38 9 C 48 14, 58 14, 68 8 C 78 2, 89 3, 92 9" className="ornament-arch" />
-          </svg>
-          <span className="text-[10px] uppercase tracking-[0.28em]">Crafted with tradition</span>
-          <svg viewBox="0 0 100 18" className="h-4 w-16 opacity-70 hover:opacity-100 transition-opacity hover:animate-rotate-gentle" style={{ animationDelay: '0.2s' }}>
-            <path d="M8 13 C 18 6, 28 5, 38 9 C 48 14, 58 14, 68 8 C 78 2, 89 3, 92 9" className="ornament-arch warm" />
-          </svg>
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-0 pt-14 md:px-8 lg:px-10">
+        <div className="mb-8 flex items-center justify-center gap-3 text-[#7D1D1D]">
+          <span className="h-px w-10 bg-[var(--ink)]/15" />
+          <span className="text-[10px] font-semibold uppercase tracking-[0.3em]">Crafted with tradition</span>
+          <span className="h-px w-10 bg-[var(--ink)]/15" />
         </div>
 
         <div className="mb-12 max-w-md mx-auto">
@@ -53,15 +29,13 @@ export function Footer() {
         <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-5">
           <div className="xl:col-span-2">
             <div className="mb-4 flex items-center gap-3">
-              <div className="hover:animate-glow-pulse transition-all">
-                <LotusOrnament className="h-11 w-11 rounded-full border border-[#d8c3b0] bg-white/80 p-1.5" />
-              </div>
+              <LotusOrnament className="h-11 w-11 rounded-full border border-[#7D1D1D]/25 bg-[#fff5f0] p-1.5" />
               <div>
-                <div className="font-serif text-2xl text-[#1f1413]">Admire Boutique</div>
-                <div className="text-[10px] uppercase tracking-[0.2em] text-[#7d645a]">Ethnic Atelier</div>
+                <div className="font-serif text-2xl font-semibold tracking-tight text-[var(--ink)]">Admire Boutique</div>
+                <div className="text-[10px] uppercase tracking-[0.3em] text-[#7D1D1D]">Ethnic Atelier</div>
               </div>
             </div>
-            <p className="max-w-sm text-sm leading-7 text-[#5b4a45]">
+            <p className="max-w-sm text-sm leading-7 text-[var(--ink)]/70">
               Contemporary Indian wear shaped for everyday confidence, from soft cotton essentials to festive statement pieces.
             </p>
             <div className="mt-5 flex gap-3">
@@ -92,7 +66,7 @@ export function Footer() {
                   label: "Email" 
                 }
               ].map(({ icon, href, label }, idx) => (
-                <a key={idx} href={href} target="_blank" rel="noopener noreferrer" title={label} className="flex h-10 w-10 items-center justify-center rounded-full border border-[#d9c3b8] bg-white text-[#7D1D1D] transition hover:-translate-y-1 hover:bg-[#f1e4d8] hover:animate-pulse-subtle hover:border-[#7D1D1D]">
+                <a key={idx} href={href} target="_blank" rel="noopener noreferrer" title={label} className="flex h-10 w-10 items-center justify-center rounded-md border border-[var(--ink)]/15 bg-white text-[#7D1D1D] transition hover:-translate-y-0.5 hover:border-[#7D1D1D] hover:bg-[#fff5f0]">
                   {icon}
                 </a>
               ))}
@@ -100,52 +74,52 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-[#684d47]">Shop</h3>
-            <ul className="space-y-3 text-sm text-[#5b4a45]">
-              <li><Link href="/products" className="hover:text-[#7D1D1D] hover:font-semibold transition-colors">Kurtis</Link></li>
-              <li><Link href="/products" className="hover:text-[#7D1D1D] hover:font-semibold transition-colors">Festive wear</Link></li>
-              <li><Link href="/products" className="hover:text-[#7D1D1D] hover:font-semibold transition-colors">Office wear</Link></li>
-              <li><Link href="/products" className="hover:text-[#7D1D1D] hover:font-semibold transition-colors">Sale</Link></li>
+            <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ink)]">Shop</h3>
+            <ul className="space-y-3 text-sm text-[var(--ink)]/70">
+              <li><Link href="/products" className="hover:text-[#7D1D1D] transition-colors">Kurtis</Link></li>
+              <li><Link href="/products" className="hover:text-[#7D1D1D] transition-colors">Festive wear</Link></li>
+              <li><Link href="/products" className="hover:text-[#7D1D1D] transition-colors">Office wear</Link></li>
+              <li><Link href="/products" className="hover:text-[#7D1D1D] transition-colors">Sale</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-[#684d47]">Support</h3>
-            <ul className="space-y-3 text-sm text-[#5b4a45]">
-              <li><Link href="/support" className="hover:text-[#7D1D1D] hover:font-semibold transition-colors">Shipping</Link></li>
-              <li><Link href="/support" className="hover:text-[#7D1D1D] hover:font-semibold transition-colors">Returns</Link></li>
-              <li><Link href="/faq" className="hover:text-[#7D1D1D] hover:font-semibold transition-colors">Sizing guide</Link></li>
-              <li><Link href="/faq" className="hover:text-[#7D1D1D] hover:font-semibold transition-colors">FAQs</Link></li>
+            <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ink)]">Support</h3>
+            <ul className="space-y-3 text-sm text-[var(--ink)]/70">
+              <li><Link href="/support" className="hover:text-[#7D1D1D] transition-colors">Shipping</Link></li>
+              <li><Link href="/support" className="hover:text-[#7D1D1D] transition-colors">Returns</Link></li>
+              <li><Link href="/faq" className="hover:text-[#7D1D1D] transition-colors">Sizing guide</Link></li>
+              <li><Link href="/faq" className="hover:text-[#7D1D1D] transition-colors">FAQs</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-[#684d47]">Contact</h3>
-            <ul className="space-y-3 text-sm text-[#5b4a45]">
-              <li className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 text-[#6b4338]" /> 12 Saffron Lane, Bengaluru</li>
-              <li className="flex items-center gap-2"><Phone className="h-4 w-4 text-[#6b4338]" /> +91 98765 43210</li>
-              <li className="flex items-center gap-2"><Mail className="h-4 w-4 text-[#6b4338]" /> hello@admireboutique.in</li>
+            <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ink)]">Contact</h3>
+            <ul className="space-y-3 text-sm text-[var(--ink)]/70">
+              <li className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 text-[#7D1D1D]" /> 12 Saffron Lane, Bengaluru</li>
+              <li className="flex items-center gap-2"><Phone className="h-4 w-4 text-[#7D1D1D]" /> +91 98765 43210</li>
+              <li className="flex items-center gap-2"><Mail className="h-4 w-4 text-[#7D1D1D]" /> hello@admireboutique.in</li>
             </ul>
           </div>
         </div>
 
-        <div className="mb-0 mt-6 flex flex-col gap-3 border-t border-[#e0cfbf] pb-0 pt-4 text-xs uppercase tracking-[0.14em] text-[#7d645a] md:flex-row md:items-center md:justify-between">
+        <div className="mb-0 mt-6 flex flex-col gap-3 border-t border-[var(--ink)]/10 pb-0 pt-4 text-xs uppercase tracking-[0.14em] text-[var(--ink)]/60 md:flex-row md:items-center md:justify-between">
           <p>© 2026 Admire Boutique. All rights reserved.</p>
           <div className="flex gap-4">
-            <Link href="#">Privacy</Link>
-            <Link href="#">Terms</Link>
-            <Link href="#">Payments</Link>
+            <Link href="#" className="hover:text-[#7D1D1D] transition-colors">Privacy</Link>
+            <Link href="#" className="hover:text-[#7D1D1D] transition-colors">Terms</Link>
+            <Link href="#" className="hover:text-[#7D1D1D] transition-colors">Payments</Link>
           </div>
         </div>
 
         {/* Quick Actions Menu - Integrated in Footer */}
-        <div className="mt-8 border-t border-[#e0cfbf] pt-6">
+        <div className="mt-8 border-t border-[var(--ink)]/10 pt-6">
           <div className="flex items-center justify-center gap-4">
             <button
               type="button"
               aria-label="Open quick actions"
               onClick={() => setOpen((value) => !value)}
-              className="flex h-12 w-12 items-center justify-center rounded-full bg-[#4b1f1d] text-white shadow-lg transition hover:scale-105"
+              className="flex h-11 w-11 items-center justify-center rounded-md bg-[#7D1D1D] text-white transition hover:bg-[#671818]"
             >
               <div className="flex flex-col gap-1">
                 <span className="block h-0.5 w-4 rounded-full bg-white" />
