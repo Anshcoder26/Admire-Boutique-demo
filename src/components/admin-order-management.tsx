@@ -92,34 +92,34 @@ export function OrderManagement({ token }: { token: string }) {
   };
 
   if (loading) {
-    return <div className="p-6 text-center text-[#8a6f5f]">Loading orders...</div>;
+    return <div className="p-6 text-center text-[var(--ink)]/60">Loading orders...</div>;
   }
 
   if (orders.length === 0) {
-    return <div className="p-6 text-center text-[#8a6f5f]">No orders yet</div>;
+    return <div className="p-6 text-center text-[var(--ink)]/60">No orders yet</div>;
   }
 
   return (
-    <div className="space-y-4 rounded-[20px] border border-[#eadcce] bg-white overflow-x-auto">
+    <div className="space-y-4 rounded-lg border border-[var(--ink)]/10 bg-white overflow-x-auto">
       <div className="inline-block min-w-full">
         <table className="w-full text-sm">
-          <thead className="bg-[#f5f0eb] border-b border-[#eadcce]">
+          <thead className="bg-[var(--panel-alt)] border-b border-[var(--ink)]/10">
             <tr>
-              <th className="px-6 py-3 text-left font-semibold text-[#5a403a]">Order #</th>
-              <th className="px-6 py-3 text-left font-semibold text-[#5a403a]">Date</th>
-              <th className="px-6 py-3 text-left font-semibold text-[#5a403a]">Total</th>
-              <th className="px-6 py-3 text-left font-semibold text-[#5a403a]">Status</th>
-              <th className="px-6 py-3 text-left font-semibold text-[#5a403a]">Payment</th>
+              <th className="px-6 py-3 text-left font-semibold text-[var(--ink)]/70">Order #</th>
+              <th className="px-6 py-3 text-left font-semibold text-[var(--ink)]/70">Date</th>
+              <th className="px-6 py-3 text-left font-semibold text-[var(--ink)]/70">Total</th>
+              <th className="px-6 py-3 text-left font-semibold text-[var(--ink)]/70">Status</th>
+              <th className="px-6 py-3 text-left font-semibold text-[var(--ink)]/70">Payment</th>
             </tr>
           </thead>
           <tbody>
             {orders.map((order) => (
-              <tr key={order.id} className="border-b border-[#eadcce] hover:bg-[#fffaf7]">
-                <td className="px-6 py-4 font-medium text-[#201614]">{order.order_number}</td>
-                <td className="px-6 py-4 text-[#8a6f5f]">
+              <tr key={order.id} className="border-b border-[var(--ink)]/10 hover:bg-white">
+                <td className="px-6 py-4 font-medium text-[var(--ink)]">{order.order_number}</td>
+                <td className="px-6 py-4 text-[var(--ink)]/60">
                   {new Date(order.created_at).toLocaleDateString()}
                 </td>
-                <td className="px-6 py-4 font-semibold text-[#2d2421]">
+                <td className="px-6 py-4 font-semibold text-[var(--ink)]">
                   ₹{Number(order.total).toLocaleString("en-IN")}
                 </td>
                 <td className="px-6 py-4">
@@ -128,7 +128,7 @@ export function OrderManagement({ token }: { token: string }) {
                       value={order.status}
                       onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
                       disabled={updatingId === order.id}
-                      className="appearance-none rounded-full border border-[#ead9cf] bg-white px-4 py-1.5 text-sm font-medium text-[#5a403a] outline-none focus:border-[#b67c60] disabled:opacity-50"
+                      className="appearance-none rounded-md border border-[var(--ink)]/12 bg-white px-4 py-1.5 text-sm font-medium text-[var(--ink)]/70 outline-none focus:border-[#7D1D1D] disabled:opacity-50"
                     >
                       {ORDER_STATUSES.map((status) => (
                         <option key={status} value={status}>
@@ -136,7 +136,7 @@ export function OrderManagement({ token }: { token: string }) {
                         </option>
                       ))}
                     </select>
-                    <ChevronDown className="absolute right-2 top-2 h-4 w-4 text-[#8a6f5f] pointer-events-none" />
+                    <ChevronDown className="absolute right-2 top-2 h-4 w-4 text-[var(--ink)]/60 pointer-events-none" />
                   </div>
                 </td>
                 <td className="px-6 py-4">
@@ -145,7 +145,7 @@ export function OrderManagement({ token }: { token: string }) {
                       value={order.payment_status}
                       onChange={(e) => handlePaymentStatusUpdate(order.id, e.target.value)}
                       disabled={updatingId === order.id}
-                      className="appearance-none rounded-full border border-[#ead9cf] bg-white px-4 py-1.5 text-sm font-medium text-[#5a403a] outline-none focus:border-[#b67c60] disabled:opacity-50"
+                      className="appearance-none rounded-md border border-[var(--ink)]/12 bg-white px-4 py-1.5 text-sm font-medium text-[var(--ink)]/70 outline-none focus:border-[#7D1D1D] disabled:opacity-50"
                     >
                       {PAYMENT_STATUSES.map((status) => (
                         <option key={status} value={status}>
@@ -153,7 +153,7 @@ export function OrderManagement({ token }: { token: string }) {
                         </option>
                       ))}
                     </select>
-                    <ChevronDown className="absolute right-2 top-2 h-4 w-4 text-[#8a6f5f] pointer-events-none" />
+                    <ChevronDown className="absolute right-2 top-2 h-4 w-4 text-[var(--ink)]/60 pointer-events-none" />
                   </div>
                 </td>
               </tr>

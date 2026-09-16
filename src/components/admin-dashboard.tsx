@@ -75,10 +75,10 @@ const getCatalogStatus = (stock: number, isSoldOut: boolean): CatalogStatus =>
   isSoldOut ? "Sold Out" : stock < 10 ? "Low stock" : "Live";
 
 const statCards = [
-  { label: "Revenue", value: "₹4.8L", change: "+12.4%", accent: "bg-[#f1e2d2] text-[#5e3228]" },
-  { label: "Orders", value: "1,248", change: "+8.1%", accent: "bg-[#eaf4ee] text-[#1c5d3d]" },
-  { label: "Products", value: "182", change: "+14", accent: "bg-[#f8e9d7] text-[#7d5f2b]" },
-  { label: "Customers", value: "9.6K", change: "+4.7%", accent: "bg-[#f3e8ea] text-[#79443d]" },
+  { label: "Revenue", value: "₹4.8L", change: "+12.4%", accent: "bg-[#7D1D1D]/8 text-[#7D1D1D]" },
+  { label: "Orders", value: "1,248", change: "+8.1%", accent: "bg-[#7D1D1D]/8 text-[#7D1D1D]" },
+  { label: "Products", value: "182", change: "+14", accent: "bg-[#7D1D1D]/8 text-[#7D1D1D]" },
+  { label: "Customers", value: "9.6K", change: "+4.7%", accent: "bg-[#7D1D1D]/8 text-[#7D1D1D]" },
 ];
 
 const activityFeed = [
@@ -356,23 +356,22 @@ export function AdminDashboard() {
   if (!isAuthenticated) {
     return (
       <main className="relative z-10 mx-auto max-w-6xl px-4 py-8 md:px-8 lg:px-10">
-        <div className="overflow-hidden rounded-[32px] border border-[#e7d9cf] bg-[#fffaf6] shadow-[0_22px_60px_rgba(51,32,27,0.08)]">
+        <div className="overflow-hidden rounded-xl border border-[var(--ink)]/10 bg-white shadow-[var(--shadow-lg)]">
           <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="relative overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(146,98,75,0.12),_transparent_38%),linear-gradient(135deg,_#f8efe7,_#f3e5d8_40%,_#efe0d0)] p-6 md:p-10">
-              <div className="absolute -left-10 top-10 h-44 w-44 rounded-full bg-[#d7a46c]/10 blur-3xl" />
+            <div className="relative overflow-hidden bg-[#7D1D1D] p-6 text-white md:p-10">
               <div className="relative space-y-6">
                 <div className="flex items-center gap-3">
-                  <LotusOrnament className="h-12 w-12 rounded-full border border-[#d8c3b0] bg-white/80 p-2" />
+                  <LotusOrnament className="h-12 w-12 rounded-md border border-white/30 bg-white/10 p-2" />
                   <div>
-                    <div className="font-serif text-3xl text-[#231711]">Admire Boutique</div>
-                    <div className="text-[10px] uppercase tracking-[0.25em] text-[#7f6257]">Owner portal</div>
+                    <div className="font-serif text-3xl font-semibold tracking-tight text-white">Admire Boutique</div>
+                    <div className="text-[10px] uppercase tracking-[0.3em] text-[#E9C766]">Owner portal</div>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#8a6f5f]">Private access</p>
-                  <h1 className="max-w-sm font-serif text-5xl leading-[0.9] text-[#201614] md:text-6xl">Grow your boutique with clarity.</h1>
-                  <p className="max-w-md text-base leading-7 text-[#5a4b45]">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#E9C766]">Private access</p>
+                  <h1 className="max-w-sm font-serif text-5xl font-semibold leading-[0.9] tracking-tight text-white md:text-6xl">Grow your boutique with clarity.</h1>
+                  <p className="max-w-md text-base leading-7 text-white/75">
                     Manage stock, review sales, add new dawn-to-dusk kurti drops and keep the brand booth feeling premium from day one.
                   </p>
                 </div>
@@ -383,9 +382,9 @@ export function AdminDashboard() {
                     { value: "₹4.8L", label: "monthly revenue" },
                     { value: "4.9/5", label: "customer rating" },
                   ].map((item) => (
-                    <div key={item.label} className="rounded-[22px] border border-white/60 bg-white/50 p-3 backdrop-blur-sm">
-                      <div className="font-serif text-2xl text-[#201614]">{item.value}</div>
-                      <div className="text-[10px] uppercase tracking-[0.18em] text-[#7a6057]">{item.label}</div>
+                    <div key={item.label} className="rounded-lg border border-white/20 bg-white/10 p-3">
+                      <div className="font-serif text-2xl font-semibold text-white">{item.value}</div>
+                      <div className="text-[10px] uppercase tracking-[0.18em] text-white/70">{item.label}</div>
                     </div>
                   ))}
                 </div>
@@ -395,48 +394,48 @@ export function AdminDashboard() {
             <div className="p-6 md:p-8 lg:p-10">
               <div className="mb-6 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#8a6f5f]">Welcome back</p>
-                  <h2 className="mt-1 font-serif text-4xl text-[#201614]">Owner login</h2>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7D1D1D]">Welcome back</p>
+                  <h2 className="mt-1 font-serif text-4xl font-semibold tracking-tight text-[var(--ink)]">Owner login</h2>
                 </div>
-                <div className="rounded-full bg-[#eaf3ee] p-2 text-[#1f6b42]">
+                <div className="rounded-md bg-[#7D1D1D]/8 p-2 text-[#7D1D1D]">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
               </div>
 
               <form onSubmit={handleLogin} className="space-y-5">
                 <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-[0.2em] text-[#7a655d]">Email address</label>
+                  <label className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ink)]/60">Email address</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-2xl border border-[#e1d0c7] bg-[#f9f2ee] px-4 py-3 text-sm text-[#2d2421] outline-none transition focus:border-[#a76a52] focus:bg-white"
+                    className="w-full rounded-md border border-[var(--ink)]/15 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/20"
                     placeholder="owner@admireboutique.in"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-[0.2em] text-[#7a655d]">Password</label>
+                  <label className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ink)]/60">Password</label>
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-2xl border border-[#e1d0c7] bg-[#f9f2ee] px-4 py-3 text-sm text-[#2d2421] outline-none transition focus:border-[#a76a52] focus:bg-white"
+                    className="w-full rounded-md border border-[var(--ink)]/15 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/20"
                     placeholder="Enter password"
                   />
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-[#695b54]">
+                <div className="flex items-center justify-between text-xs text-[var(--ink)]/60">
                   <label className="flex items-center gap-2">
-                    <input type="checkbox" className="h-4 w-4 rounded border-[#d9c7ba] text-[#4b1f1d]" />
+                    <input type="checkbox" className="h-4 w-4 rounded border-[var(--ink)]/25 text-[#7D1D1D]" />
                     Keep me signed in
                   </label>
-                  <button type="button" className="font-medium text-[#5d2a25]">Forgot password?</button>
+                  <button type="button" className="font-semibold text-[#7D1D1D]">Forgot password?</button>
                 </div>
 
                 <button
                   type="submit"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#7D1D1D] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(125,29,29,0.25)] transition-all hover:-translate-y-0.5 hover:bg-[#641414] hover:shadow-[0_14px_36px_rgba(125,29,29,0.35)]"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#7D1D1D] px-5 py-3.5 text-sm font-semibold uppercase tracking-[0.08em] text-white transition-all hover:bg-[#641414]"
                 >
                   Access dashboard <ArrowRight className="h-4 w-4" />
                 </button>
@@ -452,15 +451,15 @@ export function AdminDashboard() {
     <main className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
-          <LotusOrnament className="h-11 w-11 rounded-full border border-[#d7c1af] bg-white/80 p-2" />
+          <LotusOrnament className="h-11 w-11 rounded-md border border-[#7D1D1D]/25 bg-[#fff5f0] p-2" />
           <div>
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#8a6f5f]">Brand dashboard</p>
-            <h1 className="font-serif text-4xl text-[#201614] md:text-5xl">Owner dashboard</h1>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#7D1D1D]">Brand dashboard</p>
+            <h1 className="font-serif text-4xl font-semibold tracking-tight text-[var(--ink)] md:text-5xl">Owner dashboard</h1>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="flex h-11 w-11 items-center justify-center rounded-full border border-[#dbc7b9] bg-white text-[#402320]">
+          <button className="flex h-11 w-11 items-center justify-center rounded-md border border-[var(--ink)]/15 bg-white text-[var(--ink)]">
             <Bell className="h-4 w-4" />
           </button>
           <button
@@ -470,7 +469,7 @@ export function AdminDashboard() {
               setAdminToken(null);
               setIsAuthenticated(false);
             }}
-            className="inline-flex items-center gap-2 rounded-full border border-[#dcc5b4] bg-white px-4 py-2.5 text-sm font-medium text-[#402320]"
+            className="inline-flex items-center gap-2 rounded-md border border-[var(--ink)]/15 bg-white px-4 py-2.5 text-sm font-semibold text-[var(--ink)] hover:bg-[#faf7f2]"
           >
             <LogOut className="h-4 w-4" />
             Sign out
@@ -479,7 +478,7 @@ export function AdminDashboard() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="mb-8 inline-flex flex-wrap gap-1 rounded-full border border-[#e7d3c6] bg-[#f7ede6] p-1">
+      <div className="mb-8 inline-flex flex-wrap gap-1 rounded-md border border-[var(--ink)]/10 bg-[var(--panel-alt)] p-1">
         {([
           { key: "publish", label: "Publish Product" },
           { key: "products", label: "Edit Products" },
@@ -489,10 +488,10 @@ export function AdminDashboard() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-all ${
+            className={`rounded-md px-5 py-2.5 text-sm font-semibold uppercase tracking-[0.08em] transition-all ${
               activeTab === tab.key
-                ? "bg-[#7D1D1D] text-white shadow-[0_6px_18px_rgba(125,29,29,0.25)]"
-                : "text-[#8a6f5f] hover:text-[#5a403a]"
+                ? "bg-[#7D1D1D] text-white"
+                : "text-[var(--ink)]/60 hover:text-[#7D1D1D]"
             }`}
           >
             {tab.label}
@@ -505,25 +504,25 @@ export function AdminDashboard() {
         <>
           <section className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {statCards.map((card) => (
-          <div key={card.label} className="rounded-[28px] border border-[#eadcce] bg-white p-5 shadow-[0_16px_28px_rgba(84,58,45,0.04)]">
-            <div className={`mb-4 inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${card.accent}`}>
+          <div key={card.label} className="rounded-lg border border-[var(--ink)]/10 bg-white p-5 shadow-[var(--shadow-sm)]">
+            <div className={`mb-4 inline-flex rounded-md px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${card.accent}`}>
               {card.change}
             </div>
-            <div className="mb-2 text-sm uppercase tracking-[0.18em] text-[#7d645a]">{card.label}</div>
-            <div className="font-serif text-4xl text-[#201614]">{card.value}</div>
+            <div className="mb-2 text-sm uppercase tracking-[0.18em] text-[var(--ink)]/60">{card.label}</div>
+            <div className="font-serif text-4xl text-[var(--ink)]">{card.value}</div>
           </div>
         ))}
         </section>
 
         <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-6">
-          <div className="rounded-[30px] border border-[#eadcce] bg-white p-5 shadow-[0_18px_36px_rgba(84,58,45,0.04)] md:p-6">
+          <div className="rounded-lg border border-[var(--ink)]/10 bg-white p-5 shadow-[var(--shadow-sm)] md:p-6">
             <div className="mb-5 flex items-center justify-between gap-4">
               <div>
-                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#8a6f5f]">Catalog health</p>
-                <h2 className="mt-1 font-serif text-3xl text-[#201614]">Newest in stock</h2>
+                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--ink)]/60">Catalog health</p>
+                <h2 className="mt-1 font-serif text-3xl text-[var(--ink)]">Newest in stock</h2>
               </div>
-              <button className="inline-flex items-center gap-2 rounded-full bg-[#4b1f1d] px-4 py-2 text-sm font-medium text-white">
+              <button className="inline-flex items-center gap-2 rounded-md bg-[#7D1D1D] px-4 py-2 text-sm font-medium text-white">
                 <Plus className="h-4 w-4" />
                 Add product
               </button>
@@ -531,22 +530,22 @@ export function AdminDashboard() {
 
             <div className="space-y-3">
               {catalog.map((item) => (
-                <div key={item.id} className="flex flex-col gap-3 rounded-[24px] border border-[#efe1d7] bg-[#fffaf7] p-4 md:flex-row md:items-center md:justify-between">
+                <div key={item.id} className="flex flex-col gap-3 rounded-lg border border-[var(--ink)]/10 bg-white p-4 md:flex-row md:items-center md:justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f3e7db] text-[#4b1f1d]">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[#7D1D1D]/8 text-[#7D1D1D]">
                       <Package className="h-5 w-5" />
                     </div>
                     <div>
-                      <div className="font-medium text-[#201614]">{item.name}</div>
-                      <div className="text-xs uppercase tracking-[0.15em] text-[#7a675f]">{item.category}</div>
+                      <div className="font-medium text-[var(--ink)]">{item.name}</div>
+                      <div className="text-xs uppercase tracking-[0.15em] text-[var(--ink)]/60">{item.category}</div>
                     </div>
                   </div>
                   <div className="flex items-center justify-between gap-3 md:gap-6">
                     <div>
-                      <div className="text-sm text-[#5b4a45]">{item.price}</div>
-                      <div className="text-xs text-[#7a675f]">{item.stock} in stock</div>
+                      <div className="text-sm text-[var(--ink)]/70">{item.price}</div>
+                      <div className="text-xs text-[var(--ink)]/60">{item.stock} in stock</div>
                     </div>
-                    <div className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${
+                    <div className={`rounded-md px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${
                       item.status === "Live"
                         ? "bg-[#eaf4ee] text-[#1f6b42]"
                         : item.status === "Sold Out"
@@ -559,7 +558,7 @@ export function AdminDashboard() {
                       type="button"
                       onClick={() => handleSoldOutToggle(item.id, item.isSoldOut)}
                       disabled={updatingProductId === item.id}
-                      className={`rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] transition ${
+                      className={`rounded-md px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] transition ${
                         item.isSoldOut
                           ? "border border-[#1f6b42]/30 bg-[#eaf4ee] text-[#1f6b42]"
                           : "border border-[#8a1f1f]/30 bg-[#fff2f2] text-[#8a1f1f]"
@@ -573,7 +572,7 @@ export function AdminDashboard() {
                       disabled={updatingProductId === item.id}
                       aria-label={`Delete ${item.name}`}
                       title="Delete product"
-                      className={`flex items-center justify-center rounded-full border border-[#8a1f1f]/30 bg-[#fff2f2] p-2 text-[#8a1f1f] transition hover:bg-[#ffe6e6] ${
+                      className={`flex items-center justify-center rounded-md border border-[#8a1f1f]/30 bg-[#fff2f2] p-2 text-[#8a1f1f] transition hover:bg-[#ffe6e6] ${
                         updatingProductId === item.id ? "cursor-not-allowed opacity-60" : ""
                       }`}
                     >
@@ -585,21 +584,21 @@ export function AdminDashboard() {
             </div>
           </div>
 
-          <div className="rounded-[30px] border border-[#eadcce] bg-white p-5 shadow-[0_18px_36px_rgba(84,58,45,0.04)] md:p-6">
+          <div className="rounded-lg border border-[var(--ink)]/10 bg-white p-5 shadow-[var(--shadow-sm)] md:p-6">
             <div className="mb-5 flex items-center justify-between gap-4">
               <div>
-                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#8a6f5f]">Orders</p>
-                <h2 className="mt-1 font-serif text-3xl text-[#201614]">Recent purchases</h2>
+                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--ink)]/60">Orders</p>
+                <h2 className="mt-1 font-serif text-3xl text-[var(--ink)]">Recent purchases</h2>
               </div>
-              <button className="inline-flex items-center gap-2 text-sm font-medium text-[#5d2a25]">
+              <button className="inline-flex items-center gap-2 text-sm font-medium text-[#7D1D1D]">
                 View all <ArrowRight className="h-4 w-4" />
               </button>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm text-[#433a35]">
+              <table className="min-w-full text-left text-sm text-[var(--ink)]/80">
                 <thead>
-                  <tr className="border-b border-[#f0e2d8] text-[10px] uppercase tracking-[0.18em] text-[#7d645a]">
+                  <tr className="border-b border-[var(--ink)]/10 text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/60">
                     <th className="pb-3 pr-4 font-medium">Order</th>
                     <th className="pb-3 pr-4 font-medium">Customer</th>
                     <th className="pb-3 pr-4 font-medium">Status</th>
@@ -609,14 +608,14 @@ export function AdminDashboard() {
                 <tbody>
                   {recentOrders.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="py-4 text-sm text-[#5a4b45]">No recent orders yet.</td>
+                    <td colSpan={4} className="py-4 text-sm text-[var(--ink)]/70">No recent orders yet.</td>
                   </tr>
                 ) : recentOrders.map((order) => (
-                  <tr key={order.id} className="border-b border-[#f5ece5] text-[#352f2d]">
+                  <tr key={order.id} className="border-b border-[var(--ink)]/10 text-[var(--ink)]">
                     <td className="py-3 pr-4 font-medium">{order.order_number}</td>
                     <td className="py-3 pr-4">{order.customer_name}</td>
                     <td className="py-3 pr-4">
-                      <span className="rounded-full bg-[#edf5ee] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#1d6a3d]">
+                      <span className="rounded-md bg-[#edf5ee] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#1d6a3d]">
                         {order.status}
                       </span>
                     </td>
@@ -630,36 +629,36 @@ export function AdminDashboard() {
         </div>
 
         <div className="space-y-6">
-          <div className="rounded-[30px] border border-[#eadcce] bg-[#fffaf7] p-5 shadow-[0_18px_36px_rgba(84,58,45,0.04)] md:p-6">
+          <div className="rounded-lg border border-[var(--ink)]/10 bg-white p-5 shadow-[var(--shadow-sm)] md:p-6">
             <div className="mb-5 flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#8a6f5f]">Quick actions</p>
-                <h2 className="mt-1 font-serif text-3xl text-[#201614]">Add new product</h2>
+                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--ink)]/60">Quick actions</p>
+                <h2 className="mt-1 font-serif text-3xl text-[var(--ink)]">Add new product</h2>
               </div>
-              <div className="rounded-full bg-[#f3e7db] p-2 text-[#4b1f1d]">
+              <div className="rounded-md bg-[#7D1D1D]/8 p-2 text-[#7D1D1D]">
                 <Sparkles className="h-4 w-4" />
               </div>
             </div>
 
             <form onSubmit={handleAddProduct} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Product name</label>
+                <label className="text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/60">Product name</label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm((current) => ({ ...current, name: e.target.value }))}
-                  className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
+                  className="w-full rounded-md border border-[var(--ink)]/12 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[#7D1D1D]"
                   placeholder="e.g. Rose Gold Straight Kurti"
                 />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Category</label>
+                  <label className="text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/60">Category</label>
                   <select
                     value={form.category}
                     onChange={(e) => setForm((current) => ({ ...current, category: e.target.value }))}
-                    className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
+                    className="w-full rounded-md border border-[var(--ink)]/12 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[#7D1D1D]"
                   >
                     {productCategories.map((categoryName) => (
                       <option key={categoryName} value={categoryName}>
@@ -670,12 +669,12 @@ export function AdminDashboard() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Fabric</label>
+                  <label className="text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/60">Fabric</label>
                   <input
                     type="text"
                     value={form.fabric}
                     onChange={(e) => setForm((current) => ({ ...current, fabric: e.target.value }))}
-                    className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
+                    className="w-full rounded-md border border-[var(--ink)]/12 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[#7D1D1D]"
                     placeholder="Cotton"
                   />
                 </div>
@@ -683,41 +682,41 @@ export function AdminDashboard() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Price</label>
+                  <label className="text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/60">Price</label>
                   <input
                     type="number"
                     value={form.price}
                     onChange={(e) => setForm((current) => ({ ...current, price: e.target.value }))}
-                    className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
+                    className="w-full rounded-md border border-[var(--ink)]/12 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[#7D1D1D]"
                     placeholder="1999"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Stock</label>
+                  <label className="text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/60">Stock</label>
                   <input
                     type="number"
                     value={form.stock}
                     onChange={(e) => setForm((current) => ({ ...current, stock: e.target.value }))}
-                    className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
+                    className="w-full rounded-md border border-[var(--ink)]/12 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[#7D1D1D]"
                     placeholder="25"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Product photos</label>
+                <label className="text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/60">Product photos</label>
                 <div
                   onDragOver={(e) => {
                     e.preventDefault();
-                    e.currentTarget.classList.add("border-[#8a6f5f]", "bg-[#f5ede5]");
+                    e.currentTarget.classList.add("border-[#7D1D1D]", "bg-[#7D1D1D]/5");
                   }}
                   onDragLeave={(e) => {
-                    e.currentTarget.classList.remove("border-[#8a6f5f]", "bg-[#f5ede5]");
+                    e.currentTarget.classList.remove("border-[#7D1D1D]", "bg-[#7D1D1D]/5");
                   }}
                   onDrop={(e) => {
                     e.preventDefault();
-                    e.currentTarget.classList.remove("border-[#8a6f5f]", "bg-[#f5ede5]");
+                    e.currentTarget.classList.remove("border-[#7D1D1D]", "bg-[#7D1D1D]/5");
                     const files = Array.from(e.dataTransfer.files);
                     files.forEach((file) => {
                       if (file.type.startsWith("image/")) {
@@ -753,7 +752,7 @@ export function AdminDashboard() {
                       }
                     });
                   }}
-                  className="relative rounded-2xl border-2 border-dashed border-[#d9cabe] bg-[#fffaf7] p-6 text-center transition-colors cursor-pointer"
+                  className="relative rounded-md border-2 border-dashed border-[var(--ink)]/15 bg-white p-6 text-center transition-colors cursor-pointer"
                 >
                   <input
                     type="file"
@@ -775,21 +774,21 @@ export function AdminDashboard() {
                     className="absolute inset-0 h-full w-full opacity-0 cursor-pointer"
                   />
                   <div className="space-y-2">
-                    <div className="text-sm font-medium text-[#5a4b45]">Drag & drop images here</div>
-                    <div className="text-xs text-[#8a6f5f]">or click to browse, paste (Ctrl+V), or drag files</div>
+                    <div className="text-sm font-medium text-[var(--ink)]/70">Drag & drop images here</div>
+                    <div className="text-xs text-[var(--ink)]/60">or click to browse, paste (Ctrl+V), or drag files</div>
                   </div>
                 </div>
                 
                 {form.images.length > 0 && (
                   <div className="mt-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <div className="text-xs font-medium uppercase tracking-[0.15em] text-[#7a655d]">
+                      <div className="text-xs font-medium uppercase tracking-[0.15em] text-[var(--ink)]/60">
                         {form.images.length} image{form.images.length !== 1 ? "s" : ""} added
                       </div>
                       <button
                         type="button"
                         onClick={() => setForm((current) => ({ ...current, images: [] }))}
-                        className="text-xs text-[#c85a4d] hover:text-[#a84640]"
+                        className="text-xs text-[#7D1D1D] hover:text-[#7D1D1D]"
                       >
                         Clear all
                       </button>
@@ -801,7 +800,7 @@ export function AdminDashboard() {
                           <img
                             src={img}
                             alt={`Preview ${idx + 1}`}
-                            className="h-20 w-20 rounded-lg object-cover border border-[#e0d0c3]"
+                            className="h-20 w-20 rounded-lg object-cover border border-[var(--ink)]/12"
                           />
                           <button
                             type="button"
@@ -811,7 +810,7 @@ export function AdminDashboard() {
                                 images: current.images.filter((_, i) => i !== idx),
                               }));
                             }}
-                            className="absolute -top-2 -right-2 bg-[#c85a4d] text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute -top-2 -right-2 bg-[#7D1D1D] text-white rounded-md w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                           >
                             ×
                           </button>
@@ -823,11 +822,11 @@ export function AdminDashboard() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Stitch type</label>
+                <label className="text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/60">Stitch type</label>
                 <select
                   value={form.stitchType}
                   onChange={(e) => setForm((current) => ({ ...current, stitchType: e.target.value as "" | "Stitched" | "Unstitched" }))}
-                  className="w-full rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
+                  className="w-full rounded-md border border-[var(--ink)]/12 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[#7D1D1D]"
                 >
                   <option value="">Not specified</option>
                   {STITCH_TYPES.map((type) => (
@@ -837,7 +836,7 @@ export function AdminDashboard() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.18em] text-[#7a655d]">Colours</label>
+                <label className="text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/60">Colours</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
@@ -849,36 +848,36 @@ export function AdminDashboard() {
                         handleAddColor();
                       }
                     }}
-                    className="flex-1 rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm text-[#2d2421] outline-none focus:border-[#b67c60]"
+                    className="flex-1 rounded-md border border-[var(--ink)]/12 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[#7D1D1D]"
                     placeholder="e.g. Lemon Yellow"
                   />
                   <input
                     type="color"
                     value={colorHexInput}
                     onChange={(e) => setColorHexInput(e.target.value)}
-                    className="h-11 w-12 shrink-0 cursor-pointer rounded-xl border border-[#ead9cf] bg-white"
+                    className="h-11 w-12 shrink-0 cursor-pointer rounded-xl border border-[var(--ink)]/12 bg-white"
                     aria-label="Pick colour shade"
                     title="Pick or fine-tune the shade"
                   />
                   <button
                     type="button"
                     onClick={handleAddColor}
-                    className="shrink-0 rounded-full bg-[#4b1f1d] px-4 py-2.5 text-xs font-semibold text-white"
+                    className="shrink-0 rounded-md bg-[#7D1D1D] px-4 py-2.5 text-xs font-semibold text-white"
                   >
                     Add
                   </button>
                 </div>
-                <p className="text-[11px] text-[#8a6f5f]">Type a colour name — the swatch auto-fills. Adjust the shade with the picker if needed.</p>
+                <p className="text-[11px] text-[var(--ink)]/60">Type a colour name — the swatch auto-fills. Adjust the shade with the picker if needed.</p>
                 {form.colors.length > 0 && (
                   <div className="flex flex-wrap gap-2 pt-1">
                     {form.colors.map((color, idx) => (
-                      <span key={`${color.name}-${idx}`} className="inline-flex items-center gap-2 rounded-full border border-[#ead9cf] bg-white py-1 pl-1.5 pr-2 text-xs text-[#3a2b26]">
-                        <span className="h-5 w-5 rounded-full border border-[#e0d0c3]" style={{ backgroundColor: color.hex }} />
+                      <span key={`${color.name}-${idx}`} className="inline-flex items-center gap-2 rounded-md border border-[var(--ink)]/12 bg-white py-1 pl-1.5 pr-2 text-xs text-[var(--ink)]">
+                        <span className="h-5 w-5 rounded-md border border-[var(--ink)]/12" style={{ backgroundColor: color.hex }} />
                         {color.name}
                         <button
                           type="button"
                           onClick={() => setForm((current) => ({ ...current, colors: current.colors.filter((_, i) => i !== idx) }))}
-                          className="text-[#c85a4d] hover:text-[#a84640]"
+                          className="text-[#7D1D1D] hover:text-[#7D1D1D]"
                           aria-label={`Remove ${color.name}`}
                         >
                           ×
@@ -889,31 +888,31 @@ export function AdminDashboard() {
                 )}
               </div>
 
-              <button type="submit" className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#4b1f1d] px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#4b1f1d]/20">
+              <button type="submit" className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#7D1D1D] px-5 py-3.5 text-sm font-semibold text-white ">
                 Publish to storefront <ShoppingBag className="h-4 w-4" />
               </button>
             </form>
           </div>
 
-          <div className="rounded-[30px] border border-[#eadcce] bg-white p-5 shadow-[0_18px_36px_rgba(84,58,45,0.04)] md:p-6">
+          <div className="rounded-lg border border-[var(--ink)]/10 bg-white p-5 shadow-[var(--shadow-sm)] md:p-6">
             <div className="mb-5 flex items-center justify-between gap-4">
               <div>
-                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#8a6f5f]">Insights</p>
-                <h2 className="mt-1 font-serif text-3xl text-[#201614]">Activity</h2>
+                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--ink)]/60">Insights</p>
+                <h2 className="mt-1 font-serif text-3xl text-[var(--ink)]">Activity</h2>
               </div>
-              <div className="rounded-full bg-[#eaf3ee] p-2 text-[#1f6b42]">
+              <div className="rounded-md bg-[#eaf3ee] p-2 text-[#1f6b42]">
                 <TrendingUp className="h-4 w-4" />
               </div>
             </div>
 
             <div className="space-y-3">
               {activityFeed.map((item) => (
-                <div key={item.title} className="rounded-[20px] border border-[#f1e4db] bg-[#fffaf7] p-3">
-                  <div className="mb-1 flex items-center gap-2 text-[#201614]">
+                <div key={item.title} className="rounded-lg border border-[var(--ink)]/10 bg-white p-3">
+                  <div className="mb-1 flex items-center gap-2 text-[var(--ink)]">
                     <CheckCircle2 className="h-4 w-4 text-[#1d6a3d]" />
                     <span className="font-medium">{item.title}</span>
                   </div>
-                  <div className="text-xs uppercase tracking-[0.12em] text-[#7a655d]">{item.meta}</div>
+                  <div className="text-xs uppercase tracking-[0.12em] text-[var(--ink)]/60">{item.meta}</div>
                 </div>
               ))}
             </div>
@@ -925,34 +924,34 @@ export function AdminDashboard() {
 
       {/* Products Tab - Edit Existing Products */}
       {activeTab === "products" && (
-        <div className="rounded-[30px] border border-[#eadcce] bg-white p-5 shadow-[0_18px_36px_rgba(84,58,45,0.04)] md:p-6">
+        <div className="rounded-lg border border-[var(--ink)]/10 bg-white p-5 shadow-[var(--shadow-sm)] md:p-6">
           <div className="mb-6">
-            <h2 className="font-serif text-3xl text-[#201614]">Edit Products</h2>
-            <p className="text-sm text-[#8a6f5f] mt-2">Click on a product to edit its details</p>
+            <h2 className="font-serif text-3xl text-[var(--ink)]">Edit Products</h2>
+            <p className="text-sm text-[var(--ink)]/60 mt-2">Click on a product to edit its details</p>
           </div>
 
           <div className="space-y-3">
             {catalog.map((item) => (
-              <div key={item.id} className="flex flex-col gap-3 rounded-[24px] border border-[#efe1d7] bg-[#fffaf7] p-4 md:flex-row md:items-center md:justify-between">
+              <div key={item.id} className="flex flex-col gap-3 rounded-lg border border-[var(--ink)]/10 bg-white p-4 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-3 flex-1">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f3e7db] text-[#4b1f1d] shrink-0">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[#7D1D1D]/8 text-[#7D1D1D] shrink-0">
                     <Package className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
-                    <div className="font-medium text-[#201614] truncate">{item.name}</div>
-                    <div className="text-xs uppercase tracking-[0.15em] text-[#7a675f]">{item.category}</div>
+                    <div className="font-medium text-[var(--ink)] truncate">{item.name}</div>
+                    <div className="text-xs uppercase tracking-[0.15em] text-[var(--ink)]/60">{item.category}</div>
                   </div>
                 </div>
                 <div className="flex items-center justify-between gap-3 md:justify-end flex-wrap">
                   <div className="flex gap-4 text-right">
                     <div>
-                      <div className="text-sm text-[#5b4a45]">{item.price}</div>
-                      <div className="text-xs text-[#7a675f]">{item.stock} in stock</div>
+                      <div className="text-sm text-[var(--ink)]/70">{item.price}</div>
+                      <div className="text-xs text-[var(--ink)]/60">{item.stock} in stock</div>
                     </div>
                   </div>
                   <button
                     onClick={() => setEditingProductId(item.id)}
-                    className="shrink-0 inline-flex items-center gap-2 rounded-full bg-[#4b1f1d] px-4 py-2 text-sm font-medium text-white hover:bg-[#3d1815] transition"
+                    className="shrink-0 inline-flex items-center gap-2 rounded-md bg-[#7D1D1D] px-4 py-2 text-sm font-medium text-white hover:bg-[#641414] transition"
                   >
                     <Edit className="h-4 w-4" />
                     Edit
@@ -966,16 +965,16 @@ export function AdminDashboard() {
 
       {/* Orders Tab */}
       {activeTab === "orders" && adminToken && (
-        <div className="rounded-[30px] border border-[#eadcce] bg-white p-5 shadow-[0_18px_36px_rgba(84,58,45,0.04)] md:p-6">
-          <h2 className="font-serif text-3xl text-[#201614] mb-6">Orders Management</h2>
+        <div className="rounded-lg border border-[var(--ink)]/10 bg-white p-5 shadow-[var(--shadow-sm)] md:p-6">
+          <h2 className="font-serif text-3xl text-[var(--ink)] mb-6">Orders Management</h2>
           <OrderManagement token={adminToken} />
         </div>
       )}
 
       {/* Customers Tab */}
       {activeTab === "customers" && adminToken && (
-        <div className="rounded-[30px] border border-[#eadcce] bg-white p-5 shadow-[0_18px_36px_rgba(84,58,45,0.04)] md:p-6">
-          <h2 className="font-serif text-3xl text-[#201614] mb-6">Customer Management</h2>
+        <div className="rounded-lg border border-[var(--ink)]/10 bg-white p-5 shadow-[var(--shadow-sm)] md:p-6">
+          <h2 className="font-serif text-3xl text-[var(--ink)] mb-6">Customer Management</h2>
           <CustomerManagement token={adminToken} />
         </div>
       )}
@@ -990,17 +989,17 @@ export function AdminDashboard() {
         />
       )}
 
-      <div className="mt-6 flex items-center justify-between rounded-[28px] border border-[#eadcce] bg-[#f7efe8] px-5 py-4">
+      <div className="mt-6 flex items-center justify-between rounded-lg border border-[var(--ink)]/10 bg-[var(--panel-alt)] px-5 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#4b1f1d] text-white">
+          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[#7D1D1D] text-white">
             <Users className="h-4 w-4" />
           </div>
           <div>
-            <div className="text-sm font-medium text-[#201614]">Store performance</div>
-            <div className="text-xs uppercase tracking-[0.18em] text-[#7a655d]">{totalStock} units in inventory</div>
+            <div className="text-sm font-medium text-[var(--ink)]">Store performance</div>
+            <div className="text-xs uppercase tracking-[0.18em] text-[var(--ink)]/60">{totalStock} units in inventory</div>
           </div>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-full border border-[#d6c0b0] bg-white px-4 py-2 text-sm font-medium text-[#402320]">
+        <button className="inline-flex items-center gap-2 rounded-md border border-[var(--ink)]/15 bg-white px-4 py-2 text-sm font-medium text-[var(--ink)]">
           <Search className="h-4 w-4" />
           Search products
         </button>

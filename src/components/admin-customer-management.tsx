@@ -71,7 +71,7 @@ export function CustomerManagement({ token }: { token: string }) {
   };
 
   if (loading) {
-    return <div className="p-6 text-center text-[#8a6f5f]">Loading customer data...</div>;
+    return <div className="p-6 text-center text-[var(--ink)]/60">Loading customer data...</div>;
   }
 
   return (
@@ -79,20 +79,20 @@ export function CustomerManagement({ token }: { token: string }) {
       <div className="flex gap-4">
         <button
           onClick={() => setTab("customers")}
-          className={`px-6 py-2 rounded-full font-medium transition ${
+          className={`px-6 py-2 rounded-md font-medium transition ${
             tab === "customers"
-              ? "bg-[#4b1f1d] text-white"
-              : "border border-[#ead9cf] text-[#5a403a]"
+              ? "bg-[#7D1D1D] text-white"
+              : "border border-[var(--ink)]/12 text-[var(--ink)]/70"
           }`}
         >
           Customers ({customers.length})
         </button>
         <button
           onClick={() => setTab("subscribers")}
-          className={`px-6 py-2 rounded-full font-medium transition ${
+          className={`px-6 py-2 rounded-md font-medium transition ${
             tab === "subscribers"
-              ? "bg-[#4b1f1d] text-white"
-              : "border border-[#ead9cf] text-[#5a403a]"
+              ? "bg-[#7D1D1D] text-white"
+              : "border border-[var(--ink)]/12 text-[var(--ink)]/70"
           }`}
         >
           Newsletter ({subscribers.length})
@@ -105,7 +105,7 @@ export function CustomerManagement({ token }: { token: string }) {
           placeholder="Search by email or name..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-1 rounded-2xl border border-[#ead9cf] bg-white px-4 py-3 text-sm outline-none focus:border-[#b67c60]"
+          className="flex-1 rounded-md border border-[var(--ink)]/12 bg-white px-4 py-3 text-sm outline-none focus:border-[#7D1D1D]"
         />
         <button
           onClick={() =>
@@ -122,32 +122,32 @@ export function CustomerManagement({ token }: { token: string }) {
               `admire_${tab}_${Date.now()}.csv`
             )
           }
-          className="shrink-0 rounded-full bg-[#4b1f1d] px-4 py-2.5 text-sm font-semibold text-white"
+          className="shrink-0 rounded-md bg-[#7D1D1D] px-4 py-2.5 text-sm font-semibold text-white"
         >
           Export CSV
         </button>
       </div>
 
       {tab === "customers" ? (
-        <div className="overflow-x-auto rounded-[20px] border border-[#eadcce]">
+        <div className="overflow-x-auto rounded-lg border border-[var(--ink)]/10">
           <table className="w-full text-sm">
-            <thead className="bg-[#f5f0eb] border-b border-[#eadcce]">
+            <thead className="bg-[var(--panel-alt)] border-b border-[var(--ink)]/10">
               <tr>
-                <th className="px-6 py-3 text-left font-semibold text-[#5a403a]">Email</th>
-                <th className="px-6 py-3 text-left font-semibold text-[#5a403a]">Name</th>
-                <th className="px-6 py-3 text-left font-semibold text-[#5a403a]">Phone</th>
-                <th className="px-6 py-3 text-left font-semibold text-[#5a403a]">Orders</th>
-                <th className="px-6 py-3 text-left font-semibold text-[#5a403a]">Joined</th>
+                <th className="px-6 py-3 text-left font-semibold text-[var(--ink)]/70">Email</th>
+                <th className="px-6 py-3 text-left font-semibold text-[var(--ink)]/70">Name</th>
+                <th className="px-6 py-3 text-left font-semibold text-[var(--ink)]/70">Phone</th>
+                <th className="px-6 py-3 text-left font-semibold text-[var(--ink)]/70">Orders</th>
+                <th className="px-6 py-3 text-left font-semibold text-[var(--ink)]/70">Joined</th>
               </tr>
             </thead>
             <tbody>
               {filteredCustomers.map((customer) => (
-                <tr key={customer.id} className="border-b border-[#eadcce] hover:bg-[#fffaf7]">
+                <tr key={customer.id} className="border-b border-[var(--ink)]/10 hover:bg-white">
                   <td className="px-6 py-3">{customer.email}</td>
                   <td className="px-6 py-3">{customer.name || "-"}</td>
                   <td className="px-6 py-3">{customer.phone || "-"}</td>
                   <td className="px-6 py-3 font-medium">{customer.totalOrders || 0}</td>
-                  <td className="px-6 py-3 text-[#8a6f5f]">
+                  <td className="px-6 py-3 text-[var(--ink)]/60">
                     {new Date(customer.created_at).toLocaleDateString()}
                   </td>
                 </tr>
@@ -156,18 +156,18 @@ export function CustomerManagement({ token }: { token: string }) {
           </table>
         </div>
       ) : (
-        <div className="space-y-2 rounded-[20px] border border-[#eadcce] bg-white p-4">
+        <div className="space-y-2 rounded-lg border border-[var(--ink)]/10 bg-white p-4">
           {filteredSubscribers.length === 0 ? (
-            <p className="p-6 text-center text-[#8a6f5f]">No newsletter subscribers yet</p>
+            <p className="p-6 text-center text-[var(--ink)]/60">No newsletter subscribers yet</p>
           ) : (
             filteredSubscribers.map((sub) => (
               <div
                 key={sub.email}
-                className="flex items-center justify-between rounded-lg border border-[#eadcce] bg-[#fffaf7] p-3"
+                className="flex items-center justify-between rounded-lg border border-[var(--ink)]/10 bg-white p-3"
               >
                 <div>
-                  <p className="font-medium text-[#201614]">{sub.email}</p>
-                  <p className="text-xs text-[#8a6f5f]">
+                  <p className="font-medium text-[var(--ink)]">{sub.email}</p>
+                  <p className="text-xs text-[var(--ink)]/60">
                     Subscribed: {new Date(sub.subscribed_at).toLocaleDateString()}
                   </p>
                 </div>
@@ -175,10 +175,10 @@ export function CustomerManagement({ token }: { token: string }) {
                   onClick={() => {
                     navigator.clipboard.writeText(sub.email);
                   }}
-                  className="rounded p-2 hover:bg-[#eadcce]"
+                  className="rounded p-2 hover:bg-[var(--ink)]/10"
                   title="Copy email"
                 >
-                  <Copy className="h-4 w-4 text-[#5a403a]" />
+                  <Copy className="h-4 w-4 text-[var(--ink)]/70" />
                 </button>
               </div>
             ))
