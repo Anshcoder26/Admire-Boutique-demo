@@ -70,7 +70,7 @@ export function Header() {
 
   return (
     <>
-      <header className="site-chrome sticky top-0 z-50 border-b border-[var(--ink)]/10 bg-white/90 backdrop-blur-sm">
+      <header className="site-chrome site-header sticky top-0 z-50 border-b border-[var(--ink)]/10 bg-white/90 backdrop-blur-sm">
         {/* Promo banner */}
         <div className="relative overflow-hidden bg-[#7D1D1D] px-4 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.28em] text-white md:text-xs">
           <span className="relative z-10">

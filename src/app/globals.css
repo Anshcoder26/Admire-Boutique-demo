@@ -374,6 +374,14 @@ html.intro-active .site-chrome {
   transform: translateY(-16px);
   pointer-events: none;
 }
+/* During the splash the header is taken out of flow so it doesn't reserve
+   space at the top — otherwise an ivory strip shows above the maroon stage. */
+html.intro-active .site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+}
 
 /* Respect user motion preferences */
 @media (prefers-reduced-motion: reduce) {
@@ -701,15 +709,19 @@ html.intro-active .site-chrome {
   color: var(--brand-primary);
 }
 
-/* Oversized editorial display heading — Fraunces at max optical contrast */
-.display-hero {
-  font-family: var(--font-display), serif;
-  font-optical-sizing: auto;
-  font-variation-settings: "opsz" 144;
-  font-weight: 600;
-  line-height: 0.95;
-  letter-spacing: -0.03em;
-  color: var(--ink);
+/* Oversized editorial display heading — Fraunces at max optical contrast.
+   Kept in @layer components so Tailwind text-* utilities (e.g. text-white on the
+   maroon splash) can override the default ink colour. */
+@layer components {
+  .display-hero {
+    font-family: var(--font-display), serif;
+    font-optical-sizing: auto;
+    font-variation-settings: "opsz" 144;
+    font-weight: 600;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+  }
 }
 
 /* Bold maroon block — solid brand panel for editorial emphasis */
