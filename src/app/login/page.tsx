@@ -176,7 +176,7 @@ export default function LoginPage() {
 
   return (
     <main className="relative z-10 mx-auto max-w-5xl px-4 py-8 md:px-8 lg:px-10">
-      <div className="overflow-hidden rounded-[32px] border border-[#7D1D1D]/20 bg-[#fffaf6] shadow-[0_22px_60px_rgba(216,30,143,0.08)]">
+      <div className="overflow-hidden rounded-[32px] border border-[#7D1D1D]/20 bg-[#fffaf6] shadow-[0_22px_60px_rgba(125,29,29,0.10)]">
         <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
           {/* Left section - Info */}
           <div className="bg-[linear-gradient(135deg,_#f8efe7,_#f3e5d8_40%,_#efe0d0)] p-6 md:p-10">
@@ -203,7 +203,7 @@ export default function LoginPage() {
                 <p className="font-semibold mb-2">🔐 New to Admire Boutique?</p>
                 <Link
                   href="/signup"
-                  className="text-[#7D1D1D] hover:text-[#a81566] font-semibold transition"
+                  className="text-[#7D1D1D] hover:text-[#641414] font-semibold transition"
                 >
                   Create an account →
                 </Link>
@@ -213,7 +213,7 @@ export default function LoginPage() {
                 <p className="font-semibold mb-2">❓ Forgot password?</p>
                 <Link
                   href="/forgot-password"
-                  className="text-[#7D1D1D] hover:text-[#a81566] font-semibold transition"
+                  className="text-[#7D1D1D] hover:text-[#641414] font-semibold transition"
                 >
                   Reset password →
                 </Link>
@@ -226,14 +226,14 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-5" noValidate>
               {/* Error message */}
               {errors.submit && (
-                <div className="rounded-[16px] border-2 border-[#ff6b6b] bg-[#fff0f0] p-4 flex gap-3">
-                  <AlertCircle className="h-5 w-5 text-[#ff6b6b] flex-shrink-0 mt-0.5" />
+                <div className="rounded-[16px] border-2 border-[#b3261e] bg-[#fff0f0] p-4 flex gap-3">
+                  <AlertCircle className="h-5 w-5 text-[#b3261e] flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-[#ff6b6b]">
+                    <p className="text-sm font-semibold text-[#b3261e]">
                       {errors.submit}
                     </p>
                     {retryAfterTime && (
-                      <p className="text-xs text-[#ff6b6b]/80 mt-1">
+                      <p className="text-xs text-[#b3261e]/80 mt-1">
                         Please wait {retryAfterTime} seconds before trying again.
                       </p>
                     )}
@@ -258,13 +258,13 @@ export default function LoginPage() {
                 <div
                   className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
                     errors.email
-                      ? "border-[#ff6b6b] bg-[#fff0f0]"
+                      ? "border-[#b3261e] bg-[#fff0f0]"
                       : "border-[#7D1D1D]/20 bg-[#fff5f0] hover:border-[#7D1D1D]/40"
                   }`}
                 >
                   <Mail
                     className={`h-4 w-4 ${
-                      errors.email ? "text-[#ff6b6b]" : "text-[#7D1D1D]"
+                      errors.email ? "text-[#b3261e]" : "text-[#7D1D1D]"
                     }`}
                   />
                   <input
@@ -281,7 +281,7 @@ export default function LoginPage() {
                   />
                 </div>
                 {errors.email && (
-                  <p id="email-error" className="text-xs text-[#ff6b6b] font-medium">
+                  <p id="email-error" className="text-xs text-[#b3261e] font-medium">
                     {errors.email}
                   </p>
                 )}
@@ -295,13 +295,13 @@ export default function LoginPage() {
                 <div
                   className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
                     errors.password
-                      ? "border-[#ff6b6b] bg-[#fff0f0]"
+                      ? "border-[#b3261e] bg-[#fff0f0]"
                       : "border-[#7D1D1D]/20 bg-[#fff5f0] hover:border-[#7D1D1D]/40"
                   }`}
                 >
                   <LockKeyhole
                     className={`h-4 w-4 ${
-                      errors.password ? "text-[#ff6b6b]" : "text-[#7D1D1D]"
+                      errors.password ? "text-[#b3261e]" : "text-[#7D1D1D]"
                     }`}
                   />
                   <input
@@ -319,7 +319,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-[#7D1D1D] hover:text-[#a81566] transition p-1"
+                    className="text-[#7D1D1D] hover:text-[#641414] transition p-1"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     disabled={loading}
                   >
@@ -331,7 +331,7 @@ export default function LoginPage() {
                   </button>
                 </div>
                 {errors.password && (
-                  <p id="password-error" className="text-xs text-[#ff6b6b] font-medium">
+                  <p id="password-error" className="text-xs text-[#b3261e] font-medium">
                     {errors.password}
                   </p>
                 )}
@@ -359,7 +359,7 @@ export default function LoginPage() {
               <div className="text-center text-sm text-[#665a55]">
                 <Link
                   href="/forgot-password"
-                  className="text-[#7D1D1D] hover:text-[#a81566] font-semibold transition"
+                  className="text-[#7D1D1D] hover:text-[#641414] font-semibold transition"
                 >
                   Forgot password?
                 </Link>
@@ -370,7 +370,7 @@ export default function LoginPage() {
               New to Admire Boutique?{" "}
               <Link
                 href="/signup"
-                className="font-semibold text-[#7D1D1D] hover:text-[#a81566] transition"
+                className="font-semibold text-[#7D1D1D] hover:text-[#641414] transition"
               >
                 Create account
               </Link>

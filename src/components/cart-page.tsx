@@ -110,7 +110,7 @@ export function CartPage() {
             ))}
           </div>
 
-          <aside className="rounded-[30px] border border-[#eadcd3] bg-[#fffaf6] p-5 shadow-[0_14px_32px_rgba(84,58,45,0.05)]">
+          <aside className="rounded-[30px] border border-[#D4AF37]/30 bg-[#fffaf6] p-5 shadow-[0_14px_32px_rgba(84,58,45,0.05)]">
             <h2 className="mb-5 font-serif text-3xl text-[#201614]">Order summary</h2>
 
             <div className="space-y-3 text-sm text-[#584942]">
@@ -119,12 +119,12 @@ export function CartPage() {
               <div className="flex justify-between"><span>Discount</span><span>₹0</span></div>
             </div>
 
-            <div className="mt-6 flex items-center justify-between border-t border-[#eadcd3] pt-5">
+            <div className="mt-6 flex items-center justify-between border-t border-[#D4AF37]/25 pt-5">
               <span className="text-lg font-medium text-[#201614]">Total</span>
-              <span className="text-2xl font-semibold text-[#201614]">₹{total}</span>
+              <span className="font-serif text-3xl font-bold text-[#7D1D1D]">₹{total}</span>
             </div>
 
-            <Link href="/checkout" className="mt-6 block rounded-full bg-[#4b1f1d] px-5 py-3.5 text-center text-sm font-medium text-white shadow-lg shadow-[#4b1f1d]/15 transition hover:bg-[#341514]">
+            <Link href="/checkout" className="mt-6 flex items-center justify-center rounded-full bg-[#7D1D1D] px-5 py-3.5 text-center text-sm font-semibold text-white shadow-[0_10px_30px_rgba(125,29,29,0.25)] transition hover:bg-[#641414] hover:shadow-[0_14px_36px_rgba(125,29,29,0.35)] active:scale-[0.98]">
               Proceed to checkout
             </Link>
           </aside>

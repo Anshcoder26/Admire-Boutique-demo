@@ -106,12 +106,12 @@ export default function ForgotPasswordPage() {
 
   return (
     <main className="relative z-10 mx-auto max-w-2xl px-4 py-8 md:px-8 lg:px-10">
-      <div className="overflow-hidden rounded-[32px] border border-[#7D1D1D]/20 bg-[#fffaf6] shadow-[0_22px_60px_rgba(216,30,143,0.08)]">
+      <div className="overflow-hidden rounded-[32px] border border-[#7D1D1D]/20 bg-[#fffaf6] shadow-[0_22px_60px_rgba(125,29,29,0.10)]">
         <div className="p-6 md:p-10">
           {/* Header */}
           <Link
             href="/login"
-            className="inline-flex items-center gap-2 text-sm text-[#7D1D1D] hover:text-[#a81566] transition mb-6 font-semibold"
+            className="inline-flex items-center gap-2 text-sm text-[#7D1D1D] hover:text-[#641414] transition mb-6 font-semibold"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to login
@@ -131,9 +131,9 @@ export default function ForgotPasswordPage() {
               <form onSubmit={handleSubmit} className="space-y-5" noValidate>
                 {/* Error message */}
                 {errors.submit && (
-                  <div className="rounded-[16px] border-2 border-[#ff6b6b] bg-[#fff0f0] p-4 flex gap-3">
-                    <AlertCircle className="h-5 w-5 text-[#ff6b6b] flex-shrink-0 mt-0.5" />
-                    <p className="text-sm font-semibold text-[#ff6b6b]">
+                  <div className="rounded-[16px] border-2 border-[#b3261e] bg-[#fff0f0] p-4 flex gap-3">
+                    <AlertCircle className="h-5 w-5 text-[#b3261e] flex-shrink-0 mt-0.5" />
+                    <p className="text-sm font-semibold text-[#b3261e]">
                       {errors.submit}
                     </p>
                   </div>
@@ -147,13 +147,13 @@ export default function ForgotPasswordPage() {
                   <div
                     className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
                       errors.email
-                        ? "border-[#ff6b6b] bg-[#fff0f0]"
+                        ? "border-[#b3261e] bg-[#fff0f0]"
                         : "border-[#7D1D1D]/20 bg-[#fff5f0] hover:border-[#7D1D1D]/40"
                     }`}
                   >
                     <Mail
                       className={`h-4 w-4 ${
-                        errors.email ? "text-[#ff6b6b]" : "text-[#7D1D1D]"
+                        errors.email ? "text-[#b3261e]" : "text-[#7D1D1D]"
                       }`}
                     />
                     <input
@@ -170,7 +170,7 @@ export default function ForgotPasswordPage() {
                     />
                   </div>
                   {errors.email && (
-                    <p id="email-error" className="text-xs text-[#ff6b6b] font-medium">
+                    <p id="email-error" className="text-xs text-[#b3261e] font-medium">
                       {errors.email}
                     </p>
                   )}
@@ -216,7 +216,7 @@ export default function ForgotPasswordPage() {
                     setSubmitted(false);
                     setEmail("");
                   }}
-                  className="text-[#7D1D1D] hover:text-[#a81566] font-semibold transition"
+                  className="text-[#7D1D1D] hover:text-[#641414] font-semibold transition"
                 >
                   try another email
                 </button>
@@ -224,7 +224,7 @@ export default function ForgotPasswordPage() {
 
               <Link
                 href="/login"
-                className="inline-flex items-center gap-2 rounded-full bg-[#7D1D1D] px-6 py-3 text-sm font-bold text-white hover:bg-[#a81566] transition"
+                className="inline-flex items-center gap-2 rounded-full bg-[#7D1D1D] px-6 py-3 text-sm font-bold text-white hover:bg-[#641414] transition"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to login

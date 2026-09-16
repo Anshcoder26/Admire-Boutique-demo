@@ -217,9 +217,9 @@ export function CheckoutPage() {
   if (!isAuthenticated || (error && !cartItems.length)) {
     return (
       <main className="mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
-        <div className="rounded-[24px] border-2 border-[#ff6b6b] bg-[#fff0f0] p-6 text-center">
-          <AlertCircle className="h-12 w-12 text-[#ff6b6b] mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-[#ff6b6b] mb-2">
+        <div className="rounded-[24px] border-2 border-[#b3261e] bg-[#fff0f0] p-6 text-center">
+          <AlertCircle className="h-12 w-12 text-[#b3261e] mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-[#b3261e] mb-2">
             {!isAuthenticated ? "Please log in" : "Cart is empty"}
           </h2>
           <p className="text-[#5a4b45] mb-6">
@@ -229,7 +229,7 @@ export function CheckoutPage() {
           </p>
           <button
             onClick={() => router.push(!isAuthenticated ? "/login" : "/products")}
-            className="rounded-full bg-[#7D1D1D] px-6 py-3 text-white font-semibold hover:bg-[#a81566] transition"
+            className="rounded-full bg-[#7D1D1D] px-6 py-3 text-white font-semibold hover:bg-[#641414] transition"
           >
             {!isAuthenticated ? "Go to login" : "Continue shopping"}
           </button>
@@ -249,9 +249,9 @@ export function CheckoutPage() {
       </div>
 
       {error && (
-        <div className="mb-6 rounded-[24px] border-2 border-[#ff6b6b] bg-[#fff0f0] p-4 flex gap-3">
-          <AlertCircle className="h-5 w-5 text-[#ff6b6b] flex-shrink-0 mt-0.5" />
-          <p className="text-sm font-semibold text-[#ff6b6b]">{error}</p>
+        <div className="mb-6 rounded-[24px] border-2 border-[#b3261e] bg-[#fff0f0] p-4 flex gap-3">
+          <AlertCircle className="h-5 w-5 text-[#b3261e] flex-shrink-0 mt-0.5" />
+          <p className="text-sm font-semibold text-[#b3261e]">{error}</p>
         </div>
       )}
 

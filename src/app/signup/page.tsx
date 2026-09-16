@@ -218,7 +218,7 @@ export default function SignupPage() {
 
   return (
     <main className="relative z-10 mx-auto max-w-5xl px-4 py-8 md:px-8 lg:px-10">
-      <div className="overflow-hidden rounded-[32px] border border-[#7D1D1D]/20 bg-[#fffaf6] shadow-[0_22px_60px_rgba(216,30,143,0.08)]">
+      <div className="overflow-hidden rounded-[32px] border border-[#7D1D1D]/20 bg-[#fffaf6] shadow-[0_22px_60px_rgba(125,29,29,0.10)]">
         <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
           {/* Left section */}
           <div className="bg-[linear-gradient(135deg,_#f8efe7,_#f3e5d8_40%,_#efe0d0)] p-6 md:p-10">
@@ -256,9 +256,9 @@ export default function SignupPage() {
             <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               {/* Error message */}
               {errors.submit && (
-                <div className="rounded-[16px] border-2 border-[#ff6b6b] bg-[#fff0f0] p-4 flex gap-3">
-                  <AlertCircle className="h-5 w-5 text-[#ff6b6b] flex-shrink-0 mt-0.5" />
-                  <p className="text-sm font-semibold text-[#ff6b6b]">
+                <div className="rounded-[16px] border-2 border-[#b3261e] bg-[#fff0f0] p-4 flex gap-3">
+                  <AlertCircle className="h-5 w-5 text-[#b3261e] flex-shrink-0 mt-0.5" />
+                  <p className="text-sm font-semibold text-[#b3261e]">
                     {errors.submit}
                   </p>
                 </div>
@@ -282,13 +282,13 @@ export default function SignupPage() {
                 <div
                   className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
                     errors.name
-                      ? "border-[#ff6b6b] bg-[#fff0f0]"
+                      ? "border-[#b3261e] bg-[#fff0f0]"
                       : "border-[#7D1D1D]/20 bg-[#fff5f0]"
                   }`}
                 >
                   <UserRound
                     className={`h-4 w-4 ${
-                      errors.name ? "text-[#ff6b6b]" : "text-[#7D1D1D]"
+                      errors.name ? "text-[#b3261e]" : "text-[#7D1D1D]"
                     }`}
                   />
                   <input
@@ -304,7 +304,7 @@ export default function SignupPage() {
                   />
                 </div>
                 {errors.name && (
-                  <p className="text-xs text-[#ff6b6b] font-medium">{errors.name}</p>
+                  <p className="text-xs text-[#b3261e] font-medium">{errors.name}</p>
                 )}
               </div>
 
@@ -316,13 +316,13 @@ export default function SignupPage() {
                 <div
                   className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
                     errors.email
-                      ? "border-[#ff6b6b] bg-[#fff0f0]"
+                      ? "border-[#b3261e] bg-[#fff0f0]"
                       : "border-[#7D1D1D]/20 bg-[#fff5f0]"
                   }`}
                 >
                   <Mail
                     className={`h-4 w-4 ${
-                      errors.email ? "text-[#ff6b6b]" : "text-[#7D1D1D]"
+                      errors.email ? "text-[#b3261e]" : "text-[#7D1D1D]"
                     }`}
                   />
                   <input
@@ -339,7 +339,7 @@ export default function SignupPage() {
                   />
                 </div>
                 {errors.email && (
-                  <p className="text-xs text-[#ff6b6b] font-medium">{errors.email}</p>
+                  <p className="text-xs text-[#b3261e] font-medium">{errors.email}</p>
                 )}
               </div>
 
@@ -351,13 +351,13 @@ export default function SignupPage() {
                 <div
                   className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
                     errors.phone
-                      ? "border-[#ff6b6b] bg-[#fff0f0]"
+                      ? "border-[#b3261e] bg-[#fff0f0]"
                       : "border-[#7D1D1D]/20 bg-[#fff5f0]"
                   }`}
                 >
                   <Phone
                     className={`h-4 w-4 ${
-                      errors.phone ? "text-[#ff6b6b]" : "text-[#7D1D1D]"
+                      errors.phone ? "text-[#b3261e]" : "text-[#7D1D1D]"
                     }`}
                   />
                   <input
@@ -374,7 +374,7 @@ export default function SignupPage() {
                   />
                 </div>
                 {errors.phone && (
-                  <p className="text-xs text-[#ff6b6b] font-medium">{errors.phone}</p>
+                  <p className="text-xs text-[#b3261e] font-medium">{errors.phone}</p>
                 )}
               </div>
 
@@ -386,13 +386,13 @@ export default function SignupPage() {
                 <div
                   className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
                     errors.password
-                      ? "border-[#ff6b6b] bg-[#fff0f0]"
+                      ? "border-[#b3261e] bg-[#fff0f0]"
                       : "border-[#7D1D1D]/20 bg-[#fff5f0]"
                   }`}
                 >
                   <LockKeyhole
                     className={`h-4 w-4 ${
-                      errors.password ? "text-[#ff6b6b]" : "text-[#7D1D1D]"
+                      errors.password ? "text-[#b3261e]" : "text-[#7D1D1D]"
                     }`}
                   />
                   <input
@@ -410,7 +410,7 @@ export default function SignupPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-[#7D1D1D] hover:text-[#a81566] transition p-1"
+                    className="text-[#7D1D1D] hover:text-[#641414] transition p-1"
                     disabled={loading}
                   >
                     {showPassword ? (
@@ -421,7 +421,7 @@ export default function SignupPage() {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-xs text-[#ff6b6b] font-medium">{errors.password}</p>
+                  <p className="text-xs text-[#b3261e] font-medium">{errors.password}</p>
                 )}
               </div>
 
@@ -433,14 +433,14 @@ export default function SignupPage() {
                 <div
                   className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
                     errors.confirmPassword
-                      ? "border-[#ff6b6b] bg-[#fff0f0]"
+                      ? "border-[#b3261e] bg-[#fff0f0]"
                       : "border-[#7D1D1D]/20 bg-[#fff5f0]"
                   }`}
                 >
                   <LockKeyhole
                     className={`h-4 w-4 ${
                       errors.confirmPassword
-                        ? "text-[#ff6b6b]"
+                        ? "text-[#b3261e]"
                         : "text-[#7D1D1D]"
                     }`}
                   />
@@ -459,7 +459,7 @@ export default function SignupPage() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="text-[#7D1D1D] hover:text-[#a81566] transition p-1"
+                    className="text-[#7D1D1D] hover:text-[#641414] transition p-1"
                     disabled={loading}
                   >
                     {showConfirmPassword ? (
@@ -470,7 +470,7 @@ export default function SignupPage() {
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-xs text-[#ff6b6b] font-medium">
+                  <p className="text-xs text-[#b3261e] font-medium">
                     {errors.confirmPassword}
                   </p>
                 )}
@@ -493,21 +493,21 @@ export default function SignupPage() {
                     I agree to the{" "}
                     <Link
                       href="/terms"
-                      className="text-[#7D1D1D] hover:text-[#a81566] font-semibold"
+                      className="text-[#7D1D1D] hover:text-[#641414] font-semibold"
                     >
                       Terms & Conditions
                     </Link>{" "}
                     and{" "}
                     <Link
                       href="/privacy"
-                      className="text-[#7D1D1D] hover:text-[#a81566] font-semibold"
+                      className="text-[#7D1D1D] hover:text-[#641414] font-semibold"
                     >
                       Privacy Policy
                     </Link>
                   </span>
                 </label>
                 {errors.agreeToTerms && (
-                  <p className="text-xs text-[#ff6b6b] font-medium">
+                  <p className="text-xs text-[#b3261e] font-medium">
                     {errors.agreeToTerms}
                   </p>
                 )}
@@ -536,7 +536,7 @@ export default function SignupPage() {
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="font-semibold text-[#7D1D1D] hover:text-[#a81566] transition"
+                className="font-semibold text-[#7D1D1D] hover:text-[#641414] transition"
               >
                 Sign in
               </Link>
