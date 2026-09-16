@@ -24,18 +24,6 @@ export function GlobalOrnaments() {
         <path d="M128 102 C 147 82, 163 64, 176 38 C 191 60, 191 90, 176 110 C 154 116, 138 111, 128 102 Z" className="ornament-leaf warm" />
         <path d="M224 104 C 236 74, 258 56, 288 56 C 278 90, 266 110, 238 126 C 230 120, 226 113, 224 104 Z" className="ornament-leaf" />
       </svg>
-
-      <svg viewBox="0 0 540 190" className="absolute left-1/2 top-7 h-24 w-[19rem] -translate-x-1/2 opacity-90 md:h-28 md:w-[24rem]">
-        <path d="M12 124 C 56 78, 102 70, 152 82 C 192 92, 224 104, 258 110 C 296 116, 338 111, 388 80 C 426 56, 472 60, 520 78" className="ornament-arch" />
-        <path d="M26 138 C 72 108, 122 103, 174 112 C 214 120, 252 131, 290 135 C 336 140, 374 128, 420 98" className="ornament-arch warm" />
-        <path d="M142 72 C 160 52, 180 42, 206 44 C 196 69, 188 83, 170 96 C 159 92, 149 83, 142 72 Z" className="ornament-leaf" />
-        <path d="M250 92 C 272 72, 294 62, 322 64 C 310 90, 298 106, 274 117 C 260 112, 254 103, 250 92 Z" className="ornament-leaf warm" />
-        <path d="M276 62 C 290 44, 308 30, 330 28 C 328 53, 320 68, 298 82 C 288 78, 281 71, 276 62 Z" className="ornament-leaf" />
-        <path d="M104 92 C 122 58, 154 42, 190 46 C 180 72, 166 87, 138 102 C 125 99, 113 96, 104 92 Z" className="ornament-leaf warm" />
-        <circle cx="118" cy="96" r="4.5" className="ornament-dot" />
-        <circle cx="220" cy="118" r="5.5" className="ornament-dot warm" />
-        <circle cx="322" cy="90" r="4.5" className="ornament-dot" />
-      </svg>
     </div>
   );
 }
