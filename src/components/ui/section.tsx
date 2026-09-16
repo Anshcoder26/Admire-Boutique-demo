@@ -68,7 +68,7 @@ export function SectionHeader({
     >
       <div className={cn(centered && "flex flex-col items-center")}>
         {eyebrow ? <p className="eyebrow mb-2">{eyebrow}</p> : null}
-        <h2 className="font-serif text-3xl font-bold text-[#7D1D1D] sm:text-4xl md:text-5xl">
+        <h2 className="font-serif text-3xl font-semibold tracking-tight text-[var(--ink)] sm:text-4xl md:text-5xl">
           {title}
         </h2>
         {description ? (
