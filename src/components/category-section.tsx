@@ -3,6 +3,7 @@ import Link from "next/link";
 import { categories } from "@/data/products";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { ButtonLink } from "@/components/ui/button";
+import { Reveal } from "@/components/ui/reveal";
 
 export function CategorySection() {
   return (
@@ -18,8 +19,9 @@ export function CategorySection() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {categories.map((category) => (
-          <Link key={category.name} href={`/products?category=${encodeURIComponent(category.name)}`} className="group block overflow-hidden rounded-lg border border-[var(--ink)]/10 bg-white transition hover:-translate-y-1 hover:shadow-[var(--shadow-md)]">
+        {categories.map((category, i) => (
+          <Reveal key={category.name} variant="up" delay={i * 80}>
+          <Link href={`/products?category=${encodeURIComponent(category.name)}`} className="group block h-full overflow-hidden rounded-lg border border-[var(--ink)]/10 bg-white transition hover:-translate-y-1 hover:shadow-[var(--shadow-md)]">
             <div className="relative overflow-hidden">
               <Image
                 src={category.image}
@@ -34,6 +36,7 @@ export function CategorySection() {
               </div>
             </div>
           </Link>
+          </Reveal>
         ))}
       </div>
     </Section>

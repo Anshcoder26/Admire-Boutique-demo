@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-type Variant = "primary" | "secondary" | "outline" | "ghost" | "gold";
+type Variant = "primary" | "secondary" | "outline" | "ghost" | "gold" | "light";
 type Size = "sm" | "md" | "lg";
 
 const base =
@@ -23,6 +23,8 @@ const variants: Record<Variant, string> = {
   gold:
     "text-[#3A2410] hover:brightness-105 " +
     "bg-[linear-gradient(120deg,#B8912D,#E6C866_50%,#B8912D)]",
+  light:
+    "bg-white text-[#7D1D1D] hover:bg-white/90 shadow-[var(--shadow-sm)]",
 };
 
 const sizes: Record<Size, string> = {
