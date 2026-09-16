@@ -215,11 +215,11 @@ export function ProductDetail({ product }: { product: Product }) {
           {/* Quantity & Actions */}
           <div className="space-y-4 pt-4">
             <div className="flex items-center gap-4">
-              <div className="flex items-center border border-[#7D1D1D]/20 rounded">
+              <div className="flex items-center rounded-full border border-[#7D1D1D]/20">
                 <button
                   onClick={() => setQuantity((value) => Math.max(1, value - 1))}
                   disabled={isSoldOut}
-                  className="px-4 py-3 text-[#7D1D1D] hover:bg-[#f9f7f6] transition"
+                  className="px-4 py-3 text-[#7D1D1D] hover:bg-[#f9f7f6] rounded-l-full transition"
                 >
                   −
                 </button>
@@ -227,13 +227,13 @@ export function ProductDetail({ product }: { product: Product }) {
                 <button
                   onClick={() => setQuantity((value) => value + 1)}
                   disabled={isSoldOut}
-                  className="px-4 py-3 text-[#7D1D1D] hover:bg-[#f9f7f6] transition"
+                  className="px-4 py-3 text-[#7D1D1D] hover:bg-[#f9f7f6] rounded-r-full transition"
                 >
                   +
                 </button>
               </div>
 
-              <button className="flex items-center justify-center w-12 h-12 rounded border border-[#7D1D1D]/30 hover:bg-[#f9f7f6] transition" aria-label="Add to wishlist">
+              <button className="flex items-center justify-center w-12 h-12 rounded-full border border-[#7D1D1D]/30 hover:bg-[#f9f7f6] transition" aria-label="Add to wishlist">
                 <Heart className="w-5 h-5 text-[#7D1D1D]" />
               </button>
             </div>
@@ -242,10 +242,10 @@ export function ProductDetail({ product }: { product: Product }) {
               <button
                 onClick={() => addProductToCart(false)}
                 disabled={isSoldOut}
-                className={`w-full py-4 px-6 rounded font-semibold text-base transition-all ${
+                className={`w-full py-4 px-6 rounded-full font-semibold text-base transition-all ${
                   isSoldOut
                     ? "cursor-not-allowed bg-[#e4dbd7] text-[#7d6f69]"
-                    : "bg-[#7D1D1D] text-white hover:bg-[#5a1515] active:scale-95"
+                    : "bg-[#7D1D1D] text-white shadow-[0_10px_30px_rgba(125,29,29,0.25)] hover:bg-[#5a1515] hover:shadow-[0_14px_36px_rgba(125,29,29,0.35)] active:scale-95"
                 }`}
               >
                 {isSoldOut ? "Sold Out" : "Add to Cart"}
@@ -253,10 +253,10 @@ export function ProductDetail({ product }: { product: Product }) {
               <button
                 onClick={() => addProductToCart(true)}
                 disabled={isSoldOut}
-                className={`w-full py-4 px-6 rounded font-semibold text-base border-2 transition-all ${
+                className={`w-full py-4 px-6 rounded-full font-semibold text-base border-2 transition-all ${
                   isSoldOut
                     ? "cursor-not-allowed border-[#c8b8b1] bg-[#e4dbd7] text-[#7d6f69]"
-                    : "border-[#7D1D1D] bg-white text-[#7D1D1D] hover:bg-[#7D1D1D] hover:text-white"
+                    : "border-[#7D1D1D] bg-white text-[#7D1D1D] hover:bg-[#7D1D1D] hover:text-white active:scale-95"
                 }`}
               >
                 {isSoldOut ? "Sold Out" : "Buy Now"}

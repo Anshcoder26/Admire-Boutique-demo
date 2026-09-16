@@ -50,9 +50,10 @@ export function ProductsPageContent({ initialProducts, initialCategory }: Produc
       {filteredProducts.length > 0 ? (
         <ProductGrid products={filteredProducts} />
       ) : (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="text-[#8a6f5f] text-lg font-medium mb-2">No products found</div>
-          <p className="text-[#6b5f57] text-sm">Try adjusting your search or filters</p>
+        <div className="flex flex-col items-center justify-center rounded-[28px] border border-dashed border-[#7D1D1D]/20 bg-white/60 py-16 text-center">
+          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#7D1D1D]/8 text-2xl">🔍</div>
+          <div className="mb-1 font-serif text-2xl text-[#201614]">No products found</div>
+          <p className="text-sm text-[#6b5f57]">Try adjusting your search or filters</p>
         </div>
       )}
     </div>

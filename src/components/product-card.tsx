@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ShoppingBag, Star } from "lucide-react";
 import { WishlistHeart } from "@/components/wishlist-heart";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/toast";
 import type { Product } from "@/data/products";
 
@@ -50,7 +51,7 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <Link href={`/products/${product.slug}`}>
-     <article className="group overflow-hidden rounded-[28px] border border-[#7D1D1D]/12 bg-white shadow-[0_10px_30px_rgba(86,65,55,0.06)] hover:shadow-[0_18px_40px_rgba(86,65,55,0.12)] transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full flex flex-col relative">
+     <article className="group overflow-hidden rounded-[28px] border border-[#7D1D1D]/12 bg-white shadow-[0_10px_30px_rgba(86,65,55,0.06)] hover:shadow-[0_18px_40px_rgba(86,65,55,0.12)] transition-all duration-300 hover:-translate-y-1 hover:border-[#D4AF37]/40 cursor-pointer h-full flex flex-col relative">
        <div className="relative overflow-hidden rounded-t-[28px] bg-[#f7efe8]">
          <div className="block relative overflow-hidden">
            <Image
@@ -65,13 +66,9 @@ export function ProductCard({ product }: { product: Product }) {
            productId={product.id}
          />
          {isSoldOut ? (
-           <span className="absolute left-3 top-3 rounded-full bg-[#8a1f1f] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-white shadow-md">
-             Sold Out
-           </span>
+           <Badge tone="soldout" className="absolute left-3 top-3">Sold Out</Badge>
          ) : product.badge ? (
-           <span className="absolute left-3 top-3 rounded-full bg-[#7D1D1D] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-white shadow-md">
-             {product.badge}
-           </span>
+           <Badge tone="maroon" className="absolute left-3 top-3">{product.badge}</Badge>
          ) : null}
        </div>
 
