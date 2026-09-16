@@ -4,15 +4,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { ShoppingBag, Star } from "lucide-react";
 import { WishlistHeart } from "@/components/wishlist-heart";
+import { useToast } from "@/components/ui/toast";
 import type { Product } from "@/data/products";
 
 export function ProductCard({ product }: { product: Product }) {
   const isSoldOut = Boolean(product.isSoldOut) || Number(product.stock) <= 0;
+  const toast = useToast();
 
   const handleQuickAdd = () => {
     if (typeof window === "undefined") return;
     if (isSoldOut) {
-      window.alert(`${product.name} is currently sold out.`);
+      toast.error(`${product.name} is currently sold out.`);
       return;
     }
 
@@ -43,7 +45,7 @@ export function ProductCard({ product }: { product: Product }) {
 
     window.localStorage.setItem("admire-cart", JSON.stringify(cart));
     window.dispatchEvent(new CustomEvent("admire-cart-updated"));
-    window.alert(`${product.name} added to cart.`);
+    toast.success(`${product.name} added to cart.`);
   };
 
   return (

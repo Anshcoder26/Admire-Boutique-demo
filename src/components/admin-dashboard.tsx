@@ -7,6 +7,7 @@ import { ProductEditor } from "@/components/admin-product-editor";
 import { OrderManagement } from "@/components/admin-order-management";
 import { CustomerManagement } from "@/components/admin-customer-management";
 import { categories } from "@/data/products";
+import { useToast } from "@/components/ui/toast";
 
 const productCategories = categories.map((category) => category.name);
 
@@ -87,6 +88,7 @@ const activityFeed = [
 ];
 
 export function AdminDashboard() {
+  const toast = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [email, setEmail] = useState("owner@admireboutique.in");
   const [password, setPassword] = useState("admire123");
@@ -199,7 +201,7 @@ export function AdminDashboard() {
     const data = (await response.json()) as { success?: boolean; error?: string; token?: string };
 
     if (!response.ok || !data.success || !data.token) {
-      alert(data.error || "Unable to log in.");
+      toast.error(data.error || "Unable to log in.");
       return;
     }
 
@@ -279,7 +281,7 @@ export function AdminDashboard() {
       }
     } else {
       const error = (await response.json().catch(() => ({ error: "Unable to create product." }))) as { error?: string };
-      alert(error.error || "Unable to create product.");
+      toast.error(error.error || "Unable to create product.");
       return;
     }
 
@@ -306,7 +308,7 @@ export function AdminDashboard() {
       };
 
       if (!response.ok || !data.product) {
-        alert(data.error || "Unable to update sold out status.");
+        toast.error(data.error || "Unable to update sold out status.");
         return;
       }
 
@@ -341,7 +343,7 @@ export function AdminDashboard() {
       const data = (await response.json().catch(() => ({}))) as { error?: string; success?: boolean };
 
       if (!response.ok || !data.success) {
-        alert(data.error || "Unable to delete product.");
+        toast.error(data.error || "Unable to delete product.");
         return;
       }
 

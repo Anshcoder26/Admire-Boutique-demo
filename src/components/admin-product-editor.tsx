@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 
 interface Product {
   id: string;
@@ -58,6 +59,7 @@ export function ProductEditor({
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const toast = useToast();
   const [form, setForm] = useState<Partial<Product>>({});
   const [colorNameInput, setColorNameInput] = useState("");
   const [colorHexInput, setColorHexInput] = useState("#c06a4f");
@@ -130,15 +132,15 @@ export function ProductEditor({
       });
 
       if (res.ok) {
-        alert("Product updated successfully!");
+        toast.success("Product updated successfully!");
         onSave();
         onClose();
       } else {
-        alert("Failed to update product");
+        toast.error("Failed to update product");
       }
     } catch (error) {
       console.error("Failed to save product:", error);
-      alert("Error saving product");
+      toast.error("Error saving product");
     } finally {
       setSaving(false);
     }

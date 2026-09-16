@@ -5,6 +5,7 @@ import { Footer } from "@/components/footer";
 import { GlobalOrnaments } from "@/components/global-ornaments";
 import { Header } from "@/components/header";
 import { AuthProvider } from "@/providers/auth-provider";
+import { ToastProvider } from "@/components/ui/toast";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -39,13 +40,15 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" suppressHydrationWarning className={`${manrope.variable} ${cormorantGaramond.variable} antialiased`}>
       <body className="flex flex-col bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300">
         <AuthProvider>
-          <div className="app-shell flex min-h-dvh flex-col">
-            <GlobalOrnaments />
-            <Header />
-            <div className="flex-1">{children}</div>
-            <Footer />
-            <BottomNavigation />
-          </div>
+          <ToastProvider>
+            <div className="app-shell flex min-h-dvh flex-col">
+              <GlobalOrnaments />
+              <Header />
+              <div className="flex-1">{children}</div>
+              <Footer />
+              <BottomNavigation />
+            </div>
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

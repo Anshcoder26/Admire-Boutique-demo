@@ -8,10 +8,12 @@ import { ProductGallery } from "@/components/product-gallery";
 import { DecorativeMotif, MotifDivider, MotifCorner } from "@/components/decorative-motif";
 import { BootiPattern } from "@/components/motifs/booti-pattern";
 import { motifOpacity } from "@/components/motifs/motif-utils";
+import { useToast } from "@/components/ui/toast";
 import type { Product } from "@/data/products";
 
 export function ProductDetail({ product }: { product: Product }) {
   const router = useRouter();
+  const toast = useToast();
   const isSoldOut = Boolean(product.isSoldOut) || Number(product.stock) <= 0;
   const isUnstitched = product.stitchType === "Unstitched";
   const [selectedColor, setSelectedColor] = useState(product.colors[0].name);
@@ -21,7 +23,7 @@ export function ProductDetail({ product }: { product: Product }) {
   const addProductToCart = (redirectToCheckout = false) => {
     if (typeof window === "undefined") return;
     if (isSoldOut) {
-      window.alert(`${product.name} is currently sold out.`);
+      toast.error(`${product.name} is currently sold out.`);
       return;
     }
 
@@ -62,7 +64,7 @@ export function ProductDetail({ product }: { product: Product }) {
       return;
     }
 
-    window.alert(`${product.name} added to cart.`);
+    toast.success(`${product.name} added to cart.`);
   };
 
   return (

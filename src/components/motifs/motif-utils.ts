@@ -24,12 +24,13 @@ export const motifSize = {
 // Standard color definitions - ONLY use existing brand colors
 export const motifColors = {
   gold: '#D4AF37',
+  goldDeep: '#B8912D',
   primary: '#7D1D1D',
-  secondary: '#8b6b47',
-  cream: '#fef9f5',
-  text: '#1a1612',
-  saffron: '#c96f54',
-  emerald: '#1ba098',
+  secondary: '#8B7355',
+  cream: '#FBF6F0',
+  text: '#241A16',
+  saffron: '#C6603C',
+  wine: '#641428',
   currentColor: 'currentColor',
 };
 
