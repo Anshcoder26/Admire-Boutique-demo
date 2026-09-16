@@ -27,7 +27,7 @@ export function BottomNavigation() {
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--ink)]/10 bg-white/95 px-3 py-2 shadow-[0_-2px_12px_rgba(26,21,18,0.05)] backdrop-blur-md md:hidden">
+    <nav className="site-chrome fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--ink)]/10 bg-white/95 px-3 py-2 shadow-[0_-2px_12px_rgba(26,21,18,0.05)] backdrop-blur-md md:hidden">
       <div className="mx-auto grid max-w-md grid-cols-4 gap-2">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = isActive(href);

@@ -362,6 +362,19 @@ a {
   animation-play-state: paused;
 }
 
+/* Site chrome (header + bottom nav) hides during the maroon intro splash and
+   fades back in as the stage morphs into the hero. Toggled via `intro-active`
+   on <html> by the HeroIntro component. */
+.site-chrome {
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  will-change: opacity, transform;
+}
+html.intro-active .site-chrome {
+  opacity: 0;
+  transform: translateY(-16px);
+  pointer-events: none;
+}
+
 /* Respect user motion preferences */
 @media (prefers-reduced-motion: reduce) {
   .animate-float,

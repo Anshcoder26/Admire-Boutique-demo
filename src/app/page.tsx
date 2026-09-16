@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { ArrowRight, Gem, ShoppingBag, ShieldCheck } from "lucide-react";
 import { CategorySection } from "@/components/category-section";
-import { HeroSection } from "@/components/hero-section";
 import { HeroIntro } from "@/components/hero-intro";
 import { FabricBooti } from "@/components/motifs/fabric-booti";
 import { ProductGrid } from "@/components/product-grid";
@@ -9,9 +8,18 @@ import { InstagramFeed } from "@/components/instagram-feed";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { ButtonLink } from "@/components/ui/button";
+import { Marquee } from "@/components/ui/marquee";
 import { Reveal } from "@/components/ui/reveal";
 import { reviews } from "@/data/products";
 import { getCatalogProducts } from "@/lib/catalog-store";
+
+const marqueeWords = [
+  "Handcrafted in India",
+  "Unstitched Suit Materials",
+  "Festive Edits 2026",
+  "Premium Cotton & Mul",
+  "Made for Today",
+];
 
 export default async function HomePage() {
   const products = await getCatalogProducts();
@@ -21,7 +29,18 @@ export default async function HomePage() {
   return (
     <main>
       <HeroIntro />
-      <HeroSection />
+
+      {/* Full-bleed editorial marquee band */}
+      <div className="relative z-10 border-y border-[#7D1D1D]/15 bg-[#7D1D1D] py-4 text-white">
+        <Marquee
+          duration={30}
+          items={marqueeWords.map((word) => (
+            <span key={word} className="font-serif text-lg font-medium tracking-tight md:text-2xl">{word}</span>
+          ))}
+          separator={<span aria-hidden className="text-[#E6C866]">✦</span>}
+        />
+      </div>
+
       <CategorySection />
 
       <Section spacing="md">
