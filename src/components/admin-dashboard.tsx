@@ -436,7 +436,7 @@ export function AdminDashboard() {
 
                 <button
                   type="submit"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#4b1f1d] px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#4b1f1d]/20 transition hover:-translate-y-0.5"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#7D1D1D] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(125,29,29,0.25)] transition-all hover:-translate-y-0.5 hover:bg-[#641414] hover:shadow-[0_14px_36px_rgba(125,29,29,0.35)]"
                 >
                   Access dashboard <ArrowRight className="h-4 w-4" />
                 </button>
@@ -479,47 +479,25 @@ export function AdminDashboard() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="mb-8 flex gap-2 border-b border-[#ead9cf]">
-        <button
-          onClick={() => setActiveTab("publish")}
-          className={`px-6 py-3 font-medium transition ${
-            activeTab === "publish"
-              ? "border-b-2 border-[#4b1f1d] text-[#4b1f1d]"
-              : "text-[#8a6f5f] hover:text-[#5a403a]"
-          }`}
-        >
-          Publish Product
-        </button>
-        <button
-          onClick={() => setActiveTab("products")}
-          className={`px-6 py-3 font-medium transition ${
-            activeTab === "products"
-              ? "border-b-2 border-[#4b1f1d] text-[#4b1f1d]"
-              : "text-[#8a6f5f] hover:text-[#5a403a]"
-          }`}
-        >
-          Edit Products
-        </button>
-        <button
-          onClick={() => setActiveTab("orders")}
-          className={`px-6 py-3 font-medium transition ${
-            activeTab === "orders"
-              ? "border-b-2 border-[#4b1f1d] text-[#4b1f1d]"
-              : "text-[#8a6f5f] hover:text-[#5a403a]"
-          }`}
-        >
-          Orders
-        </button>
-        <button
-          onClick={() => setActiveTab("customers")}
-          className={`px-6 py-3 font-medium transition ${
-            activeTab === "customers"
-              ? "border-b-2 border-[#4b1f1d] text-[#4b1f1d]"
-              : "text-[#8a6f5f] hover:text-[#5a403a]"
-          }`}
-        >
-          Customers
-        </button>
+      <div className="mb-8 inline-flex flex-wrap gap-1 rounded-full border border-[#e7d3c6] bg-[#f7ede6] p-1">
+        {([
+          { key: "publish", label: "Publish Product" },
+          { key: "products", label: "Edit Products" },
+          { key: "orders", label: "Orders" },
+          { key: "customers", label: "Customers" },
+        ] as const).map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-all ${
+              activeTab === tab.key
+                ? "bg-[#7D1D1D] text-white shadow-[0_6px_18px_rgba(125,29,29,0.25)]"
+                : "text-[#8a6f5f] hover:text-[#5a403a]"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Publish Product Tab */}
