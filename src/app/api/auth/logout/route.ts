@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { destroySession } from "@/lib/db";
 
 /**
  * POST /api/auth/logout
- * Clears session cookies and invalidates the session
+ * Clears session cookies and invalidates the server-side session so a retained
+ * or leaked token cannot be reused after logout.
  */
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
+    // Revoke the server-side session before clearing cookies. Deleting by token
+    // works for both customer and admin sessions (they share the sessions table).
+    const token = request.cookies.get("admire-session")?.value;
+    if (token) {
+      await destroySession(token);
+    }
+
     const response = NextResponse.json(
       { success: true, message: "Logged out successfully" },
       { status: 200 }

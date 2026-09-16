@@ -84,9 +84,11 @@ export async function POST(request: Request) {
           throw new Error(`Product "${product.name}" is currently sold out`);
         }
 
-        // Validate quantity is reasonable (security)
-        if (item.qty <= 0 || item.qty > 10) {
-          throw new Error(`Invalid quantity: ${item.qty}. Must be between 1 and 10`);
+        // Validate quantity is a positive integer within allowed range (security).
+        // Reject non-numeric/NaN values explicitly so they cannot slip past the
+        // range comparison and corrupt the computed subtotal.
+        if (!Number.isInteger(item.qty) || item.qty <= 0 || item.qty > 10) {
+          throw new Error(`Invalid quantity: ${item.qty}. Must be a whole number between 1 and 10`);
         }
 
         // Use database price to prevent price tampering
