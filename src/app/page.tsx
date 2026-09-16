@@ -2,6 +2,7 @@ import Image from "next/image";
 import { ArrowRight, Gem, ShoppingBag, ShieldCheck } from "lucide-react";
 import { CategorySection } from "@/components/category-section";
 import { HeroSection } from "@/components/hero-section";
+import { HeroIntro } from "@/components/hero-intro";
 import { FabricBooti } from "@/components/motifs/fabric-booti";
 import { ProductGrid } from "@/components/product-grid";
 import { InstagramFeed } from "@/components/instagram-feed";
@@ -19,6 +20,7 @@ export default async function HomePage() {
 
   return (
     <main>
+      <HeroIntro />
       <HeroSection />
       <CategorySection />
 
