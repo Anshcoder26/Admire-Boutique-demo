@@ -218,28 +218,28 @@ export default function SignupPage() {
 
   return (
     <main className="relative z-10 mx-auto max-w-5xl px-4 py-8 md:px-8 lg:px-10">
-      <div className="overflow-hidden rounded-[32px] border border-[#7D1D1D]/20 bg-[#fffaf6] shadow-[0_22px_60px_rgba(125,29,29,0.10)]">
+      <div className="overflow-hidden rounded-xl border border-[#7D1D1D]/20 bg-white shadow-[var(--shadow-md)]">
         <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
           {/* Left section */}
-          <div className="bg-[linear-gradient(135deg,_#f8efe7,_#f3e5d8_40%,_#efe0d0)] p-6 md:p-10">
+          <div className="bg-[#7D1D1D] p-6 text-white md:p-10">
             <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#7D1D1D]/30 bg-white/80 text-[#7D1D1D]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-md border border-white/30 bg-white/10 text-white">
                 <UserRound className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#8a6f5f]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/70">
                   New account
                 </p>
-                <h1 className="font-serif text-4xl md:text-5xl text-[#201614]">
+                <h1 className="font-serif text-4xl font-semibold tracking-tight text-white md:text-5xl">
                   Create account
                 </h1>
               </div>
             </div>
-            <p className="max-w-md text-base leading-7 text-[#5a4b45]">
+            <p className="max-w-md text-base leading-7 text-white/75">
               Save your addresses, track orders, manage deliveries, and enjoy a premium boutique shopping experience.
             </p>
 
-            <div className="mt-8 rounded-[24px] border border-white/70 bg-white/50 p-4 text-sm text-[#483d39] backdrop-blur-sm">
+            <div className="mt-8 rounded-lg border border-white/20 bg-white/10 p-4 text-sm text-white/80 backdrop-blur-sm">
               <p className="font-semibold mb-2">🔐 Password requirements</p>
               <ul className="space-y-1 text-xs">
                 <li>✓ At least 8 characters</li>
@@ -256,7 +256,7 @@ export default function SignupPage() {
             <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               {/* Error message */}
               {errors.submit && (
-                <div className="rounded-[16px] border-2 border-[#b3261e] bg-[#fff0f0] p-4 flex gap-3">
+                <div className="rounded-md border border-[#b3261e]/40 bg-[#fff0f0] p-4 flex gap-3">
                   <AlertCircle className="h-5 w-5 text-[#b3261e] flex-shrink-0 mt-0.5" />
                   <p className="text-sm font-semibold text-[#b3261e]">
                     {errors.submit}
@@ -266,9 +266,9 @@ export default function SignupPage() {
 
               {/* Success message */}
               {successMessage && (
-                <div className="rounded-[16px] border-2 border-[#8B7355] bg-[#f7efe8] p-4 flex gap-3">
-                  <CheckCircle className="h-5 w-5 text-[#8B7355] flex-shrink-0 mt-0.5" />
-                  <p className="text-sm font-semibold text-[#8B7355]">
+                <div className="rounded-md border border-[#7D1D1D]/30 bg-[var(--background)] p-4 flex gap-3">
+                  <CheckCircle className="h-5 w-5 text-[#7D1D1D] flex-shrink-0 mt-0.5" />
+                  <p className="text-sm font-semibold text-[#7D1D1D]">
                     {successMessage}
                   </p>
                 </div>
@@ -276,14 +276,14 @@ export default function SignupPage() {
 
               {/* Name field */}
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-[#7a655d] font-semibold">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-[var(--ink)]/50 font-semibold">
                   Full name
                 </label>
                 <div
-                  className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
+                  className={`flex items-center gap-3 rounded-md border transition-all px-4 py-3 focus-within:border-[#7D1D1D] focus-within:ring-2 focus-within:ring-[#7D1D1D]/10 ${
                     errors.name
                       ? "border-[#b3261e] bg-[#fff0f0]"
-                      : "border-[#7D1D1D]/20 bg-[#fff5f0]"
+                      : "border-[#7D1D1D]/20 bg-white"
                   }`}
                 >
                   <UserRound
@@ -297,7 +297,7 @@ export default function SignupPage() {
                     onChange={(e) =>
                       setForm({ ...form, name: e.target.value })
                     }
-                    className="w-full bg-transparent text-sm text-[#2d2421] outline-none placeholder-[#999]"
+                    className="w-full bg-transparent text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/40"
                     placeholder="Your full name"
                     disabled={loading}
                     aria-invalid={!!errors.name}
@@ -310,14 +310,14 @@ export default function SignupPage() {
 
               {/* Email field */}
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-[#7a655d] font-semibold">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-[var(--ink)]/50 font-semibold">
                   Email
                 </label>
                 <div
-                  className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
+                  className={`flex items-center gap-3 rounded-md border transition-all px-4 py-3 focus-within:border-[#7D1D1D] focus-within:ring-2 focus-within:ring-[#7D1D1D]/10 ${
                     errors.email
                       ? "border-[#b3261e] bg-[#fff0f0]"
-                      : "border-[#7D1D1D]/20 bg-[#fff5f0]"
+                      : "border-[#7D1D1D]/20 bg-white"
                   }`}
                 >
                   <Mail
@@ -331,7 +331,7 @@ export default function SignupPage() {
                     onChange={(e) =>
                       setForm({ ...form, email: e.target.value })
                     }
-                    className="w-full bg-transparent text-sm text-[#2d2421] outline-none placeholder-[#999]"
+                    className="w-full bg-transparent text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/40"
                     placeholder="you@example.com"
                     disabled={loading}
                     autoComplete="email"
@@ -345,14 +345,14 @@ export default function SignupPage() {
 
               {/* Phone field */}
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-[#7a655d] font-semibold">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-[var(--ink)]/50 font-semibold">
                   Phone (optional)
                 </label>
                 <div
-                  className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
+                  className={`flex items-center gap-3 rounded-md border transition-all px-4 py-3 focus-within:border-[#7D1D1D] focus-within:ring-2 focus-within:ring-[#7D1D1D]/10 ${
                     errors.phone
                       ? "border-[#b3261e] bg-[#fff0f0]"
-                      : "border-[#7D1D1D]/20 bg-[#fff5f0]"
+                      : "border-[#7D1D1D]/20 bg-white"
                   }`}
                 >
                   <Phone
@@ -366,7 +366,7 @@ export default function SignupPage() {
                     onChange={(e) =>
                       setForm({ ...form, phone: e.target.value })
                     }
-                    className="w-full bg-transparent text-sm text-[#2d2421] outline-none placeholder-[#999]"
+                    className="w-full bg-transparent text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/40"
                     placeholder="+91 98765 43210"
                     disabled={loading}
                     autoComplete="tel"
@@ -380,14 +380,14 @@ export default function SignupPage() {
 
               {/* Password field */}
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-[#7a655d] font-semibold">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-[var(--ink)]/50 font-semibold">
                   Password
                 </label>
                 <div
-                  className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
+                  className={`flex items-center gap-3 rounded-md border transition-all px-4 py-3 focus-within:border-[#7D1D1D] focus-within:ring-2 focus-within:ring-[#7D1D1D]/10 ${
                     errors.password
                       ? "border-[#b3261e] bg-[#fff0f0]"
-                      : "border-[#7D1D1D]/20 bg-[#fff5f0]"
+                      : "border-[#7D1D1D]/20 bg-white"
                   }`}
                 >
                   <LockKeyhole
@@ -401,7 +401,7 @@ export default function SignupPage() {
                     onChange={(e) =>
                       setForm({ ...form, password: e.target.value })
                     }
-                    className="w-full bg-transparent text-sm text-[#2d2421] outline-none placeholder-[#999]"
+                    className="w-full bg-transparent text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/40"
                     placeholder="Create a password"
                     disabled={loading}
                     autoComplete="new-password"
@@ -410,7 +410,7 @@ export default function SignupPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-[#7D1D1D] hover:text-[#641414] transition p-1"
+                    className="text-[#7D1D1D] hover:text-[#641414] flex h-11 w-11 items-center justify-center rounded-md transition hover:bg-[#7D1D1D]/5"
                     disabled={loading}
                   >
                     {showPassword ? (
@@ -427,14 +427,14 @@ export default function SignupPage() {
 
               {/* Confirm password field */}
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-[#7a655d] font-semibold">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-[var(--ink)]/50 font-semibold">
                   Confirm password
                 </label>
                 <div
-                  className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
+                  className={`flex items-center gap-3 rounded-md border transition-all px-4 py-3 focus-within:border-[#7D1D1D] focus-within:ring-2 focus-within:ring-[#7D1D1D]/10 ${
                     errors.confirmPassword
                       ? "border-[#b3261e] bg-[#fff0f0]"
-                      : "border-[#7D1D1D]/20 bg-[#fff5f0]"
+                      : "border-[#7D1D1D]/20 bg-white"
                   }`}
                 >
                   <LockKeyhole
@@ -450,7 +450,7 @@ export default function SignupPage() {
                     onChange={(e) =>
                       setForm({ ...form, confirmPassword: e.target.value })
                     }
-                    className="w-full bg-transparent text-sm text-[#2d2421] outline-none placeholder-[#999]"
+                    className="w-full bg-transparent text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/40"
                     placeholder="Confirm password"
                     disabled={loading}
                     autoComplete="new-password"
@@ -459,7 +459,7 @@ export default function SignupPage() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="text-[#7D1D1D] hover:text-[#641414] transition p-1"
+                    className="text-[#7D1D1D] hover:text-[#641414] flex h-11 w-11 items-center justify-center rounded-md transition hover:bg-[#7D1D1D]/5"
                     disabled={loading}
                   >
                     {showConfirmPassword ? (
@@ -489,7 +489,7 @@ export default function SignupPage() {
                     disabled={loading}
                     aria-invalid={!!errors.agreeToTerms}
                   />
-                  <span className="text-xs text-[#5a4b45]">
+                  <span className="text-xs text-[var(--ink)]/70">
                     I agree to the{" "}
                     <Link
                       href="/terms"
@@ -517,7 +517,7 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#7D1D1D] px-5 py-3.5 md:py-3 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 border border-[#7D1D1D]/40 min-h-[48px] md:min-h-[44px] mt-2"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#7D1D1D] px-5 py-3.5 md:py-3 text-sm font-semibold uppercase tracking-[0.08em] text-white shadow-[var(--shadow-sm)] transition-all hover:bg-[#641414] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 border border-[#7D1D1D]/40 min-h-[48px] md:min-h-[44px] mt-2"
               >
                 {loading ? (
                   <>
@@ -532,11 +532,11 @@ export default function SignupPage() {
               </button>
             </form>
 
-            <div className="mt-6 pt-6 border-t border-[#7D1D1D]/10 text-center text-sm text-[#665a55]">
+            <div className="mt-6 pt-6 border-t border-[#7D1D1D]/10 text-center text-sm text-[var(--ink)]/60">
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="font-semibold text-[#7D1D1D] hover:text-[#641414] transition"
+                className="font-semibold text-[#7D1D1D] transition hover:text-[#641414]"
               >
                 Sign in
               </Link>

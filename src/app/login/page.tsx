@@ -119,7 +119,7 @@ export default function LoginPage() {
 
         // Store auth token for client-side auth checks
         window.localStorage.setItem("admire-user-token", "authenticated");
-        
+
         // For admin, also store admin token
         if (data.userType === "admin") {
           window.localStorage.setItem("admire-admin-token", "authenticated");
@@ -132,7 +132,7 @@ export default function LoginPage() {
         // Check if there's a redirect param or if we came from checkout
         const params = new URLSearchParams(window.location.search);
         let redirectPath = params.get("redirect") || (data.userType === "admin" ? "/admin" : "/account");
-        
+
         // If user has cart items and no specific redirect, go to checkout
         if (redirectPath === "/account" && !params.get("redirect")) {
           const cart = JSON.parse(window.localStorage.getItem("admire-cart") || "[]");
@@ -140,7 +140,7 @@ export default function LoginPage() {
             redirectPath = "/checkout";
           }
         }
-        
+
         // Small delay for UX feedback
         setTimeout(() => {
           router.push(redirectPath);
@@ -176,44 +176,44 @@ export default function LoginPage() {
 
   return (
     <main className="relative z-10 mx-auto max-w-5xl px-4 py-8 md:px-8 lg:px-10">
-      <div className="overflow-hidden rounded-[32px] border border-[#7D1D1D]/20 bg-[#fffaf6] shadow-[0_22px_60px_rgba(125,29,29,0.10)]">
+      <div className="overflow-hidden rounded-xl border border-[#7D1D1D]/20 bg-white shadow-[var(--shadow-md)]">
         <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
           {/* Left section - Info */}
-          <div className="bg-[linear-gradient(135deg,_#f8efe7,_#f3e5d8_40%,_#efe0d0)] p-6 md:p-10">
+          <div className="bg-[#7D1D1D] p-6 text-white md:p-10">
             <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#7D1D1D]/30 bg-white/80 text-[#7D1D1D]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-md border border-white/30 bg-white/10 text-white">
                 <LockKeyhole className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#8a6f5f]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/70">
                   Your account
                 </p>
-                <h1 className="font-serif text-4xl md:text-5xl text-[#201614]">
+                <h1 className="font-serif text-4xl font-semibold tracking-tight text-white md:text-5xl">
                   Sign in
                 </h1>
               </div>
             </div>
-            <p className="max-w-md text-base leading-7 text-[#5a4b45]">
+            <p className="max-w-md text-base leading-7 text-white/75">
               Track orders, save addresses, manage delivery preferences and enjoy a seamless shopping experience built for real customers.
             </p>
 
             {/* Help section */}
             <div className="mt-8 space-y-4">
-              <div className="rounded-[24px] border border-white/70 bg-white/50 p-4 text-sm text-[#483d39] backdrop-blur-sm">
+              <div className="rounded-lg border border-white/20 bg-white/10 p-4 text-sm text-white/80 backdrop-blur-sm">
                 <p className="font-semibold mb-2">🔐 New to Admire Boutique?</p>
                 <Link
                   href="/signup"
-                  className="text-[#7D1D1D] hover:text-[#641414] font-semibold transition"
+                  className="font-semibold text-white underline-offset-4 transition hover:text-white/80 hover:underline"
                 >
                   Create an account →
                 </Link>
               </div>
 
-              <div className="rounded-[24px] border border-white/70 bg-white/50 p-4 text-sm text-[#483d39] backdrop-blur-sm">
+              <div className="rounded-lg border border-white/20 bg-white/10 p-4 text-sm text-white/80 backdrop-blur-sm">
                 <p className="font-semibold mb-2">❓ Forgot password?</p>
                 <Link
                   href="/forgot-password"
-                  className="text-[#7D1D1D] hover:text-[#641414] font-semibold transition"
+                  className="font-semibold text-white underline-offset-4 transition hover:text-white/80 hover:underline"
                 >
                   Reset password →
                 </Link>
@@ -226,7 +226,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-5" noValidate>
               {/* Error message */}
               {errors.submit && (
-                <div className="rounded-[16px] border-2 border-[#b3261e] bg-[#fff0f0] p-4 flex gap-3">
+                <div className="rounded-md border border-[#b3261e]/40 bg-[#fff0f0] p-4 flex gap-3">
                   <AlertCircle className="h-5 w-5 text-[#b3261e] flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-[#b3261e]">
@@ -243,8 +243,8 @@ export default function LoginPage() {
 
               {/* Success message */}
               {successMessage && (
-                <div className="rounded-[16px] border-2 border-[#8B7355] bg-[#f7efe8] p-4 flex gap-3">
-                  <div className="text-sm font-semibold text-[#8B7355]">
+                <div className="rounded-md border border-[#7D1D1D]/30 bg-[var(--background)] p-4 flex gap-3">
+                  <div className="text-sm font-semibold text-[#7D1D1D]">
                     ✓ {successMessage}
                   </div>
                 </div>
@@ -252,14 +252,14 @@ export default function LoginPage() {
 
               {/* Email field */}
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-[#7a655d] font-semibold">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-[var(--ink)]/50 font-semibold">
                   Email address
                 </label>
                 <div
-                  className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
+                  className={`flex items-center gap-3 rounded-md border transition-all px-4 py-3 focus-within:border-[#7D1D1D] focus-within:ring-2 focus-within:ring-[#7D1D1D]/10 ${
                     errors.email
                       ? "border-[#b3261e] bg-[#fff0f0]"
-                      : "border-[#7D1D1D]/20 bg-[#fff5f0] hover:border-[#7D1D1D]/40"
+                      : "border-[#7D1D1D]/20 bg-white hover:border-[#7D1D1D]/40"
                   }`}
                 >
                   <Mail
@@ -271,7 +271,7 @@ export default function LoginPage() {
                     type="email"
                     value={email}
                     onChange={(e) => handleEmailChange(e.target.value)}
-                    className="w-full bg-transparent text-sm text-[#2d2421] outline-none placeholder-[#999]"
+                    className="w-full bg-transparent text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/40"
                     placeholder="you@example.com"
                     disabled={loading}
                     autoComplete="email"
@@ -289,14 +289,14 @@ export default function LoginPage() {
 
               {/* Password field */}
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-[#7a655d] font-semibold">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-[var(--ink)]/50 font-semibold">
                   Password
                 </label>
                 <div
-                  className={`flex items-center gap-3 rounded-2xl border-2 transition-all px-4 py-3 ${
+                  className={`flex items-center gap-3 rounded-md border transition-all px-4 py-3 focus-within:border-[#7D1D1D] focus-within:ring-2 focus-within:ring-[#7D1D1D]/10 ${
                     errors.password
                       ? "border-[#b3261e] bg-[#fff0f0]"
-                      : "border-[#7D1D1D]/20 bg-[#fff5f0] hover:border-[#7D1D1D]/40"
+                      : "border-[#7D1D1D]/20 bg-white hover:border-[#7D1D1D]/40"
                   }`}
                 >
                   <LockKeyhole
@@ -308,7 +308,7 @@ export default function LoginPage() {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => handlePasswordChange(e.target.value)}
-                    className="w-full bg-transparent text-sm text-[#2d2421] outline-none placeholder-[#999]"
+                    className="w-full bg-transparent text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/40"
                     placeholder="Enter password"
                     disabled={loading}
                     autoComplete="current-password"
@@ -319,7 +319,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-[#7D1D1D] hover:text-[#641414] transition p-1"
+                    className="text-[#7D1D1D] hover:text-[#641414] flex h-11 w-11 items-center justify-center rounded-md transition hover:bg-[#7D1D1D]/5"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     disabled={loading}
                   >
@@ -341,7 +341,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading || retryAfterTime !== null}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#7D1D1D] px-5 py-3.5 md:py-3 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 border border-[#7D1D1D]/40 min-h-[48px] md:min-h-[44px]"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#7D1D1D] px-5 py-3.5 md:py-3 text-sm font-semibold uppercase tracking-[0.08em] text-white shadow-[var(--shadow-sm)] transition-all hover:bg-[#641414] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 border border-[#7D1D1D]/40 min-h-[48px] md:min-h-[44px]"
               >
                 {loading ? (
                   <>
@@ -356,21 +356,21 @@ export default function LoginPage() {
               </button>
 
               {/* Forgot password link */}
-              <div className="text-center text-sm text-[#665a55]">
+              <div className="text-center text-sm text-[var(--ink)]/60">
                 <Link
                   href="/forgot-password"
-                  className="text-[#7D1D1D] hover:text-[#641414] font-semibold transition"
+                  className="font-semibold text-[#7D1D1D] transition hover:text-[#641414]"
                 >
                   Forgot password?
                 </Link>
               </div>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-[#7D1D1D]/10 text-center text-sm text-[#665a55]">
+            <div className="mt-8 pt-6 border-t border-[#7D1D1D]/10 text-center text-sm text-[var(--ink)]/60">
               New to Admire Boutique?{" "}
               <Link
                 href="/signup"
-                className="font-semibold text-[#7D1D1D] hover:text-[#641414] transition"
+                className="font-semibold text-[#7D1D1D] transition hover:text-[#641414]"
               >
                 Create account
               </Link>

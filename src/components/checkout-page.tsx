@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { LotusOrnament } from "@/components/lotus-ornament";
 import { AlertCircle, Loader } from "lucide-react";
 
 type CartItem = {
@@ -65,7 +64,7 @@ export function CheckoutPage() {
           if (meData.user) {
             setCustomer(meData.user);
           }
-          
+
           if (addressesRes.ok) {
             const addressData = (await addressesRes.json()) as { addresses?: Address[] };
             if (addressData.addresses?.length) {
@@ -207,7 +206,7 @@ export function CheckoutPage() {
       <main className="mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
         <div className="flex flex-col items-center justify-center gap-4 py-12">
           <Loader className="h-8 w-8 animate-spin text-[#7D1D1D]" />
-          <p className="text-[#665a55]">Loading checkout...</p>
+          <p className="text-[var(--ink)]/60">Loading checkout...</p>
         </div>
       </main>
     );
@@ -217,19 +216,19 @@ export function CheckoutPage() {
   if (!isAuthenticated || (error && !cartItems.length)) {
     return (
       <main className="mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
-        <div className="rounded-[24px] border-2 border-[#b3261e] bg-[#fff0f0] p-6 text-center">
+        <div className="rounded-lg border border-[#b3261e]/40 bg-[#fff0f0] p-6 text-center">
           <AlertCircle className="h-12 w-12 text-[#b3261e] mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-[#b3261e] mb-2">
+          <h2 className="font-serif text-2xl font-semibold tracking-tight text-[#b3261e] mb-2">
             {!isAuthenticated ? "Please log in" : "Cart is empty"}
           </h2>
-          <p className="text-[#5a4b45] mb-6">
+          <p className="text-[var(--ink)]/70 mb-6">
             {!isAuthenticated
               ? "You need to be logged in to proceed with checkout."
               : "Your cart is empty. Please add items before checking out."}
           </p>
           <button
             onClick={() => router.push(!isAuthenticated ? "/login" : "/products")}
-            className="rounded-full bg-[#7D1D1D] px-6 py-3 text-white font-semibold hover:bg-[#641414] transition"
+            className="min-h-[44px] rounded-md bg-[#7D1D1D] px-6 py-3 text-sm font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-[#641414]"
           >
             {!isAuthenticated ? "Go to login" : "Continue shopping"}
           </button>
@@ -241,15 +240,14 @@ export function CheckoutPage() {
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
       <div className="mb-6 flex items-center gap-3">
-        <LotusOrnament className="h-11 w-11 rounded-full border border-[#d7c1af] bg-white/80 p-2" />
         <div>
-          <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#8a6f5f]">Secure checkout</p>
-          <h1 className="mt-1 font-serif text-4xl text-[#201614]">Checkout</h1>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7D1D1D]">Secure checkout</p>
+          <h1 className="mt-1 font-serif text-4xl font-semibold tracking-tight text-[var(--ink)]">Checkout</h1>
         </div>
       </div>
 
       {error && (
-        <div className="mb-6 rounded-[24px] border-2 border-[#b3261e] bg-[#fff0f0] p-4 flex gap-3">
+        <div className="mb-6 rounded-lg border border-[#b3261e]/40 bg-[#fff0f0] p-4 flex gap-3">
           <AlertCircle className="h-5 w-5 text-[#b3261e] flex-shrink-0 mt-0.5" />
           <p className="text-sm font-semibold text-[#b3261e]">{error}</p>
         </div>
@@ -257,42 +255,42 @@ export function CheckoutPage() {
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-5">
-          <div className="rounded-[30px] border border-[#eadcd3] bg-[#fffaf6] p-5">
-            <h2 className="mb-4 font-serif text-3xl text-[#201614]">Customer details</h2>
+          <div className="rounded-xl border border-[var(--ink)]/10 bg-white p-5">
+            <h2 className="mb-4 font-serif text-3xl font-semibold tracking-tight text-[var(--ink)]">Customer details</h2>
             <div className="grid gap-4 md:grid-cols-2">
-              <input 
-                defaultValue={customer?.name.split(" ")[0] || ""} 
-                placeholder="First name" 
-                className="rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" 
+              <input
+                defaultValue={customer?.name.split(" ")[0] || ""}
+                placeholder="First name"
+                className="rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
               />
-              <input 
-                defaultValue={customer?.name.split(" ").slice(1).join(" ") || ""} 
-                placeholder="Last name" 
-                className="rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" 
+              <input
+                defaultValue={customer?.name.split(" ").slice(1).join(" ") || ""}
+                placeholder="Last name"
+                className="rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
               />
-              <input 
-                defaultValue={customer?.email || ""} 
-                placeholder="Email" 
-                className="md:col-span-2 rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" 
+              <input
+                defaultValue={customer?.email || ""}
+                placeholder="Email"
+                className="md:col-span-2 rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
               />
-              <input 
-                defaultValue={customer?.phone || ""} 
-                placeholder="Phone" 
-                className="md:col-span-2 rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" 
+              <input
+                defaultValue={customer?.phone || ""}
+                placeholder="Phone"
+                className="md:col-span-2 rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
               />
             </div>
           </div>
 
-          <div className="rounded-[30px] border border-[#eadcd3] bg-[#fffaf6] p-5">
-            <h2 className="mb-4 font-serif text-3xl text-[#201614]">Shipping address</h2>
+          <div className="rounded-xl border border-[var(--ink)]/10 bg-white p-5">
+            <h2 className="mb-4 font-serif text-3xl font-semibold tracking-tight text-[var(--ink)]">Shipping address</h2>
             {addresses.length > 0 ? (
               <>
                 <div className="mb-4 space-y-2">
                   {addresses.map((addr) => (
-                    <label key={addr.id} className="flex items-center gap-3 rounded-[18px] border border-[#e4d4c9] bg-white px-4 py-3 cursor-pointer">
-                      <input 
-                        type="radio" 
-                        name="address" 
+                    <label key={addr.id} className="flex items-center gap-3 rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-[var(--ink)] cursor-pointer transition hover:border-[#7D1D1D]/30">
+                      <input
+                        type="radio"
+                        name="address"
                         checked={selectedAddress?.id === addr.id}
                         onChange={() => setSelectedAddress(addr)}
                       />
@@ -303,39 +301,39 @@ export function CheckoutPage() {
               </>
             ) : null}
             <div className="grid gap-4 md:grid-cols-2">
-              <input 
-                defaultValue={selectedAddress?.line1 || ""} 
-                placeholder="Street address" 
-                className="md:col-span-2 rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" 
+              <input
+                defaultValue={selectedAddress?.line1 || ""}
+                placeholder="Street address"
+                className="md:col-span-2 rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
               />
-              <input 
-                defaultValue={selectedAddress?.city || ""} 
-                placeholder="City" 
-                className="rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" 
+              <input
+                defaultValue={selectedAddress?.city || ""}
+                placeholder="City"
+                className="rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
               />
-              <input 
-                defaultValue={selectedAddress?.state || ""} 
-                placeholder="State" 
-                className="rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" 
+              <input
+                defaultValue={selectedAddress?.state || ""}
+                placeholder="State"
+                className="rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
               />
-              <input 
-                defaultValue={selectedAddress?.pincode || ""} 
-                placeholder="ZIP code" 
-                className="rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" 
+              <input
+                defaultValue={selectedAddress?.pincode || ""}
+                placeholder="ZIP code"
+                className="rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
               />
-              <input 
-                defaultValue={selectedAddress?.country || "India"} 
-                placeholder="Country" 
-                className="rounded-full border border-[#e4d4c9] bg-white px-4 py-3 text-sm outline-none" 
+              <input
+                defaultValue={selectedAddress?.country || "India"}
+                placeholder="Country"
+                className="rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
               />
             </div>
           </div>
 
-          <div className="rounded-[30px] border border-[#eadcd3] bg-[#fffaf6] p-5">
-            <h2 className="mb-4 font-serif text-3xl text-[#201614]">Payment</h2>
-            <div className="space-y-3 text-sm text-[#4c362f]">
+          <div className="rounded-xl border border-[var(--ink)]/10 bg-white p-5">
+            <h2 className="mb-4 font-serif text-3xl font-semibold tracking-tight text-[var(--ink)]">Payment</h2>
+            <div className="space-y-3 text-sm text-[var(--ink)]/70">
               {['Cash on Delivery', 'UPI', 'Credit / Debit Card', 'Net Banking', 'Razorpay'].map((method) => (
-                <label key={method} className="flex items-center gap-3 rounded-[18px] border border-[#e4d4c9] bg-white px-4 py-3 cursor-pointer">
+                <label key={method} className="flex items-center gap-3 rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-[var(--ink)] cursor-pointer transition hover:border-[#7D1D1D]/30">
                   <input type="radio" name="payment" checked={paymentMethod === method} onChange={() => setPaymentMethod(method)} />
                   <span>{method}</span>
                 </label>
@@ -344,9 +342,9 @@ export function CheckoutPage() {
           </div>
         </div>
 
-        <aside className="rounded-[30px] border border-[#eadcd3] bg-[#fffaf6] p-5 shadow-[0_14px_32px_rgba(84,58,45,0.05)]">
-          <h2 className="mb-5 font-serif text-3xl text-[#201614]">Order summary</h2>
-          <div className="space-y-4 text-sm text-[#584942]">
+        <aside className="rounded-xl border border-[var(--ink)]/10 bg-white p-5 shadow-[var(--shadow-sm)]">
+          <h2 className="mb-5 font-serif text-3xl font-semibold tracking-tight text-[var(--ink)]">Order summary</h2>
+          <div className="space-y-4 text-sm text-[var(--ink)]/70">
             {cartItems.map((item) => (
               <div key={`${item.productId}-${item.size}-${item.color}`} className="flex items-center justify-between gap-3">
                 <span>{item.name} × {item.quantity}</span>
@@ -358,15 +356,15 @@ export function CheckoutPage() {
             <div className="flex items-center justify-between"><span>Discount</span><span>-₹{discount}</span></div>
           </div>
 
-          <div className="mt-6 flex items-center justify-between border-t border-[#eadcd3] pt-5">
-            <span className="text-lg font-medium text-[#201614]">Total</span>
-            <span className="text-2xl font-semibold text-[#201614]">₹{total}</span>
+          <div className="mt-6 flex items-center justify-between border-t border-[var(--ink)]/10 pt-5">
+            <span className="text-lg font-medium text-[var(--ink)]">Total</span>
+            <span className="font-serif text-3xl font-semibold text-[#7D1D1D]">₹{total}</span>
           </div>
 
           <button
             onClick={handlePlaceOrder}
             disabled={isSubmitting}
-            className="mt-6 block w-full rounded-full bg-[#7D1D1D] px-5 py-3.5 text-center text-sm font-bold text-white shadow-md transition hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 border border-[#7D1D1D]/40 min-h-[48px]"
+            className="mt-6 block min-h-[48px] w-full rounded-md border border-[#7D1D1D]/40 bg-[#7D1D1D] px-5 py-3.5 text-center text-sm font-semibold uppercase tracking-[0.08em] text-white shadow-[var(--shadow-sm)] transition hover:bg-[#641414] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:scale-100"
           >
             {isSubmitting ? "Processing order..." : "Place order"}
           </button>
