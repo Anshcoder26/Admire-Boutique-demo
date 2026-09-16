@@ -5,6 +5,7 @@ import { Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LotusOrnament } from "@/components/lotus-ornament";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/providers/auth-provider";
 
 export function Header() {
@@ -69,10 +70,13 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-[#7D1D1D]/20 bg-[#fffaf6]/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-50 border-b border-[#7D1D1D]/15 bg-[#fffaf6]/95 shadow-[0_1px_0_rgba(212,175,55,0.25)] backdrop-blur-sm">
         {/* Promo banner */}
-        <div className="bg-[#7D1D1D] px-4 py-2 text-center text-[10px] font-medium uppercase tracking-[0.2em] text-white md:text-xs">
-          ✨ Free shipping on orders above ₹2,499 & easy 7-day returns
+        <div className="relative overflow-hidden bg-[#7D1D1D] px-4 py-2 text-center text-[10px] font-medium uppercase tracking-[0.2em] text-white md:text-xs">
+          <span className="relative z-10">
+            <span className="text-gold-foil">Free shipping</span> on orders above ₹2,499 &middot; easy 7-day returns
+          </span>
+          <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,transparent,#D4AF37,transparent)]" />
         </div>
 
         {/* Main header */}
@@ -148,103 +152,43 @@ export function Header() {
       {/* Global Search Modal */}
       {isSearchOpen ? (
         <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.4)",
-            backdropFilter: "blur(4px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999,
-          }}
+          className="fixed inset-0 z-[9999] flex items-start justify-center bg-black/40 px-4 pt-24 backdrop-blur-sm md:pt-32"
           onClick={() => setIsSearchOpen(false)}
         >
           <div
-            style={{
-              backgroundColor: "white",
-              borderRadius: "32px",
-              padding: "24px",
-              maxWidth: "600px",
-              width: "calc(100% - 32px)",
-              boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
-            }}
+            className="w-full max-w-xl overflow-hidden rounded-[var(--radius-xl)] border border-[#D4AF37]/30 bg-white shadow-[var(--shadow-lg)] animate-[fade-in-up_0.2s_ease-out]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "16px",
-              }}
-            >
-              <h2
-                style={{
-                  fontSize: "20px",
-                  fontWeight: "bold",
-                  color: "#201614",
-                  margin: 0,
-                }}
-              >
-                Search Kurtis
-              </h2>
-              <button
-                onClick={() => setIsSearchOpen(false)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontSize: "24px",
-                  cursor: "pointer",
-                  color: "#8a6f5f",
-                  padding: "8px",
-                }}
-              >
-                <X size={24} />
-              </button>
+            <span aria-hidden className="block h-1 w-full bg-[var(--gradient-gold)]" />
+            <div className="p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <p className="eyebrow mb-1">Explore the atelier</p>
+                  <h2 className="font-serif text-2xl text-[#201614]">Search Kurtis</h2>
+                </div>
+                <button
+                  onClick={() => setIsSearchOpen(false)}
+                  className="flex h-10 w-10 items-center justify-center rounded-full text-[#8a6f5f] transition-colors hover:bg-[#7D1D1D]/8 hover:text-[#7D1D1D]"
+                  aria-label="Close search"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <p className="mb-5 text-sm leading-relaxed text-[#5a403a]">
+                Open the products page to search and filter by category, price, and rating.
+              </p>
+
+              <Button variant="primary" size="lg" fullWidth onClick={handleGoToProducts}>
+                <Search className="h-4 w-4" /> Go to Products
+              </Button>
+
+              <p className="mt-4 text-center text-xs text-[#8a6f5f]">
+                Tip: Press <kbd className="rounded bg-[#f3e7db] px-1.5 py-0.5 font-semibold">Ctrl</kbd>
+                {" + "}
+                <kbd className="rounded bg-[#f3e7db] px-1.5 py-0.5 font-semibold">K</kbd> to open search anywhere
+              </p>
             </div>
-
-            <p
-              style={{
-                fontSize: "14px",
-                color: "#5a403a",
-                marginBottom: "16px",
-              }}
-            >
-              Open the products page to search and filter by category, price, and rating.
-            </p>
-
-            <button
-              onClick={handleGoToProducts}
-              style={{
-                width: "100%",
-                padding: "12px 20px",
-                borderRadius: "50px",
-                backgroundColor: "#4b1f1d",
-                color: "white",
-                border: "none",
-                fontSize: "14px",
-                fontWeight: "600",
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              Go to Products
-            </button>
-
-            <p
-              style={{
-                fontSize: "12px",
-                color: "#8a6f5f",
-                marginTop: "12px",
-                textAlign: "center",
-              }}
-            >
-              💡 Tip: Press Ctrl+K (or Cmd+K on Mac) to open search from anywhere
-            </p>
           </div>
         </div>
       ) : null}
