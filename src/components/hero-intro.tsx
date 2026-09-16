@@ -162,9 +162,9 @@ export function HeroIntro() {
   const chromeRevealed = progress >= 0.52;
 
   return (
-    <div ref={trackRef} className="relative h-[220vh]">
+    <div ref={trackRef} className="relative h-[220dvh]">
       <div
-        className={`sticky top-0 flex h-screen items-center justify-center overflow-hidden ${
+        className={`sticky top-0 flex h-dvh items-center justify-center overflow-hidden ${
           chromeRevealed ? "z-40" : "z-[60]"
         }`}
         style={{ backgroundColor: background }}
