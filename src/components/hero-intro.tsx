@@ -120,15 +120,23 @@ export function HeroIntro() {
   }, []);
 
   // Hide the header + bottom nav while the maroon splash is on screen; reveal
-  // them as the stage morphs into the ivory hero.
+  // them as the stage morphs into the ivory hero. `has-hero-intro` pins the
+  // header (position: fixed) for the whole homepage so it doesn't reserve space
+  // at the top (no ivory strip) — kept constant to avoid a scroll-progress
+  // feedback loop. `intro-active` only fades the chrome in/out via opacity.
   useEffect(() => {
     const root = document.documentElement;
     if (!enabled) {
       root.classList.remove("intro-active");
+      root.classList.remove("has-hero-intro");
       return;
     }
-    root.classList.toggle("intro-active", progress < 0.52);
-    return () => root.classList.remove("intro-active");
+    root.classList.add("has-hero-intro");
+    root.classList.toggle("intro-active", progress < 0.6);
+    return () => {
+      root.classList.remove("intro-active");
+      root.classList.remove("has-hero-intro");
+    };
   }, [progress, enabled]);
 
   // Reduced-motion / fallback: static hero on the ivory canvas.
@@ -159,7 +167,7 @@ export function HeroIntro() {
   // While the maroon splash is up, the stage sits above the chrome (z-[60]) so
   // there's no header flash on load. Once the chrome is revealed, drop the stage
   // below the header (z-40) so the header shows on top of the morphed hero.
-  const chromeRevealed = progress >= 0.52;
+  const chromeRevealed = progress >= 0.6;
 
   return (
     <div ref={trackRef} className="relative h-[220dvh]">
