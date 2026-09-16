@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Manrope } from "next/font/google";
+import { Fraunces, Manrope } from "next/font/google";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { Footer } from "@/components/footer";
 import { GlobalOrnaments } from "@/components/global-ornaments";
@@ -13,10 +13,11 @@ const manrope = Manrope({
   subsets: ["latin"],
 });
 
-const cormorantGaramond = Cormorant_Garamond({
-  variable: "--font-cormorant",
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "variable",
+  axes: ["opsz"],
 });
 
 export const metadata: Metadata = {
@@ -37,7 +38,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${manrope.variable} ${cormorantGaramond.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning className={`${manrope.variable} ${fraunces.variable} antialiased`}>
       <body className="flex flex-col bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300">
         <AuthProvider>
           <ToastProvider>
