@@ -151,16 +151,22 @@ body::after {
   display: none;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-display), serif;
-  font-optical-sizing: auto;
-  letter-spacing: -0.02em;
-  color: var(--ink);
+/* Base heading styles live in @layer base so Tailwind text-* utilities
+   (which live in the utilities layer) can override the default ink colour —
+   e.g. `text-white` headings on dark panels. Unlayered rules would otherwise
+   always beat layered utilities in Tailwind v4 regardless of specificity. */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display), serif;
+    font-optical-sizing: auto;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
 }
 
 /* Fraunces display: high-contrast, editorial */

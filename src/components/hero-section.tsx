@@ -60,14 +60,6 @@ export function HeroSection() {
                 className="animate-ken-burns h-[380px] w-full object-cover transition-transform duration-500 group-hover:scale-105 md:h-[520px]"
                 priority
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#140f0e]/50 via-transparent to-transparent" />
-              <div className="absolute inset-x-4 bottom-4 flex items-center justify-between bg-[#7D1D1D] px-5 py-3.5 text-white">
-                <div>
-                  <p className="text-[9px] font-bold uppercase tracking-[0.24em] text-white/70">Featured</p>
-                  <h2 className="font-serif text-base font-semibold">Saffron Silk Kurti</h2>
-                </div>
-                <span className="font-serif text-lg font-semibold">₹1,899</span>
-              </div>
             </div>
           </div>
         </div>
