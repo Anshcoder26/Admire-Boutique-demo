@@ -5,7 +5,6 @@ import { useState } from "react";
 import { useRouter } from 'next/navigation';
 import { Heart, Shield, Truck, Check } from "lucide-react";
 import { ProductGallery } from "@/components/product-gallery";
-import { DecorativeMotif, MotifDivider, MotifCorner } from "@/components/decorative-motif";
 import { BootiPattern } from "@/components/motifs/booti-pattern";
 import { motifOpacity } from "@/components/motifs/motif-utils";
 import { useToast } from "@/components/ui/toast";
@@ -88,13 +87,12 @@ export function ProductDetail({ product }: { product: Product }) {
           <div className="border-b border-[#7D1D1D]/15 pb-8">
             <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#8B7355]/80">{product.category}</p>
             <div className="mt-3 flex items-start gap-3">
-              <DecorativeMotif className="w-6 h-6 flex-shrink-0 mt-1" color="#D4AF37" variant="lotus" />
-              <h1 className="font-serif text-4xl leading-tight text-[#1a1612] md:text-5xl">{product.name}</h1>
+              <h1 className="font-serif text-4xl leading-[1.05] font-semibold tracking-tight text-[var(--ink)] md:text-5xl">{product.name}</h1>
             </div>
             
             {product.stitchType && (
-              <div className="mt-4 inline-flex items-center gap-2 border-l-2 border-[#D4AF37] pl-4">
-                <span className="text-xs font-bold uppercase tracking-[0.12em] text-[#5e3228]">
+              <div className="mt-4 inline-flex items-center gap-2 border-l-2 border-[#7D1D1D] pl-4">
+                <span className="text-xs font-bold uppercase tracking-[0.14em] text-[#7D1D1D]">
                   {product.stitchType === "Stitched" ? "Stitched" : "Unstitched"}
                 </span>
               </div>
@@ -119,9 +117,9 @@ export function ProductDetail({ product }: { product: Product }) {
           {/* Pricing */}
           <div className="space-y-4 border-y border-[#7D1D1D]/10 py-6">
             <div className="flex items-baseline gap-4">
-              <span className="text-5xl font-bold text-[#1a1612]">₹{product.price}</span>
-              <span className="text-lg text-[#999] line-through">₹{product.originalPrice}</span>
-              <span className="text-sm font-bold text-[#c8563e]">{product.discount}% off</span>
+              <span className="text-5xl font-bold text-[var(--ink)]">₹{product.price}</span>
+              <span className="text-lg text-[var(--ink)]/40 line-through">₹{product.originalPrice}</span>
+              <span className="text-sm font-bold text-[#7D1D1D]">{product.discount}% off</span>
             </div>
             
             {isSoldOut && (
@@ -215,25 +213,25 @@ export function ProductDetail({ product }: { product: Product }) {
           {/* Quantity & Actions */}
           <div className="space-y-4 pt-4">
             <div className="flex items-center gap-4">
-              <div className="flex items-center rounded-full border border-[#7D1D1D]/20">
+              <div className="flex items-center rounded-md border border-[#7D1D1D]/20">
                 <button
                   onClick={() => setQuantity((value) => Math.max(1, value - 1))}
                   disabled={isSoldOut}
-                  className="px-4 py-3 text-[#7D1D1D] hover:bg-[#f9f7f6] rounded-l-full transition"
+                  className="px-4 py-3 text-[#7D1D1D] hover:bg-[#f9f7f6] rounded-l-md transition"
                 >
                   −
                 </button>
-                <span className="px-6 py-3 text-base font-semibold text-[#1a1612] border-x border-[#7D1D1D]/20">{quantity}</span>
+                <span className="px-6 py-3 text-base font-semibold text-[var(--ink)] border-x border-[#7D1D1D]/20">{quantity}</span>
                 <button
                   onClick={() => setQuantity((value) => value + 1)}
                   disabled={isSoldOut}
-                  className="px-4 py-3 text-[#7D1D1D] hover:bg-[#f9f7f6] rounded-r-full transition"
+                  className="px-4 py-3 text-[#7D1D1D] hover:bg-[#f9f7f6] rounded-r-md transition"
                 >
                   +
                 </button>
               </div>
 
-              <button className="flex items-center justify-center w-12 h-12 rounded-full border border-[#7D1D1D]/30 hover:bg-[#f9f7f6] transition" aria-label="Add to wishlist">
+              <button className="flex items-center justify-center w-12 h-12 rounded-md border border-[#7D1D1D]/30 hover:bg-[#f9f7f6] transition" aria-label="Add to wishlist">
                 <Heart className="w-5 h-5 text-[#7D1D1D]" />
               </button>
             </div>
@@ -242,10 +240,10 @@ export function ProductDetail({ product }: { product: Product }) {
               <button
                 onClick={() => addProductToCart(false)}
                 disabled={isSoldOut}
-                className={`w-full py-4 px-6 rounded-full font-semibold text-base transition-all ${
+                className={`w-full py-4 px-6 rounded-md font-semibold uppercase tracking-[0.08em] text-sm transition-all ${
                   isSoldOut
                     ? "cursor-not-allowed bg-[#e4dbd7] text-[#7d6f69]"
-                    : "bg-[#7D1D1D] text-white shadow-[0_10px_30px_rgba(125,29,29,0.25)] hover:bg-[#5a1515] hover:shadow-[0_14px_36px_rgba(125,29,29,0.35)] active:scale-95"
+                    : "bg-[#7D1D1D] text-white hover:bg-[#5a1515] active:scale-95"
                 }`}
               >
                 {isSoldOut ? "Sold Out" : "Add to Cart"}
@@ -253,7 +251,7 @@ export function ProductDetail({ product }: { product: Product }) {
               <button
                 onClick={() => addProductToCart(true)}
                 disabled={isSoldOut}
-                className={`w-full py-4 px-6 rounded-full font-semibold text-base border-2 transition-all ${
+                className={`w-full py-4 px-6 rounded-md font-semibold uppercase tracking-[0.08em] text-sm border-2 transition-all ${
                   isSoldOut
                     ? "cursor-not-allowed border-[#c8b8b1] bg-[#e4dbd7] text-[#7d6f69]"
                     : "border-[#7D1D1D] bg-white text-[#7D1D1D] hover:bg-[#7D1D1D] hover:text-white active:scale-95"
@@ -271,11 +269,9 @@ export function ProductDetail({ product }: { product: Product }) {
         <div className="lg:col-span-2">
           <div className="border-b border-[#7D1D1D]/10 pb-8 mb-8">
             <div className="flex items-center gap-4 mb-6">
-              <DecorativeMotif className="w-5 h-5" color="#D4AF37" variant="flower" />
-              <h2 className="font-serif text-3xl font-bold text-[#1a1612]">Product Details</h2>
-              <DecorativeMotif className="w-5 h-5" color="#D4AF37" variant="flower" />
+              <h2 className="font-serif text-3xl font-semibold tracking-tight text-[var(--ink)]">Product Details</h2>
             </div>
-            <p className="text-base leading-8 text-[#584942] whitespace-pre-line">{product.description}</p>
+            <p className="text-base leading-8 text-[var(--ink)]/70 whitespace-pre-line">{product.description}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-8">
@@ -309,12 +305,9 @@ export function ProductDetail({ product }: { product: Product }) {
       </div>
 
       {/* Why Choose */}
-      <div className="mt-20 border-t border-[#7D1D1D]/10 pt-12">
-        <MotifDivider className="mb-8" />
+      <div className="mt-20 border-t border-[var(--ink)]/10 pt-12">
         <div className="flex items-center justify-center gap-4 mb-8">
-          <DecorativeMotif className="w-6 h-6" color="#D4AF37" variant="lotus" />
-          <h2 className="font-serif text-3xl font-bold text-[#1a1612]">Why Admire Boutique?</h2>
-          <DecorativeMotif className="w-6 h-6" color="#D4AF37" variant="lotus" />
+          <h2 className="font-serif text-3xl font-semibold tracking-tight text-[var(--ink)]">Why Admire Boutique?</h2>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
           {[
@@ -322,12 +315,9 @@ export function ProductDetail({ product }: { product: Product }) {
             { title: "Authentic Design", desc: "Traditional aesthetics meets modern elegance" },
             { title: "Perfect Fit", desc: "Available in multiple sizes and customization options" },
           ].map((item) => (
-            <div key={item.title} className="border border-[#7D1D1D]/10 rounded p-8 hover:shadow-md transition-all relative overflow-hidden group">
-              <div className="absolute top-0 right-0 opacity-20 group-hover:opacity-30 transition">
-                <DecorativeMotif className="w-12 h-12" color="#D4AF37" variant="diamond" />
-              </div>
-              <h3 className="font-semibold text-[#1a1612] mb-3">{item.title}</h3>
-              <p className="text-sm leading-6 text-[#584942]">{item.desc}</p>
+            <div key={item.title} className="border border-[var(--ink)]/10 rounded-lg p-8 hover:shadow-[var(--shadow-md)] hover:border-[#7D1D1D]/30 transition-all">
+              <h3 className="font-serif text-xl font-semibold text-[var(--ink)] mb-3">{item.title}</h3>
+              <p className="text-sm leading-6 text-[var(--ink)]/70">{item.desc}</p>
             </div>
           ))}
         </div>

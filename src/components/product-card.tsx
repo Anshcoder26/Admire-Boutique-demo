@@ -51,8 +51,8 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <Link href={`/products/${product.slug}`}>
-     <article className="group overflow-hidden rounded-[28px] border border-[#7D1D1D]/12 bg-white shadow-[0_10px_30px_rgba(86,65,55,0.06)] hover:shadow-[0_18px_40px_rgba(86,65,55,0.12)] transition-all duration-300 hover:-translate-y-1 hover:border-[#D4AF37]/40 cursor-pointer h-full flex flex-col relative">
-       <div className="relative overflow-hidden rounded-t-[28px] bg-[#f7efe8]">
+     <article className="group overflow-hidden rounded-lg border border-[var(--ink)]/10 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-[#7D1D1D]/30 hover:shadow-[var(--shadow-md)] cursor-pointer h-full flex flex-col relative">
+       <div className="relative overflow-hidden rounded-t-lg bg-[#f5f1ec]">
          <div className="block relative overflow-hidden">
            <Image
              src={product.images?.[0] || "https://images.unsplash.com/photo-1759840278862-ef629e9b0f64?auto=format&fit=crop&w=900&q=80"}
@@ -72,23 +72,23 @@ export function ProductCard({ product }: { product: Product }) {
          ) : null}
        </div>
 
-       <div className="space-y-4 p-5 flex-1 flex flex-col border-t border-[#7D1D1D]/10 relative">
+       <div className="space-y-4 p-5 flex-1 flex flex-col relative">
          <div className="flex items-center justify-between gap-2">
-           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8B7355]">{product.category}</p>
-           <div className="flex items-center gap-1 text-[#D4AF37] bg-[#D4AF37]/10 px-2 py-1 rounded-full">
-             <Star className="h-3.5 w-3.5 fill-current" />
+           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--ink)]/50">{product.category}</p>
+           <div className="flex items-center gap-1 text-[#7D1D1D]">
+             <Star className="h-3.5 w-3.5 fill-[#D4AF37] text-[#D4AF37]" />
              <span className="text-xs font-bold">{product.rating}</span>
            </div>
          </div>
 
          <div className="block group/link flex-1">
-           <h3 className="text-lg font-bold leading-tight text-[#1a1612] group-hover/link:text-[#7D1D1D] transition-colors duration-300">{product.name}</h3>
+           <h3 className="font-serif text-lg font-semibold leading-tight text-[var(--ink)] group-hover/link:text-[#7D1D1D] transition-colors duration-300">{product.name}</h3>
          </div>
 
-         <div className="flex items-end gap-2 border-t border-[#7D1D1D]/10 pt-3">
-           <span className="text-2xl font-bold text-[#7D1D1D]">₹{product.price}</span>
-           <span className="text-sm text-[#999] line-through">₹{product.originalPrice}</span>
-           <span className="text-xs font-bold text-[#8B7355]">({product.discount}% off)</span>
+         <div className="flex items-end gap-2">
+           <span className="text-2xl font-bold text-[var(--ink)]">₹{product.price}</span>
+           <span className="text-sm text-[var(--ink)]/40 line-through">₹{product.originalPrice}</span>
+           <span className="text-xs font-semibold text-[#7D1D1D]">({product.discount}% off)</span>
          </div>
 
          <button
@@ -99,10 +99,10 @@ export function ProductCard({ product }: { product: Product }) {
              handleQuickAdd();
            }}
            disabled={isSoldOut}
-           className={`flex w-full min-h-[48px] items-center justify-center gap-2 rounded-full border px-4 py-3.5 text-sm font-bold shadow-sm transition-all md:min-h-[44px] md:py-3 ${
+           className={`flex w-full min-h-[48px] items-center justify-center gap-2 rounded-md px-4 py-3.5 text-sm font-semibold uppercase tracking-[0.08em] transition-all md:min-h-[44px] md:py-3 ${
              isSoldOut
-               ? "cursor-not-allowed border-[#c8b8b1] bg-[#e4dbd7] text-[#7d6f69]"
-               : "border-[#7D1D1D] bg-[#7D1D1D] text-white hover:bg-[#6a1818] active:scale-[0.98]"
+               ? "cursor-not-allowed bg-[#e4dbd7] text-[#7d6f69]"
+               : "bg-[#7D1D1D] text-white hover:bg-[#641414] active:scale-[0.98]"
            }`}
          >
            <ShoppingBag className="h-5 w-5" />
