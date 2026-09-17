@@ -23,6 +23,10 @@ const fraunces = Fraunces({
 export const metadata: Metadata = {
   title: "Admire Boutique | Premium Indian Kurtis",
   description: "Admire Boutique brings premium Indian fashion, elegant kurtis and festive ethnic wear for modern women.",
+  icons: {
+    icon: "/admire-logo.png",
+    apple: "/admire-logo.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
