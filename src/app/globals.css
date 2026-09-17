@@ -680,6 +680,15 @@ html.intro-active .site-chrome {
   z-index: 40;
 }
 
+/* Same problem for the mobile bottom nav: the unlayered `.app-shell > *` rule
+   overrides its Tailwind `fixed` utility, leaving it position:relative so it
+   scrolls away instead of staying pinned. Restore fixed positioning above the
+   content wrapper. */
+.app-shell > nav.site-chrome {
+  position: fixed;
+  z-index: 40;
+}
+
 /* FabricBooti textile texture: lighter on mobile, full opacity on md+ */
 .fabric-booti {
   opacity: var(--fb-op, 0.05);
