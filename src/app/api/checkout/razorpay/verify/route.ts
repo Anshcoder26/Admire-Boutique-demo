@@ -58,7 +58,12 @@ export async function POST(request: Request) {
       .update(`${body.razorpay_order_id}|${body.razorpay_payment_id}`)
       .digest("hex");
 
-    if (generated_signature !== body.razorpay_signature) {
+    const expected = Buffer.from(generated_signature, "utf8");
+    const provided = Buffer.from(body.razorpay_signature ?? "", "utf8");
+    const signatureValid =
+      expected.length === provided.length && crypto.timingSafeEqual(expected, provided);
+
+    if (!signatureValid) {
       console.error("[RAZORPAY] Signature verification failed for order:", body.order_id ?? "unknown");
       return NextResponse.json(
         { error: "Payment signature verification failed" },
@@ -80,6 +85,14 @@ export async function POST(request: Request) {
           { error: "Payment does not match this order" },
           { status: 400 }
         );
+      }
+
+      // Idempotency: if this order was already verified/paid, don't re-process.
+      if (order.payment_status === "Paid") {
+        return NextResponse.json({
+          success: true,
+          message: "Payment already verified",
+        });
       }
 
       await updateOrder(body.order_id, {

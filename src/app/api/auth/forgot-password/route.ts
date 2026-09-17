@@ -54,9 +54,13 @@ export async function POST(request: Request) {
     // same success message to avoid leaking which emails are registered.
     const token = await createPasswordResetToken(email);
     if (token) {
+      // Build the reset link from the trusted, server-configured base URL first.
+      // Falling back to the request Origin (client-controlled, spoofable) is a
+      // last resort only for local/dev where the env var may be unset — using it
+      // ahead of the configured URL would allow attacker-controlled phishing links.
       const origin =
+        process.env.NEXT_PUBLIC_APP_URL ||
         request.headers.get("origin") ||
-        process.env.NEXT_PUBLIC_SITE_URL ||
         new URL(request.url).origin;
       const resetUrl = `${origin}/reset-password?token=${token}`;
 

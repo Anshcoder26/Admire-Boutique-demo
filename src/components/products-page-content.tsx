@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ProductsSearch } from "@/components/products-search";
 import { ProductGrid } from "@/components/product-grid";
@@ -11,20 +11,26 @@ interface ProductsPageContentProps {
   initialCategory?: string;
 }
 
+function filterByCategory(products: Product[], category?: string): Product[] {
+  return category ? products.filter((p) => p.category === category) : products;
+}
+
 export function ProductsPageContent({ initialProducts, initialCategory }: ProductsPageContentProps) {
   const router = useRouter();
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>(() =>
+    filterByCategory(initialProducts, initialCategory)
+  );
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(initialCategory);
 
-  // Apply initial category filter on mount
-  useEffect(() => {
-    if (initialCategory) {
-      const categoryFiltered = initialProducts.filter(p => p.category === initialCategory);
-      setFilteredProducts(categoryFiltered);
-    } else {
-      setFilteredProducts(initialProducts);
-    }
-  }, [initialCategory, initialProducts]);
+  // Re-derive the category filter during render when the incoming category
+  // changes (e.g. navigating between category links). Adjusting state during
+  // render is the React-recommended alternative to a setState-in-effect.
+  const [prevCategory, setPrevCategory] = useState<string | undefined>(initialCategory);
+  if (initialCategory !== prevCategory) {
+    setPrevCategory(initialCategory);
+    setSelectedCategory(initialCategory);
+    setFilteredProducts(filterByCategory(initialProducts, initialCategory));
+  }
 
   const handleFilter = (filtered: Product[]) => {
     setFilteredProducts(filtered);

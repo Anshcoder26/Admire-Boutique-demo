@@ -39,31 +39,39 @@ export async function POST(request: Request) {
   }
 
   const body = (await request.json()) as {
-    amount: number;
+    amount?: number;
     order_number: string;
     order_id?: string;
   };
 
-  if (!body.amount || !body.order_number) {
-    return NextResponse.json({ error: "Missing amount or order_number" }, { status: 400 });
+  if (!body.order_number) {
+    return NextResponse.json({ error: "Missing order_number" }, { status: 400 });
   }
 
-  // If a DB order id is supplied, it must belong to the authenticated user. We
-  // link the Razorpay order id back to it so the verify step can confirm the
-  // payment corresponds to this exact order (prevents cross-order replay).
-  let dbOrder = null;
-  if (body.order_id) {
-    dbOrder = await getOrderById(body.order_id);
-    if (!dbOrder || dbOrder.customer_id !== user.id) {
-      return NextResponse.json({ error: "Order not found" }, { status: 404 });
-    }
+  // The Razorpay amount is ALWAYS derived from the persisted order total, never
+  // from the client. Trusting a client-supplied amount would let a buyer create
+  // a full-price order and then pay a tiny amount (the verify step only checks
+  // the signature, not the value). So a valid DB order id is mandatory here.
+  if (!body.order_id) {
+    return NextResponse.json({ error: "Missing order_id" }, { status: 400 });
+  }
+
+  const dbOrder = await getOrderById(body.order_id);
+  if (!dbOrder || dbOrder.customer_id !== user.id) {
+    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
+
+  // Server-authoritative amount (in paise). Ignore any client-provided amount.
+  const amountPaise = Math.round(Number(dbOrder.total) * 100);
+  if (!Number.isFinite(amountPaise) || amountPaise <= 0) {
+    return NextResponse.json({ error: "Invalid order total" }, { status: 400 });
   }
 
   try {
-    // Create Razorpay order (amount in paise)
+    // Create Razorpay order (amount in paise), using the trusted order total.
     const razorpay = getRazorpay();
     const rzpOrder = await razorpay.orders.create({
-      amount: Math.round(body.amount * 100), // Convert to paise
+      amount: amountPaise,
       currency: "INR",
       receipt: body.order_number,
       notes: {
@@ -72,13 +80,12 @@ export async function POST(request: Request) {
       },
     });
 
-    if (body.order_id) {
-      await updateOrder(body.order_id, { razorpay_order_id: rzpOrder.id });
-    }
+    await updateOrder(body.order_id, { razorpay_order_id: rzpOrder.id });
 
     return NextResponse.json({
       success: true,
       razorpay_order_id: rzpOrder.id,
+      amount: amountPaise,
       key_id: process.env.RAZORPAY_KEY_ID,
     });
   } catch (error) {

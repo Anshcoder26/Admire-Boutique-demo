@@ -1343,6 +1343,7 @@ export async function verifyAdminCredentials(email: string, password: string): P
     const user = result.rows[0];
     if (!user) {
       logger.debug("[DB] No admin user found for supplied email");
+      await equalizeTiming();
       return null;
     }
     if (!(await verifyPassword(password, user.password_hash))) {
@@ -1354,7 +1355,10 @@ export async function verifyAdminCredentials(email: string, password: string): P
   }
 
   const user = sqliteDb.prepare("SELECT * FROM admin_users WHERE email = ?").get(email) as Record<string, any> | undefined;
-  if (!user) return null;
+  if (!user) {
+    await equalizeTiming();
+    return null;
+  }
 
   const isValid = await verifyPassword(password, user.password_hash);
   if (!isValid) return null;
@@ -1704,7 +1708,7 @@ export async function createCustomer(input: { name: string; email: string; phone
     const existing = await postgresPool!.query("SELECT id FROM customers WHERE email = $1", [email]);
     if (existing.rows[0]) return null;
 
-    const id = `cust-${Date.now()}`;
+    const id = `cust-${randomBytes(8).toString("hex")}`;
     await postgresPool!.query(
       "INSERT INTO customers (id, name, email, phone, password_hash) VALUES ($1, $2, $3, $4, $5)",
       [id, name, email, phone, passwordHash]
@@ -1716,7 +1720,7 @@ export async function createCustomer(input: { name: string; email: string; phone
   const existing = sqliteDb.prepare("SELECT id FROM customers WHERE email = ?").get(email) as { id?: string } | undefined;
   if (existing) return null;
 
-  const id = `cust-${Date.now()}`;
+  const id = `cust-${randomBytes(8).toString("hex")}`;
   sqliteDb.prepare(`
     INSERT INTO customers (id, name, email, phone, password_hash)
     VALUES (?, ?, ?, ?, ?)

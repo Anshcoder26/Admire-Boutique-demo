@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 interface EmailOptions {
   to: string;
@@ -7,8 +8,12 @@ interface EmailOptions {
   from?: string;
 }
 
+interface MailTransport {
+  sendMail: (options: EmailOptions) => Promise<unknown>;
+}
+
 // Configure email service based on environment
-let transporter: nodemailer.Transporter | null = null;
+let transporter: MailTransport | null = null;
 
 function initializeTransporter() {
   if (transporter) return transporter;
@@ -26,9 +31,8 @@ function initializeTransporter() {
     });
   } else if (process.env.RESEND_API_KEY) {
     // Use Resend API (better alternative for India)
-    const { Resend } = require("resend");
     const resend = new Resend(process.env.RESEND_API_KEY);
-    
+
     // Wrap Resend client for compatibility
     transporter = {
       sendMail: async (options: EmailOptions) => {
@@ -39,7 +43,7 @@ function initializeTransporter() {
           html: options.html,
         });
       },
-    } as any;
+    };
   } else {
     console.warn("[EMAIL] No email service configured. Set SMTP_* or RESEND_API_KEY env vars.");
   }

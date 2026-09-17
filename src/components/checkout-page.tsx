@@ -202,6 +202,7 @@ export function CheckoutPage() {
           success?: boolean;
           razorpay_order_id?: string;
           key_id?: string;
+          amount?: number;
           error?: string;
         };
         if (!rzpRes.ok || !rzpData.success || !rzpData.razorpay_order_id) {
@@ -211,7 +212,7 @@ export function CheckoutPage() {
 
         const rzp = new window.Razorpay({
           key: rzpData.key_id,
-          amount: Math.round(amount * 100),
+          amount: rzpData.amount ?? Math.round(amount * 100),
           currency: "INR",
           name: "Admire Boutique",
           description: `Order ${orderNumber}`,
