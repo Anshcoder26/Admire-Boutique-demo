@@ -7,6 +7,7 @@ import { LotusOrnament } from "@/components/lotus-ornament";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 import { FabricBooti } from "@/components/motifs/fabric-booti";
+import { ArtMotif } from "@/components/motifs/art-motif";
 
 export function Footer() {
   const [open, setOpen] = useState(false);
@@ -14,6 +15,13 @@ export function Footer() {
     <footer className="relative isolate mt-0 overflow-hidden border-t border-[var(--ink)]/10 bg-white">
       {/* Subtle Indian suit-fabric booti texture */}
       <FabricBooti opacity={0.05} mobileOpacity={0.03} size={140} motif="lotus" className="-z-10" />
+      {/* Designer peacock resting in the corner of the footer (desktop only) */}
+      <ArtMotif
+        motif="peacock"
+        size={420}
+        opacity={0.5}
+        className="absolute bottom-0 right-[-90px] z-0 hidden lg:block"
+      />
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 pb-0 pt-14 md:px-8 lg:px-10">
         <div className="mb-8 flex items-center justify-center gap-3 text-[#7D1D1D]">

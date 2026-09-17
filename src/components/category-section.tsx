@@ -5,10 +5,20 @@ import { categories } from "@/data/products";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { ButtonLink } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
+import { ArtMotif } from "@/components/motifs/art-motif";
 
 export function CategorySection() {
   return (
-    <Section spacing="md">
+    <Section spacing="md" className="relative overflow-hidden">
+      {/* Designer peacock guarding the category grid (desktop only) */}
+      <ArtMotif
+        motif="peacock"
+        size={360}
+        opacity={0.5}
+        flip
+        className="absolute left-[-120px] top-24 z-0 hidden xl:block"
+      />
+      <div className="relative z-10">
       <SectionHeader
         eyebrow="Curated categories"
         title="Shop by mood"
@@ -44,6 +54,7 @@ export function CategorySection() {
           </Link>
           </Reveal>
         ))}
+      </div>
       </div>
     </Section>
   );

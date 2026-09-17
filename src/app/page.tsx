@@ -3,6 +3,7 @@ import { ArrowRight, Gem, ShoppingBag, ShieldCheck } from "lucide-react";
 import { CategorySection } from "@/components/category-section";
 import { HeroIntro } from "@/components/hero-intro";
 import { FabricBooti } from "@/components/motifs/fabric-booti";
+import { ArtMotif } from "@/components/motifs/art-motif";
 import { ProductGrid } from "@/components/product-grid";
 import { InstagramFeed } from "@/components/instagram-feed";
 import { SectionDivider } from "@/components/ui/section-divider";
@@ -105,11 +106,14 @@ export default async function HomePage() {
       {/* Why choose us */}
       <Section spacing="md">
         <Reveal>
-          <SectionHeader
-            eyebrow="Why Choose Us"
-            title="Designed for Confidence"
-            align="center"
-          />
+          <div className="flex flex-col items-center">
+            <ArtMotif motif="lotus" size={92} opacity={0.9} />
+            <SectionHeader
+              eyebrow="Why Choose Us"
+              title="Designed for Confidence"
+              align="center"
+            />
+          </div>
         </Reveal>
         <div className="grid gap-6 md:grid-cols-3">
           {[
@@ -133,7 +137,10 @@ export default async function HomePage() {
       {/* Reviews */}
       <Section spacing="md">
         <Reveal>
-          <SectionHeader eyebrow="Customer Love" title="Reviews That Feel Like Friends" align="center" />
+          <div className="flex flex-col items-center">
+            <ArtMotif motif="lotus" size={92} opacity={0.9} />
+            <SectionHeader eyebrow="Customer Love" title="Reviews That Feel Like Friends" align="center" />
+          </div>
         </Reveal>
         <div className="grid gap-6 lg:grid-cols-3">
           {reviews.map((review, i) => (

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { FabricBooti } from "./motifs/fabric-booti";
+import { ArtMotif } from "./motifs/art-motif";
 import { ButtonLink } from "@/components/ui/button";
 
 function smoothstep(edge0: number, edge1: number, x: number) {
@@ -23,7 +24,18 @@ function mixRgb(a: [number, number, number], b: [number, number, number], t: num
 /** Editorial hero content (headline, subcopy, CTAs, stats). Rendered dark on ivory. */
 function HeroContent() {
   return (
-    <div className="relative mx-auto flex max-w-5xl flex-col items-center px-4 text-center md:px-8">
+    <div className="relative isolate mx-auto flex max-w-5xl flex-col items-center px-4 text-center md:px-8">
+      {/* Designer peacock — large editorial accent flanking the headline on desktop */}
+      <ArtMotif
+        motif="peacock"
+        size={440}
+        opacity={0.7}
+        priority
+        className="absolute right-[-150px] top-1/2 -z-10 hidden -translate-y-1/2 lg:block xl:right-[-210px]"
+      />
+      {/* Hand-painted lotus crowning the eyebrow */}
+      <ArtMotif motif="lotus" size={104} opacity={0.9} className="mb-1" />
+
       <div className="mb-7 inline-flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.34em] text-[#7D1D1D]">
         <span aria-hidden className="h-px w-8 bg-[#7D1D1D]" />
         Festival Collection 2026

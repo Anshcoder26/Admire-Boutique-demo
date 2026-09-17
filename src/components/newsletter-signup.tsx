@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Mail, Check, AlertCircle } from "lucide-react";
 import { FabricBooti } from "@/components/motifs/fabric-booti";
+import { ArtMotif } from "@/components/motifs/art-motif";
 
 export function NewsletterSignup() {
   const [email, setEmail] = useState("");
@@ -66,6 +67,13 @@ export function NewsletterSignup() {
   return (
     <div className="relative isolate overflow-hidden rounded-[20px] border border-[#eadcd3] bg-gradient-to-br from-[#fffaf6] to-[#f5ede7] p-8 shadow-[0_8px_24px_rgba(84,58,45,0.08)]">
       <FabricBooti opacity={0.05} size={130} motif="lotus" className="-z-10" />
+      {/* Hand-painted lotus accent in the corner */}
+      <ArtMotif
+        motif="lotus"
+        size={150}
+        opacity={0.55}
+        className="absolute -right-6 -top-6 -z-10"
+      />
       <div className="mb-4 flex items-center gap-2">
         <Mail className="h-5 w-5 text-[#7D1D1D]" />
         <h3 className="font-serif text-xl font-semibold text-[#201614]">
