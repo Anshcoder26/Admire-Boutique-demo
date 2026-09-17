@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { consumePasswordResetToken, updateCustomerPassword } from "@/lib/db";
-import { AUTH_RATE_LIMITS } from "@/lib/auth-utils";
+import { consumePasswordResetToken, updateCustomerPassword, destroyCustomerSessions } from "@/lib/db";
+import { AUTH_RATE_LIMITS, validatePasswordStrength } from "@/lib/auth-utils";
 import { checkRateLimit, getClientIp, tooManyRequests } from "@/lib/rate-limiter";
 
 export async function POST(request: Request) {
@@ -25,9 +25,10 @@ export async function POST(request: Request) {
       );
     }
 
-    if (password.length < 8) {
+    const strength = validatePasswordStrength(password);
+    if (!strength.valid) {
       return NextResponse.json(
-        { success: false, error: "Password must be at least 8 characters long" },
+        { success: false, error: strength.errors[0], errors: strength.errors },
         { status: 400 }
       );
     }
@@ -47,6 +48,10 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+
+    // Revoke any existing sessions so a previously-stolen token can't be reused
+    // after the password has been reset.
+    await destroyCustomerSessions(result.email);
 
     return NextResponse.json({
       success: true,

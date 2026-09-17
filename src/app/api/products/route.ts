@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { Product } from "@/data/products";
-import { getCatalogProducts, saveCatalogProducts } from "@/lib/catalog-store";
+import { getCatalogProducts, addCatalogProduct } from "@/lib/catalog-store";
 import { authenticateAdmin } from "@/lib/admin-auth";
 
 export async function GET() {
@@ -21,55 +21,30 @@ export async function POST(request: Request) {
   const price = Number(body.price || 0);
   const stock = Number(body.stock || 0);
 
-  if (!name || !Number.isFinite(price) || !Number.isFinite(stock)) {
+  if (!name || !Number.isFinite(price) || price <= 0 || !Number.isFinite(stock) || stock < 0) {
     return NextResponse.json({ error: "Invalid product payload" }, { status: 400 });
   }
-
-  const products = await getCatalogProducts();
-  const slug = name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "") || `product-${Date.now()}`;
 
   const rawImages = body.images as unknown;
   const imageList = Array.isArray(rawImages)
     ? rawImages.map((url) => String(url).trim()).filter(Boolean)
     : typeof rawImages === "string"
       ? rawImages.split(",").map((url: string) => url.trim()).filter(Boolean)
-      : [
-          "https://images.unsplash.com/photo-1759840278471-462cf3fcebd3?auto=format&fit=crop&w=900&q=80",
-          "https://images.unsplash.com/photo-1740992556357-f7fe9afff763?auto=format&fit=crop&w=900&q=80",
-          "https://images.unsplash.com/photo-1759840278862-ef629e9b0f64?auto=format&fit=crop&w=900&q=80",
-        ];
+      : [];
 
-  const originalPrice = Math.round(price * 1.35);
-  const created: Product = {
-    id: `prod-${Date.now()}`,
-    slug,
+  const created = await addCatalogProduct({
     name,
     category,
     price,
-    originalPrice,
-    discount: Math.min(40, Math.max(10, Math.round(((originalPrice - price) / originalPrice) * 100))),
-    rating: 4.8,
-    reviews: 0,
     stock,
-    isSoldOut: false,
-    badge: "New",
     fabric: String(body.fabric || "Cotton"),
-    description: String(body.description || "Newly added premium kurti from the Admire Boutique collection."),
-    images: imageList.length ? imageList : [
-      "https://images.unsplash.com/photo-1759840278471-462cf3fcebd3?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1740992556357-f7fe9afff763?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1759840278862-ef629e9b0f64?auto=format&fit=crop&w=900&q=80",
-    ],
-    colors: Array.isArray(body.colors) && body.colors.length ? body.colors : [{ name: "Terracotta", hex: "#c06a4f" }],
-    sizes: Array.isArray(body.sizes) && body.sizes.length ? body.sizes : ["XS", "S", "M", "L", "XL"],
+    description: body.description ? String(body.description) : undefined,
+    badge: "New",
+    images: imageList.length ? imageList : undefined,
+    colors: Array.isArray(body.colors) && body.colors.length ? body.colors : undefined,
+    sizes: Array.isArray(body.sizes) && body.sizes.length ? body.sizes : undefined,
     stitchType: body.stitchType === "Stitched" || body.stitchType === "Unstitched" ? body.stitchType : undefined,
-  };
-
-  await saveCatalogProducts([created, ...products]);
+  });
 
   return NextResponse.json({ success: true, product: created }, { status: 201 });
 }

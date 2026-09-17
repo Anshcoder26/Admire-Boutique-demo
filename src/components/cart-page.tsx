@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { STORAGE_KEYS, readJSON, writeJSON } from "@/lib/storage";
 
 type CartItem = {
   productId: string;
@@ -21,8 +22,8 @@ export function CartPage() {
 
   useEffect(() => {
     const syncCart = () => {
-      const stored = JSON.parse(window.localStorage.getItem("admire-cart") || "[]") as CartItem[];
-      setCartItems(stored);
+      const stored = readJSON<CartItem[]>(STORAGE_KEYS.cart, []);
+      setCartItems(Array.isArray(stored) ? stored : []);
     };
 
     syncCart();
@@ -32,7 +33,7 @@ export function CartPage() {
 
   const updateCart = (nextItems: CartItem[]) => {
     setCartItems(nextItems);
-    window.localStorage.setItem("admire-cart", JSON.stringify(nextItems));
+    writeJSON(STORAGE_KEYS.cart, nextItems);
     window.dispatchEvent(new CustomEvent("admire-cart-updated"));
   };
 

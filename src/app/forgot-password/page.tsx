@@ -207,7 +207,7 @@ export default function ForgotPasswordPage() {
                 Email sent! ✓
               </h2>
               <p className="text-base text-[#5a4b45] mb-6 max-w-md mx-auto">
-                Check your email for a password reset link. The link will expire in 1 hour.
+                Check your email for a password reset link. The link will expire in 30 minutes.
               </p>
               <p className="text-sm text-[#8a6f5f] mb-6">
                 Don&apos;t see the email? Check your spam folder or{" "}

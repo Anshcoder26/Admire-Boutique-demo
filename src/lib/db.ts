@@ -64,6 +64,29 @@ function resolveAdminBootstrapPassword(): string {
   return generated;
 }
 
+/**
+ * Resolve the password for the seeded demo customer.
+ * - Prefer SEED_CUSTOMER_PASSWORD from the environment.
+ * - In development, fall back to a printed random password so local login works.
+ * - In production, never ship a publicly-known password: generate a random,
+ *   unknown one (the demo account effectively can't be logged into unless the
+ *   env var is set).
+ */
+function resolveSeedCustomerPassword(): string {
+  const fromEnv = process.env.SEED_CUSTOMER_PASSWORD;
+  if (fromEnv && fromEnv.length >= 8) {
+    return fromEnv;
+  }
+
+  const generated = randomBytes(12).toString("base64url");
+  if (process.env.NODE_ENV !== "production") {
+    console.warn(
+      `[DB] SEED_CUSTOMER_PASSWORD not set — seeding demo customer (${seedCustomer.email}) with a generated dev password: ${generated}`
+    );
+  }
+  return generated;
+}
+
 let postgresReady = false;
 
 // Graceful pool shutdown handler
@@ -326,7 +349,6 @@ const seedCustomer = {
   name: "Ansh Agarwal",
   email: "customer@admireboutique.in",
   phone: "+91 98765 43210",
-  password: "Admire@123",
 };
 
 const seedAddresses = [
@@ -521,6 +543,8 @@ if (!usesPostgres) {
     CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
     CREATE INDEX IF NOT EXISTS idx_password_resets_expires_at ON password_resets(expires_at);
     CREATE INDEX IF NOT EXISTS idx_rate_limits_reset_at ON rate_limits(reset_at);
+    CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
+    CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
   `);
 
   const sqliteProductColumns = sqliteDb.prepare("PRAGMA table_info(products)").all() as Array<{ name: string }>;
@@ -581,7 +605,7 @@ if (!usesPostgres) {
   if (customerCount.count === 0) {
     sqliteDb.prepare(`
       INSERT INTO customers (id, name, email, phone, password_hash) VALUES (?, ?, ?, ?, ?)
-    `).run(seedCustomer.id, seedCustomer.name, seedCustomer.email, seedCustomer.phone, bcryptjs.hashSync(seedCustomer.password, 12));
+    `).run(seedCustomer.id, seedCustomer.name, seedCustomer.email, seedCustomer.phone, bcryptjs.hashSync(resolveSeedCustomerPassword(), 12));
   }
 
   const addressCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM addresses").get() as { count: number };
@@ -778,6 +802,8 @@ async function ensurePostgresReady() {
     await postgresPool.query("CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at)");
     await postgresPool.query("CREATE INDEX IF NOT EXISTS idx_password_resets_expires_at ON password_resets(expires_at)");
     await postgresPool.query("CREATE INDEX IF NOT EXISTS idx_rate_limits_reset_at ON rate_limits(reset_at)");
+    await postgresPool.query("CREATE INDEX IF NOT EXISTS idx_products_category ON products(category)");
+    await postgresPool.query("CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email)");
 
   } catch (err) {
     console.error("[DB] PostgreSQL initialization error:", err);
@@ -872,7 +898,7 @@ async function ensurePostgresReady() {
   if (Number(customerCount.rows[0]?.count ?? 0) === 0) {
     await postgresPool.query(
       "INSERT INTO customers (id, name, email, phone, password_hash) VALUES ($1, $2, $3, $4, $5)",
-      [seedCustomer.id, seedCustomer.name, seedCustomer.email, seedCustomer.phone, await hashPassword(seedCustomer.password)]
+      [seedCustomer.id, seedCustomer.name, seedCustomer.email, seedCustomer.phone, await hashPassword(resolveSeedCustomerPassword())]
     );
   }
 
@@ -1142,33 +1168,44 @@ export async function createProduct(input: {
 export async function replaceAllProducts(products: Product[]) {
   if (usesPostgres) {
     await ensurePostgresReady();
-    await postgresPool!.query("DELETE FROM products");
+    const client = await postgresPool!.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query("DELETE FROM products");
 
-    for (const product of products) {
-      await postgresPool!.query(
-        `INSERT INTO products (id, slug, name, category, price, "originalPrice", discount, rating, reviews, stock, is_sold_out, badge, fabric, description, images, colors, sizes, stitch_type)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
-        [
-          product.id,
-          product.slug,
-          product.name,
-          product.category,
-          product.price,
-          product.originalPrice,
-          product.discount,
-          product.rating,
-          product.reviews,
-          product.stock,
-          Boolean(product.isSoldOut),
-          product.badge ?? null,
-          product.fabric,
-          product.description,
-          JSON.stringify(product.images || []),
-          JSON.stringify(product.colors || []),
-          JSON.stringify(product.sizes || []),
-          product.stitchType ?? null,
-        ]
-      );
+      for (const product of products) {
+        await client.query(
+          `INSERT INTO products (id, slug, name, category, price, "originalPrice", discount, rating, reviews, stock, is_sold_out, badge, fabric, description, images, colors, sizes, stitch_type)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
+          [
+            product.id,
+            product.slug,
+            product.name,
+            product.category,
+            product.price,
+            product.originalPrice,
+            product.discount,
+            product.rating,
+            product.reviews,
+            product.stock,
+            Boolean(product.isSoldOut),
+            product.badge ?? null,
+            product.fabric,
+            product.description,
+            JSON.stringify(product.images || []),
+            JSON.stringify(product.colors || []),
+            JSON.stringify(product.sizes || []),
+            product.stitchType ?? null,
+          ]
+        );
+      }
+
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
     }
 
     return listProducts();
@@ -1346,6 +1383,26 @@ export async function destroySession(token: string) {
     return;
   }
   sqliteDb.prepare("DELETE FROM sessions WHERE token = ?").run(token);
+}
+
+/**
+ * Revoke every customer session for an email. Used after a password reset so
+ * that any previously-issued (possibly stolen) session tokens stop working.
+ */
+export async function destroyCustomerSessions(email: string) {
+  const normalized = String(email || "").trim().toLowerCase();
+  if (!normalized) return;
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    await postgresPool!.query(
+      "DELETE FROM sessions WHERE email = $1 AND user_type = 'customer'",
+      [normalized]
+    );
+    return;
+  }
+  sqliteDb
+    .prepare("DELETE FROM sessions WHERE email = ? AND user_type = 'customer'")
+    .run(normalized);
 }
 
 export type RateLimitResult = { allowed: boolean; remaining: number; retryAfter: number };
@@ -1947,17 +2004,20 @@ export async function listAdminCustomers() {
   }
 
   const customers = sqliteDb.prepare(`
-    SELECT id, email, name, phone, created_at FROM customers ORDER BY created_at DESC LIMIT 500
+    SELECT c.id, c.email, c.name, c.phone, c.created_at,
+           COUNT(o.id) AS totalOrders
+    FROM customers c
+    LEFT JOIN orders o ON o.customer_id = c.id
+    GROUP BY c.id, c.email, c.name, c.phone, c.created_at
+    ORDER BY c.created_at DESC
+    LIMIT 500
   `).all() as Array<Record<string, any>>;
   const subscribers = sqliteDb.prepare(`
     SELECT email, subscribed_at FROM subscribers WHERE status = 'active' ORDER BY subscribed_at DESC LIMIT 500
   `).all() as Array<Record<string, any>>;
 
   return {
-    customers: customers.map((c) => ({
-      ...c,
-      totalOrders: (sqliteDb.prepare("SELECT COUNT(*) as count FROM orders WHERE customer_id = ?").get(c.id) as { count: number }).count,
-    })),
+    customers: customers.map((c) => ({ ...c, totalOrders: Number(c.totalOrders) })),
     subscribers,
   };
 }

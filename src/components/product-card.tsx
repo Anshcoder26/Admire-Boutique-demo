@@ -6,6 +6,7 @@ import { ShoppingBag, Star } from "lucide-react";
 import { WishlistHeart } from "@/components/wishlist-heart";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/toast";
+import { STORAGE_KEYS, readJSON, writeJSON } from "@/lib/storage";
 import type { Product } from "@/data/products";
 
 export function ProductCard({ product }: { product: Product }) {
@@ -19,7 +20,7 @@ export function ProductCard({ product }: { product: Product }) {
       return;
     }
 
-    const cart = JSON.parse(window.localStorage.getItem("admire-cart") || "[]");
+    const cart = readJSON<Array<{ productId: string; color: string; size: string; quantity: number; [k: string]: unknown }>>(STORAGE_KEYS.cart, []);
     const item = {
       productId: product.id,
       name: product.name,
@@ -32,7 +33,7 @@ export function ProductCard({ product }: { product: Product }) {
     };
 
     const existingIndex = cart.findIndex(
-      (entry: { productId: string; color: string; size: string }) =>
+      (entry) =>
         entry.productId === product.id &&
         entry.color === item.color &&
         entry.size === item.size,
@@ -44,7 +45,7 @@ export function ProductCard({ product }: { product: Product }) {
       cart.push(item);
     }
 
-    window.localStorage.setItem("admire-cart", JSON.stringify(cart));
+    writeJSON(STORAGE_KEYS.cart, cart);
     window.dispatchEvent(new CustomEvent("admire-cart-updated"));
     toast.success(`${product.name} added to cart.`);
   };

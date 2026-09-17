@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
     // Clear session cookies
     response.cookies.delete("admire-session");
     response.cookies.delete("admire-refresh");
+    response.cookies.delete("user-type");
 
     // Add security headers
     response.headers.set("X-Content-Type-Options", "nosniff");

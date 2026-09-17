@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { Heart, Shield, Truck, Check } from "lucide-react";
 import { ProductGallery } from "@/components/product-gallery";
 import { BootiPattern } from "@/components/motifs/booti-pattern";
 import { motifOpacity } from "@/components/motifs/motif-utils";
 import { useToast } from "@/components/ui/toast";
+import { STORAGE_KEYS, readJSON, writeJSON } from "@/lib/storage";
 import type { Product } from "@/data/products";
 
 export function ProductDetail({ product }: { product: Product }) {
@@ -18,6 +19,26 @@ export function ProductDetail({ product }: { product: Product }) {
   const [selectedColor, setSelectedColor] = useState(product.colors[0].name);
   const [selectedSize, setSelectedSize] = useState(product.sizes[2] || product.sizes[0]);
   const [quantity, setQuantity] = useState(1);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+
+  useEffect(() => {
+    const wishlist = readJSON<string[]>(STORAGE_KEYS.wishlist, []);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsWishlisted(wishlist.includes(product.id));
+  }, [product.id]);
+
+  const toggleWishlist = () => {
+    const wishlist = readJSON<string[]>(STORAGE_KEYS.wishlist, []);
+    if (wishlist.includes(product.id)) {
+      writeJSON(STORAGE_KEYS.wishlist, wishlist.filter((id) => id !== product.id));
+      setIsWishlisted(false);
+      toast.success(`${product.name} removed from wishlist.`);
+    } else {
+      writeJSON(STORAGE_KEYS.wishlist, [...wishlist, product.id]);
+      setIsWishlisted(true);
+      toast.success(`${product.name} added to wishlist.`);
+    }
+  };
 
   const addProductToCart = (redirectToCheckout = false) => {
     if (typeof window === "undefined") return;
@@ -26,7 +47,7 @@ export function ProductDetail({ product }: { product: Product }) {
       return;
     }
 
-    const cart = JSON.parse(window.localStorage.getItem("admire-cart") || "[]");
+    const cart = readJSON<Array<{ productId: string; color: string; size: string; quantity: number; [k: string]: unknown }>>(STORAGE_KEYS.cart, []);
     const effectiveSize = isUnstitched ? "Unstitched" : selectedSize;
     const item = {
       productId: product.id,
@@ -40,7 +61,7 @@ export function ProductDetail({ product }: { product: Product }) {
     };
 
     const existingIndex = cart.findIndex(
-      (entry: { productId: string; color: string; size: string }) =>
+      (entry) =>
         entry.productId === product.id && entry.color === selectedColor && entry.size === effectiveSize
     );
 
@@ -50,7 +71,7 @@ export function ProductDetail({ product }: { product: Product }) {
       cart.push(item);
     }
 
-    window.localStorage.setItem("admire-cart", JSON.stringify(cart));
+    writeJSON(STORAGE_KEYS.cart, cart);
     window.dispatchEvent(new CustomEvent("admire-cart-updated"));
 
     if (redirectToCheckout) {
@@ -231,8 +252,16 @@ export function ProductDetail({ product }: { product: Product }) {
                 </button>
               </div>
 
-              <button className="flex items-center justify-center w-12 h-12 rounded-md border border-[#7D1D1D]/30 hover:bg-[#f9f7f6] transition" aria-label="Add to wishlist">
-                <Heart className="w-5 h-5 text-[#7D1D1D]" />
+              <button
+                onClick={toggleWishlist}
+                className="flex items-center justify-center w-12 h-12 rounded-md border border-[#7D1D1D]/30 hover:bg-[#f9f7f6] transition"
+                aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                aria-pressed={isWishlisted}
+              >
+                <Heart
+                  className="w-5 h-5 text-[#7D1D1D]"
+                  fill={isWishlisted ? "#7D1D1D" : "none"}
+                />
               </button>
             </div>
 

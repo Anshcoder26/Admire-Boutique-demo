@@ -28,6 +28,8 @@ export async function addCatalogProduct(input: {
   images?: string[];
   colors?: Array<{ name: string; hex: string }>;
   sizes?: string[];
+  isSoldOut?: boolean;
+  stitchType?: "Stitched" | "Unstitched";
 }) {
   return await createProduct(input) as Product;
 }

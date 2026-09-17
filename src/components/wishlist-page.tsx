@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ProductGrid } from "@/components/product-grid";
 import { products } from "@/data/products";
 import type { Product } from "@/data/products";
+import { STORAGE_KEYS, readJSON } from "@/lib/storage";
 
 export function WishlistPage() {
   const [wishlistProducts, setWishlistProducts] = useState<Product[]>([]);
@@ -15,14 +16,10 @@ export function WishlistPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
 
-    const wishlistIds = JSON.parse(localStorage.getItem("admire_wishlist") || "[]");
-    console.log("Wishlist IDs from localStorage:", wishlistIds);
+    const wishlistIds = readJSON<string[]>(STORAGE_KEYS.wishlist, []);
 
     if (wishlistIds.length > 0) {
-      const filtered = products.filter((p: Product) =>
-        wishlistIds.includes(p.id)
-      );
-      console.log("Filtered wishlist products:", filtered.length, filtered);
+      const filtered = products.filter((p: Product) => wishlistIds.includes(p.id));
       setWishlistProducts(filtered);
     }
   }, []);

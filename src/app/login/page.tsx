@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertCircle, ArrowRight, Eye, EyeOff, LockKeyhole, Mail, Loader } from "lucide-react";
 import { useState, useCallback } from "react";
+import { STORAGE_KEYS, readJSON } from "@/lib/storage";
 
 interface FormErrors {
   email?: string;
@@ -135,7 +136,7 @@ export default function LoginPage() {
 
         // If user has cart items and no specific redirect, go to checkout
         if (redirectPath === "/account" && !params.get("redirect")) {
-          const cart = JSON.parse(window.localStorage.getItem("admire-cart") || "[]");
+          const cart = readJSON<unknown[]>(STORAGE_KEYS.cart, []);
           if (cart.length > 0) {
             redirectPath = "/checkout";
           }

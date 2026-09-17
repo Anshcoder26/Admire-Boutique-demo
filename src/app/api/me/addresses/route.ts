@@ -51,15 +51,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Incomplete address details" }, { status: 400 });
   }
 
+  const phoneDigits = String(body.phone).replace(/\D/g, "").slice(-10);
+  if (!/^[6-9]\d{9}$/.test(phoneDigits)) {
+    return NextResponse.json(
+      { error: "Enter a valid 10-digit Indian mobile number" },
+      { status: 400 }
+    );
+  }
+
+  if (!/^\d{6}$/.test(String(body.pincode).trim())) {
+    return NextResponse.json(
+      { error: "Enter a valid 6-digit pincode" },
+      { status: 400 }
+    );
+  }
+
   const address = await createAddress(user.id, {
     label: body.label,
     full_name: body.full_name,
-    phone: body.phone,
+    phone: phoneDigits,
     line1: body.line1,
     line2: body.line2,
     city: body.city,
     state: body.state,
-    pincode: body.pincode,
+    pincode: String(body.pincode).trim(),
     country: body.country || "India",
     is_default: Boolean(body.is_default),
   });

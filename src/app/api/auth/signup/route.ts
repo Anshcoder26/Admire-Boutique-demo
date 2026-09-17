@@ -6,21 +6,13 @@ import {
   getSecureCookieOptions,
   getSessionExpiryTime,
   getRefreshTokenExpiryTime,
+  validatePasswordStrength,
   AUTH_RATE_LIMITS,
 } from "@/lib/auth-utils";
 import { checkRateLimit, getClientIp, tooManyRequests } from "@/lib/rate-limiter";
 
 export async function POST(request: Request) {
   try {
-    const ipRate = await checkRateLimit(
-      `signup:${getClientIp(request)}`,
-      AUTH_RATE_LIMITS.signup.maxAttempts,
-      AUTH_RATE_LIMITS.signup.windowMs
-    );
-    if (!ipRate.allowed) {
-      return tooManyRequests(ipRate.retryAfter);
-    }
-
     const body = (await request.json()) as {
       name?: string;
       email?: string;
@@ -33,6 +25,17 @@ export async function POST(request: Request) {
     const phone = String(body.phone || "").trim();
     const password = String(body.password || "").trim();
 
+    // Rate-limit on IP + email so an attacker can't register unlimited accounts
+    // from one IP by varying the email (e.g. user+1@, user+2@ ...).
+    const ipRate = await checkRateLimit(
+      `signup:${getClientIp(request)}:${email}`,
+      AUTH_RATE_LIMITS.signup.maxAttempts,
+      AUTH_RATE_LIMITS.signup.windowMs
+    );
+    if (!ipRate.allowed) {
+      return tooManyRequests(ipRate.retryAfter);
+    }
+
     if (!name || !email || !phone || !password) {
       return NextResponse.json(
         { error: "Name, email, phone and password are required" },
@@ -40,9 +43,10 @@ export async function POST(request: Request) {
       );
     }
 
-    if (password.length < 8) {
+    const strength = validatePasswordStrength(password);
+    if (!strength.valid) {
       return NextResponse.json(
-        { error: "Password must be at least 8 characters long" },
+        { error: strength.errors[0], errors: strength.errors },
         { status: 400 }
       );
     }

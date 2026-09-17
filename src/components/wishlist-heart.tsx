@@ -2,6 +2,7 @@
 
 import { Heart } from "lucide-react";
 import { useState, useEffect } from "react";
+import { STORAGE_KEYS, readJSON, writeJSON } from "@/lib/storage";
 
 interface WishlistHeartProps {
   productId: string;
@@ -15,24 +16,22 @@ export function WishlistHeart({ productId }: WishlistHeartProps) {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
-    const wishlist = JSON.parse(localStorage.getItem("admire_wishlist") || "[]");
+    const wishlist = readJSON<string[]>(STORAGE_KEYS.wishlist, []);
     setIsWishlisted(wishlist.includes(productId));
   }, [productId]);
 
   const toggleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    const wishlist = JSON.parse(localStorage.getItem("admire_wishlist") || "[]");
-    
+
+    const wishlist = readJSON<string[]>(STORAGE_KEYS.wishlist, []);
+
     if (isWishlisted) {
-      const updated = wishlist.filter((id: string) => id !== productId);
-      localStorage.setItem("admire_wishlist", JSON.stringify(updated));
+      writeJSON(STORAGE_KEYS.wishlist, wishlist.filter((id) => id !== productId));
     } else {
-      wishlist.push(productId);
-      localStorage.setItem("admire_wishlist", JSON.stringify(wishlist));
+      writeJSON(STORAGE_KEYS.wishlist, [...wishlist, productId]);
     }
-    
+
     setIsWishlisted(!isWishlisted);
   };
 
