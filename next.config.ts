@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
-// Security headers applied to every response. CSP is sent in Report-Only mode
-// first so we can tighten it without breaking Next.js inline runtime scripts;
-// switch the header key to "Content-Security-Policy" once verified in the wild.
+// Security headers applied to every response. CSP is enforced; it keeps
+// 'unsafe-inline' for Next.js inline runtime scripts/styles and whitelists the
+// Razorpay checkout CDN + API. No 'unsafe-eval' is granted.
 const contentSecurityPolicy = [
   "default-src 'self'",
   // Next.js injects small inline bootstrap scripts; Razorpay checkout is loaded from their CDN.
@@ -20,7 +20,7 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const securityHeaders = [
-  { key: "Content-Security-Policy-Report-Only", value: contentSecurityPolicy },
+  { key: "Content-Security-Policy", value: contentSecurityPolicy },
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },

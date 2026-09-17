@@ -55,7 +55,7 @@ export function CustomerManagement({ token }: { token: string }) {
     s.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const exportAsCSV = (data: any[], filename: string) => {
+  const exportAsCSV = (data: object[], filename: string) => {
     const csv = [
       Object.keys(data[0]).join(","),
       ...data.map((row) => Object.values(row).map((v) => `"${v}"`).join(",")),

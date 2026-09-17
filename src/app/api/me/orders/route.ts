@@ -36,12 +36,23 @@ function normalizeStatus(status: string): string {
 }
 
 // Convert a raw order row into the shape the order-detail page renders.
-async function toOrderDetail(row: Record<string, any>) {
-  const rawItems: Array<Record<string, any>> = Array.isArray(row.items) ? row.items : [];
+type RawOrderItem = {
+  image?: string;
+  productId?: string;
+  name: string;
+  qty?: number;
+  quantity?: number;
+  price?: number;
+  size?: string;
+  color?: string;
+};
+
+async function toOrderDetail(row: Record<string, unknown>) {
+  const rawItems = (Array.isArray(row.items) ? row.items : []) as RawOrderItem[];
 
   const items = await Promise.all(
     rawItems.map(async (item) => {
-      let image = item.image as string | undefined;
+      let image = item.image;
       if (!image) {
         const product = item.productId
           ? await getProductById(item.productId)
@@ -59,9 +70,9 @@ async function toOrderDetail(row: Record<string, any>) {
     })
   );
 
-  let address: Record<string, any> = {};
+  let address: Record<string, unknown> = {};
   try {
-    address = row.address_json ? JSON.parse(row.address_json) : {};
+    address = row.address_json ? JSON.parse(row.address_json as string) : {};
   } catch {
     address = {};
   }
@@ -73,7 +84,7 @@ async function toOrderDetail(row: Record<string, any>) {
     orderNumber: row.order_number || row.id,
     date: row.created_at || new Date().toISOString(),
     total: Number(row.total ?? 0),
-    status: normalizeStatus(row.status),
+    status: normalizeStatus(String(row.status ?? "")),
     paymentStatus: row.payment_status || "Pending",
     paymentMethod: row.payment_method || "",
     subtotal: Number(row.sub_total ?? 0),

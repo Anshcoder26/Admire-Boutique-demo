@@ -1,5 +1,6 @@
 'use client';
 
+import { useId } from 'react';
 import { motifOpacity, motifColors } from './motif-utils';
 
 interface BootiPatternProps {
@@ -22,7 +23,8 @@ export function BootiPattern({
   density = 'medium',
   children,
 }: BootiPatternProps) {
-  const patternId = `booti-pattern-${Math.random().toString(36).substr(2, 9)}`;
+  const rawId = useId().replace(/[^a-zA-Z0-9]/g, '');
+  const patternId = `booti-pattern-${rawId}`;
 
   // Define spacing based on density
   const spacing = {
@@ -69,7 +71,8 @@ export function BootiPatternSVG({
     dense: 40,
   }[density];
 
-  const patternId = `booti-svg-${Math.random().toString(36).substr(2, 9)}`;
+  const rawId = useId().replace(/[^a-zA-Z0-9]/g, '');
+  const patternId = `booti-svg-${rawId}`;
 
   return (
     <div

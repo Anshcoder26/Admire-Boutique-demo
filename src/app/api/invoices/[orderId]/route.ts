@@ -42,7 +42,13 @@ export async function GET(
     }
 
     // Parse items if stored as JSON string
-    const items =
+    type RawInvoiceItem = {
+      name?: string;
+      qty?: number;
+      quantity?: number;
+      price?: number;
+    };
+    const items: RawInvoiceItem[] =
       typeof order.items === "string" ? JSON.parse(order.items) : order.items || [];
 
     // Parse address if stored as JSON string
@@ -64,10 +70,10 @@ export async function GET(
         pincode: address.pincode || "",
         country: address.country || "India",
       },
-      items: items.map((item: any) => ({
-        name: item.name,
-        quantity: item.qty || item.quantity,
-        price: item.price,
+      items: items.map((item) => ({
+        name: item.name ?? "",
+        quantity: Number(item.qty ?? item.quantity ?? 0),
+        price: Number(item.price ?? 0),
       })),
       subtotal: order.subtotal,
       shipping: order.shipping,
@@ -78,7 +84,7 @@ export async function GET(
       estimatedDelivery: order.estimated_delivery || "4-7 business days",
     });
 
-    return new NextResponse(invoiceStream as any, {
+    return new NextResponse(invoiceStream as unknown as ReadableStream<Uint8Array>, {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="Invoice-${order.order_number}.pdf"`,

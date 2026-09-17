@@ -22,12 +22,13 @@ export function OrderConfirmation() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
 
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    orderId ? "loading" : "error"
+  );
   const [order, setOrder] = useState<OrderDetail | null>(null);
 
   useEffect(() => {
     if (!orderId) {
-      setStatus("error");
       return;
     }
 

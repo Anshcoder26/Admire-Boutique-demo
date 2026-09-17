@@ -1,5 +1,6 @@
 'use client';
 
+import { useId } from 'react';
 import { motifOpacity, motifColors } from './motif-utils';
 
 interface JaalPatternProps {
@@ -22,7 +23,7 @@ export function JaalPattern({
   scale = 'medium',
   children,
 }: JaalPatternProps) {
-  const patternId = `jaal-pattern-${Math.random().toString(36).substr(2, 9)}`;
+  const patternId = `jaal-pattern-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
 
   // Define scale for pattern
   const cellSize = {
@@ -68,7 +69,7 @@ export function JaalPatternSVG({
     large: 80,
   }[scale];
 
-  const patternId = `jaal-svg-${Math.random().toString(36).substr(2, 9)}`;
+  const patternId = `jaal-svg-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const cells = Math.ceil(200 / cellSize) + 1;
 
   return (
