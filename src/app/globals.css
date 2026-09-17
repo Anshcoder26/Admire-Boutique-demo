@@ -374,17 +374,6 @@ html.intro-active .site-chrome {
   transform: translateY(-16px);
   pointer-events: none;
 }
-/* On the homepage the header is pinned (fixed) for the whole page so it never
-   reserves space at the top — otherwise an ivory strip shows above the maroon
-   stage. This is constant (not scroll-dependent) to avoid a feedback loop where
-   toggling the header in/out of flow shifts the measured scroll progress. Only
-   the opacity fades (via `.site-chrome` + `.intro-active`). */
-html.has-hero-intro .site-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-}
 
 /* Respect user motion preferences */
 @media (prefers-reduced-motion: reduce) {

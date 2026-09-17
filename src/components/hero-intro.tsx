@@ -88,6 +88,7 @@ export function HeroIntro() {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const [progress, setProgress] = useState(0);
   const [enabled, setEnabled] = useState(true);
+  const [headerOffset, setHeaderOffset] = useState(0);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -119,23 +120,32 @@ export function HeroIntro() {
     };
   }, []);
 
+  // Measure the sticky header's height so the intro track can be pulled up
+  // beneath it (negative margin) — this lets the maroon stage bleed to the very
+  // top during the splash without an ivory strip, while keeping the header in
+  // normal flow (so the rest of the site lays out correctly, no overlap).
+  useEffect(() => {
+    const measure = () => {
+      const h = document.querySelector<HTMLElement>("header")?.offsetHeight ?? 0;
+      setHeaderOffset(h);
+    };
+    queueMicrotask(measure);
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
   // Hide the header + bottom nav while the maroon splash is on screen; reveal
-  // them as the stage morphs into the ivory hero. `has-hero-intro` pins the
-  // header (position: fixed) for the whole homepage so it doesn't reserve space
-  // at the top (no ivory strip) — kept constant to avoid a scroll-progress
-  // feedback loop. `intro-active` only fades the chrome in/out via opacity.
+  // them as the stage morphs into the ivory hero. `intro-active` fades the
+  // chrome in/out via opacity (the header stays in flow — see headerOffset).
   useEffect(() => {
     const root = document.documentElement;
     if (!enabled) {
       root.classList.remove("intro-active");
-      root.classList.remove("has-hero-intro");
       return;
     }
-    root.classList.add("has-hero-intro");
     root.classList.toggle("intro-active", progress < 0.6);
     return () => {
       root.classList.remove("intro-active");
-      root.classList.remove("has-hero-intro");
     };
   }, [progress, enabled]);
 
@@ -170,7 +180,7 @@ export function HeroIntro() {
   const chromeRevealed = progress >= 0.6;
 
   return (
-    <div ref={trackRef} className="relative h-[220dvh]">
+    <div ref={trackRef} className="relative h-[220dvh]" style={{ marginTop: -headerOffset }}>
       <div
         className={`sticky top-0 flex h-dvh items-center justify-center overflow-hidden ${
           chromeRevealed ? "z-40" : "z-[60]"
