@@ -297,7 +297,6 @@ export function CheckoutPage() {
     setIsSubmitting(true);
     setError("");
 
-    const orderNumber = `AB-${Date.now()}`;
     const address = {
       full_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
       phone: trimmedPhone,
@@ -317,7 +316,6 @@ export function CheckoutPage() {
         },
         credentials: "include",
         body: JSON.stringify({
-          order_number: orderNumber,
           items: cartItems.map((item) => ({
             productId: item.productId,
             name: item.name,
@@ -334,7 +332,7 @@ export function CheckoutPage() {
         }),
       });
 
-      const data = (await response.json()) as { success?: boolean; order?: { id: string }; error?: string };
+      const data = (await response.json()) as { success?: boolean; order?: { id: string; order_number?: string }; error?: string };
 
       if (!response.ok) {
         if (response.status === 409) {
@@ -356,7 +354,7 @@ export function CheckoutPage() {
       // For online payment, run the Razorpay flow and only continue once the
       // payment is verified. The order already exists as "Pending".
       if (paymentMethod === "Razorpay") {
-        const paid = await payWithRazorpay(data.order.id, orderNumber, total, {
+        const paid = await payWithRazorpay(data.order.id, data.order.order_number || data.order.id, total, {
           name: address.full_name,
           email: email.trim(),
           contact: trimmedPhone,

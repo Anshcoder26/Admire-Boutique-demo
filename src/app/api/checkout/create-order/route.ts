@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createOrder, validateUserSessionToken, getProductById, getProductByName, getOrderByNumber } from "@/lib/db";
+import { createOrder, validateUserSessionToken, getProductById, getProductByName, getOrderByNumber, generateOrderNumber, generateTrackingId, DELIVERY_PARTNER, DELIVERY_ESTIMATE } from "@/lib/db";
 import { AUTH_RATE_LIMITS } from "@/lib/auth-utils";
 import { checkRateLimit, tooManyRequests } from "@/lib/rate-limiter";
 import { sendOrderConfirmation, sendAdminNotification } from "@/lib/email-service";
@@ -103,14 +103,14 @@ export async function POST(request: Request) {
       })
     );
 
-    // FIX P4: Duplicate order prevention - check if order already exists
-    const orderNumber = body.order_number || `AB-${Date.now()}`;
-    const existingOrder = await getOrderByNumber(orderNumber);
-    if (existingOrder) {
-      return NextResponse.json(
-        { error: "Order already exists. Please refresh and try again.", order: existingOrder },
-        { status: 409 }
-      );
+    // FIX P4/P3: Order numbers are generated server-side (never trust the
+    // client's timestamp-based value, which is spoofable and can collide).
+    // Retry a few times in the astronomically unlikely event of a collision.
+    let orderNumber = generateOrderNumber();
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const clash = await getOrderByNumber(orderNumber);
+      if (!clash) break;
+      orderNumber = generateOrderNumber();
     }
 
     // FIX P3: Address validation and persistence
@@ -144,9 +144,9 @@ export async function POST(request: Request) {
       // create a "Paid" order without paying.
       payment_status: "Pending",
       payment_method: paymentMethod,
-      delivery_partner: "BlueDart",
-      tracking_id: `BD-${Date.now()}`,
-      estimated_delivery: "Estimated arrival in 4–7 business days",
+      delivery_partner: DELIVERY_PARTNER,
+      tracking_id: generateTrackingId(),
+      estimated_delivery: DELIVERY_ESTIMATE,
       items: validatedItems,
       address: body.address, // FIX P3: Pass address to createOrder
     });

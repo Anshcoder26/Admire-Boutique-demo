@@ -23,6 +23,40 @@ try {
 
 const sqlitePath = path.join(dataDir, "admire_boutique.db");
 
+/**
+ * Default per-statement timeout (ms) applied inside Postgres transactions so a
+ * stuck query (e.g. a lock wait during checkout) can't hold a pooled connection
+ * open indefinitely. Overridable via DB_STATEMENT_TIMEOUT_MS.
+ */
+const PG_STATEMENT_TIMEOUT_MS = Number(process.env.DB_STATEMENT_TIMEOUT_MS) || 8000;
+
+/** Shipping carrier config — configurable per environment. */
+export const DELIVERY_PARTNER = process.env.DELIVERY_PARTNER || "BlueDart";
+const DELIVERY_TRACKING_PREFIX =
+  process.env.DELIVERY_TRACKING_PREFIX ||
+  DELIVERY_PARTNER.replace(/[^A-Za-z]/g, "").slice(0, 2).toUpperCase() ||
+  "AB";
+export const DELIVERY_ESTIMATE =
+  process.env.DELIVERY_ESTIMATE || "Estimated arrival in 4–7 business days";
+
+/**
+ * Generate a collision-resistant, server-authoritative order number.
+ * Format: AB-YYYYMMDD-XXXXXXXX (8 random hex chars). Never derived from
+ * client input or a plain timestamp, so it can't be spoofed or collide on
+ * concurrent checkouts.
+ */
+export function generateOrderNumber(): string {
+  const now = new Date();
+  const ymd = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+  const rand = randomBytes(4).toString("hex").toUpperCase();
+  return `AB-${ymd}-${rand}`;
+}
+
+/** Generate a tracking id for the configured delivery partner. */
+export function generateTrackingId(): string {
+  return `${DELIVERY_TRACKING_PREFIX}-${randomBytes(5).toString("hex").toUpperCase()}`;
+}
+
 const sqliteDb = usesPostgres ? (null as unknown as Database.Database) : new Database(sqlitePath);
 const postgresPool = usesPostgres ? new Pool({
   connectionString: databaseUrl,
@@ -1837,7 +1871,7 @@ export async function createOrder(customerId: string, input: {
   items: Array<{ name: string; size: string; qty: number; price: number; productId?: string }>;
   address?: { id?: string; label?: string; full_name?: string; phone?: string; line1?: string; line2?: string; city?: string; state?: string; pincode?: string; country?: string };
 }) {
-  const id = `ord-${Date.now()}`;
+  const id = `ord-${randomBytes(8).toString("hex")}`;
   const order = {
     id,
     customer_id: customerId,
@@ -1862,6 +1896,9 @@ export async function createOrder(customerId: string, input: {
     try {
       // Start transaction for atomicity (prevents race conditions)
       await client.query('BEGIN');
+      // Bound how long any single statement in this checkout transaction may
+      // run so a lock wait can't pin a pooled connection open indefinitely.
+      await client.query(`SET LOCAL statement_timeout = ${PG_STATEMENT_TIMEOUT_MS}`);
       
       // Insert order
       await client.query(
