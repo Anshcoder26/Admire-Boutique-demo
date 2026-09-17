@@ -12,6 +12,7 @@ export function Header() {
   const { isAuthenticated, isLoading, userType } = useAuth();
   const [cartCount, setCartCount] = useState(0);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
 
   const accountHref = isAuthenticated
@@ -68,6 +69,15 @@ export function Header() {
     router.push("/products");
   };
 
+  const navLinks = [
+    { label: "New In", href: "/products" },
+    { label: "Kurtis", href: "/products" },
+    { label: "Festive", href: "/products" },
+    { label: "Formals", href: "/products" },
+    { label: "Sale", href: "/products" },
+    { label: "FAQ", href: "/faq" },
+  ];
+
   return (
     <>
       <header className="site-chrome sticky top-0 z-50 border-b border-[var(--ink)]/10 bg-white/90 backdrop-blur-sm">
@@ -81,7 +91,12 @@ export function Header() {
         {/* Main header */}
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 md:px-8 lg:px-10">
           {/* Menu button for mobile */}
-          <button className="flex h-11 w-11 items-center justify-center rounded-md border border-[var(--ink)]/15 bg-white text-[var(--ink)] hover:bg-[#faf7f2] transition md:hidden" aria-label="Menu">
+          <button
+            onClick={() => setIsMenuOpen(true)}
+            className="flex h-11 w-11 items-center justify-center rounded-md border border-[var(--ink)]/15 bg-white text-[var(--ink)] hover:bg-[#faf7f2] transition md:hidden"
+            aria-label="Open menu"
+            aria-expanded={isMenuOpen}
+          >
             <Menu className="h-5 w-5" />
           </button>
 
@@ -142,6 +157,71 @@ export function Header() {
           <span className="text-xs uppercase tracking-[0.14em] text-[var(--ink)]/70">Formals</span>
         </div>
       </header>
+
+      {/* Mobile menu drawer */}
+      {isMenuOpen ? (
+        <div
+          className="fixed inset-0 z-[9998] md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu"
+        >
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setIsMenuOpen(false)}
+          />
+          <div className="absolute left-0 top-0 flex h-full w-[82%] max-w-xs flex-col bg-[var(--background)] shadow-[var(--shadow-lg)] animate-[fade-in-up_0.2s_ease-out]">
+            <div className="flex items-center justify-between border-b border-[var(--ink)]/10 px-5 py-4">
+              <div className="flex items-center gap-2">
+                <LotusOrnament className="h-9 w-9 rounded-full border border-[#7D1D1D]/30 bg-[#fff5f0] p-1" />
+                <div>
+                  <div className="font-serif text-lg font-semibold tracking-tight text-[var(--ink)]">Admire Boutique</div>
+                  <div className="text-[9px] uppercase tracking-[0.3em] text-[#7D1D1D]">Ethnic Atelier</div>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsMenuOpen(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-full text-[var(--ink)] transition hover:bg-[#7D1D1D]/8"
+                aria-label="Close menu"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <nav className="flex flex-col gap-1 px-3 py-4">
+              {navLinks.map((link, i) => (
+                <Link
+                  key={`${link.label}-${i}`}
+                  href={link.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="rounded-lg px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--ink)] transition hover:bg-[#7D1D1D]/8 hover:text-[#7D1D1D]"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+
+            <div className="mt-auto border-t border-[var(--ink)]/10 px-5 py-4">
+              <Link
+                href={accountHref}
+                onClick={() => setIsMenuOpen(false)}
+                className="flex w-full items-center justify-center rounded-md bg-[#7D1D1D] px-5 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-[#671818]"
+              >
+                {isLoading ? "..." : isAuthenticated ? "Account" : "Sign in"}
+              </Link>
+              <div className="mt-4 flex items-center justify-center gap-4">
+                <Link href="/wishlist" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2 text-sm text-[var(--ink)]/70 transition hover:text-[#7D1D1D]">
+                  <Heart className="h-4 w-4" /> Wishlist
+                </Link>
+                <span className="h-4 w-px bg-[var(--ink)]/15" />
+                <Link href="/cart" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2 text-sm text-[var(--ink)]/70 transition hover:text-[#7D1D1D]">
+                  <ShoppingBag className="h-4 w-4" /> Cart{cartCount > 0 ? ` (${cartCount})` : ""}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* Global Search Modal */}
       {isSearchOpen ? (

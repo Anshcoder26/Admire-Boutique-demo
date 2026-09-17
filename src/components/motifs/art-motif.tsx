@@ -5,15 +5,15 @@ import Image from "next/image";
  * artwork (painted lotus + peacock) rather than the line-art SVG bootis, so we
  * render them as decorative <Image> layers.
  *
- * The source PNGs sit on a warm cream ground. On light/ivory sections we use
- * `mix-blend-mode: multiply` so that cream ground drops away and only the
- * painted motif remains, and we feather the edges with a radial mask so there
- * is never a hard square boundary.
+ * The source PNGs have a transparent background (the original cream ground was
+ * chroma-keyed out), so they render correctly on any section colour — light
+ * ivory or dark maroon — with a plain `normal` blend. A radial feather mask
+ * softens the edges so there is never a hard square boundary.
  */
 export type ArtMotifName = "lotus" | "peacock";
 
 const SRC: Record<ArtMotifName, string> = {
-  lotus: "/motifs/lotus.png",
+  lotus: "/motifs/lotus-emblem.png",
   peacock: "/motifs/peacock.png",
 };
 
@@ -30,7 +30,7 @@ interface ArtMotifProps {
   mobileSize?: number;
   /** Final visible opacity (keep these visible: 0.4–0.9). */
   opacity?: number;
-  /** Blend against the section background. Use "multiply" on light grounds. */
+  /** Blend against the section background. Transparent art uses "normal". */
   blend?: "multiply" | "normal";
   /** Feather the edges into the background so the cream ground has no hard edge. */
   feather?: boolean;
@@ -46,7 +46,7 @@ export function ArtMotif({
   size = 220,
   mobileSize,
   opacity = 0.6,
-  blend = "multiply",
+  blend = "normal",
   feather = true,
   className = "",
   flip = false,
