@@ -2,11 +2,20 @@ import type { NextConfig } from "next";
 
 // Security headers applied to every response. CSP is enforced; it keeps
 // 'unsafe-inline' for Next.js inline runtime scripts/styles and whitelists the
-// Razorpay checkout CDN + API. No 'unsafe-eval' is granted.
+// Razorpay checkout CDN + API. 'unsafe-eval' is granted ONLY in development
+// (React dev mode needs eval() for debugging); production never uses eval.
+const isDev = process.env.NODE_ENV !== "production";
+const scriptSrc = [
+  "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com",
+  isDev ? "'unsafe-eval'" : "",
+]
+  .filter(Boolean)
+  .join(" ");
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   // Next.js injects small inline bootstrap scripts; Razorpay checkout is loaded from their CDN.
-  "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com",
+  scriptSrc,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "font-src 'self' data:",
