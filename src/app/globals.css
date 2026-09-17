@@ -669,6 +669,17 @@ html.intro-active .site-chrome {
   z-index: 0;
 }
 
+/* The header is a direct child of .app-shell, so the unlayered
+   `.app-shell > *` rule above overrides its Tailwind `sticky`/`z-50` utilities
+   (in Tailwind v4 unlayered rules beat layered utilities). Restore sticky
+   positioning and stack it above the content wrapper so it stays pinned and
+   renders on top of the pinned hero-intro stage. */
+.app-shell > header.site-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
 /* FabricBooti textile texture: lighter on mobile, full opacity on md+ */
 .fabric-booti {
   opacity: var(--fb-op, 0.05);

@@ -174,17 +174,10 @@ export function HeroIntro() {
   const heroOpacity = smoothstep(0.58, 0.82, progress);
   const heroShift = (1 - smoothstep(0.55, 0.85, progress)) * 32;
 
-  // While the maroon splash is up, the stage sits above the chrome (z-[60]) so
-  // there's no header flash on load. Once the chrome is revealed, drop the stage
-  // below the header (z-40) so the header shows on top of the morphed hero.
-  const chromeRevealed = progress >= 0.6;
-
   return (
     <div ref={trackRef} className="relative h-[220dvh]" style={{ marginTop: -headerOffset }}>
       <div
-        className={`sticky top-0 flex h-dvh items-center justify-center overflow-hidden ${
-          chromeRevealed ? "z-40" : "z-[60]"
-        }`}
+        className="sticky top-0 z-40 flex h-dvh items-center justify-center overflow-hidden"
         style={{ backgroundColor: background }}
       >
         {/* Splash layer */}
