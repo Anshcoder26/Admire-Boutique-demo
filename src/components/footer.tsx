@@ -14,7 +14,7 @@ export function Footer() {
   return (
     <footer className="relative isolate mt-0 overflow-hidden border-t border-[var(--ink)]/10 bg-white">
       {/* Designer lotus, tiled as a subtle suit-fabric texture */}
-      <MotifTile motif="lotus" opacity={0.12} mobileOpacity={0.07} size={150} className="-z-10" />
+      <MotifTile motif="lotus" opacity={0.22} mobileOpacity={0.14} size={150} className="-z-10" />
       {/* Designer peacock resting in the corner of the footer */}
       <ArtMotif
         motif="peacock"

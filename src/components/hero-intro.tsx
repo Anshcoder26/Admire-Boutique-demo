@@ -168,7 +168,7 @@ export function HeroIntro() {
   if (!enabled) {
     return (
       <section className="relative overflow-hidden bg-[var(--background)] pb-12 pt-14 md:pb-16 md:pt-24 lg:pt-28">
-        <MotifTile motif="lotus" opacity={0.12} mobileOpacity={0.07} size={160} />
+        <MotifTile motif="lotus" opacity={0.22} mobileOpacity={0.14} size={160} />
         <div className="relative z-10">
           <HeroContent />
         </div>
@@ -228,7 +228,7 @@ export function HeroIntro() {
             pointerEvents: heroOpacity > 0.6 ? "auto" : "none",
           }}
         >
-          <MotifTile motif="lotus" opacity={0.12} mobileOpacity={0.07} size={160} />
+          <MotifTile motif="lotus" opacity={0.22} mobileOpacity={0.14} size={160} />
           <HeroContent />
         </div>
 
