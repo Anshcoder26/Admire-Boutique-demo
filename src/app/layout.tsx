@@ -27,6 +27,9 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "black-translucent",
   },
+  other: {
+    "color-scheme": "only light",
+  },
 };
 
 export const viewport: Viewport = {
@@ -42,7 +45,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="flex flex-col bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300">
         <AuthProvider>
           <ToastProvider>
-            <div className="app-shell flex min-h-dvh flex-col">
+            <div className="app-shell flex min-h-svh flex-col">
               <GlobalOrnaments />
               <Header />
               <div className="flex-1">{children}</div>

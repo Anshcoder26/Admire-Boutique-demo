@@ -190,9 +190,9 @@ export function HeroIntro() {
   const heroShift = (1 - smoothstep(0.55, 0.85, progress)) * 32;
 
   return (
-    <div ref={trackRef} className="relative h-[220dvh]" style={{ marginTop: -headerOffset }}>
+    <div ref={trackRef} className="relative h-[220lvh]" style={{ marginTop: -headerOffset }}>
       <div
-        className="sticky top-0 z-40 flex h-dvh items-center justify-center overflow-hidden"
+        className="sticky top-0 z-40 flex h-lvh items-center justify-center overflow-hidden"
         style={{ backgroundColor: background }}
       >
         {/* Splash layer */}
