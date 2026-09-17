@@ -701,6 +701,19 @@ html.intro-active .site-chrome {
   }
 }
 
+/* ArtMotif designer artwork: smaller box on mobile, full size on md+ */
+.art-motif {
+  width: var(--am-msize, var(--am-size, 220px));
+  height: var(--am-msize, var(--am-size, 220px));
+}
+
+@media (min-width: 768px) {
+  .art-motif {
+    width: var(--am-size, 220px);
+    height: var(--am-size, 220px);
+  }
+}
+
 /* ============================================================
    Festive utility classes (design system — used across phases)
    ============================================================ */

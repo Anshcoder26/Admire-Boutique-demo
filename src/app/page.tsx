@@ -45,7 +45,7 @@ export default async function HomePage() {
       <CategorySection />
 
       <Section spacing="md" className="relative overflow-hidden">
-        <ArtMotif motif="peacock" size={340} opacity={0.4} className="absolute right-0 top-10 z-0 hidden xl:block" />
+        <ArtMotif motif="peacock" size={340} mobileSize={150} opacity={0.4} className="absolute right-[-40px] top-4 z-0 md:top-10 xl:right-0" />
         <div className="relative z-10">
         <Reveal>
           <SectionHeader
@@ -100,7 +100,7 @@ export default async function HomePage() {
       <SectionDivider className="my-2" />
 
       <Section spacing="md" className="relative overflow-hidden">
-        <ArtMotif motif="peacock" size={340} opacity={0.4} flip className="absolute left-0 top-10 z-0 hidden xl:block" />
+        <ArtMotif motif="peacock" size={340} mobileSize={150} opacity={0.4} flip className="absolute left-[-40px] top-4 z-0 md:top-10 xl:left-0" />
         <div className="relative z-10">
         <Reveal>
           <SectionHeader eyebrow="Best Sellers" title="Loved by Everyone" />

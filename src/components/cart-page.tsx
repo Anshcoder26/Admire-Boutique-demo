@@ -59,7 +59,7 @@ export function CartPage() {
 
   return (
     <div className="relative overflow-hidden">
-      <ArtMotif motif="peacock" size={360} opacity={0.4} className="absolute -right-24 top-16 z-0 hidden xl:block" />
+      <ArtMotif motif="peacock" size={360} mobileSize={160} opacity={0.4} className="absolute -right-16 top-12 z-0 md:top-16 xl:-right-24" />
       <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
       <div className="mb-6 flex items-center gap-3">
         <div>

@@ -10,13 +10,14 @@ import { ArtMotif } from "@/components/motifs/art-motif";
 export function CategorySection() {
   return (
     <Section spacing="md" className="relative overflow-hidden">
-      {/* Designer peacock guarding the category grid (desktop only) */}
+      {/* Designer peacock guarding the category grid */}
       <ArtMotif
         motif="peacock"
         size={360}
+        mobileSize={170}
         opacity={0.5}
         flip
-        className="absolute left-[-120px] top-24 z-0 hidden xl:block"
+        className="absolute left-[-60px] top-16 z-0 md:top-24 xl:left-[-120px]"
       />
       <div className="relative z-10">
       <SectionHeader

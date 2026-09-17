@@ -14,7 +14,7 @@ export default async function ProductsPage({
 
   return (
     <main className="px-4 py-8 md:px-8 lg:px-10 relative overflow-hidden">
-      <ArtMotif motif="peacock" size={400} opacity={0.4} className="absolute -right-28 top-32 z-0 hidden xl:block" />
+      <ArtMotif motif="peacock" size={400} mobileSize={170} opacity={0.4} className="absolute -right-16 top-24 z-0 md:top-32 xl:-right-28" />
       <div className="mx-auto max-w-7xl relative z-10">
         <div className="mb-6 flex items-center gap-2 md:gap-3">
           <LotusOrnament className="h-10 w-10 md:h-11 md:w-11 rounded-full border border-[#7D1D1D]/25 bg-[#fff5f0] p-2" />

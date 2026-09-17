@@ -15,12 +15,13 @@ export function Footer() {
     <footer className="relative isolate mt-0 overflow-hidden border-t border-[var(--ink)]/10 bg-white">
       {/* Designer lotus, tiled as a subtle suit-fabric texture */}
       <MotifTile motif="lotus" opacity={0.12} mobileOpacity={0.07} size={150} className="-z-10" />
-      {/* Designer peacock resting in the corner of the footer (desktop only) */}
+      {/* Designer peacock resting in the corner of the footer */}
       <ArtMotif
         motif="peacock"
         size={420}
+        mobileSize={200}
         opacity={0.5}
-        className="absolute bottom-0 right-[-90px] z-0 hidden lg:block"
+        className="absolute bottom-0 right-[-60px] z-0 lg:right-[-90px]"
       />
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 pb-0 pt-14 md:px-8 lg:px-10">

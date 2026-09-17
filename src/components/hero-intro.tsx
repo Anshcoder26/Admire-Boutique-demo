@@ -25,13 +25,14 @@ function mixRgb(a: [number, number, number], b: [number, number, number], t: num
 function HeroContent() {
   return (
     <div className="relative isolate mx-auto flex max-w-5xl flex-col items-center px-4 text-center md:px-8">
-      {/* Designer peacock — large editorial accent flanking the headline on desktop */}
+      {/* Designer peacock — editorial accent flanking the headline */}
       <ArtMotif
         motif="peacock"
         size={440}
-        opacity={0.7}
+        mobileSize={200}
+        opacity={0.55}
         priority
-        className="absolute right-[-150px] top-1/2 -z-10 hidden -translate-y-1/2 lg:block xl:right-[-210px]"
+        className="absolute right-[-70px] top-1/2 -z-10 -translate-y-1/2 lg:right-[-150px] xl:right-[-210px]"
       />
       {/* Hand-painted lotus crowning the eyebrow */}
       <ArtMotif motif="lotus" size={104} opacity={0.9} className="mb-1" />

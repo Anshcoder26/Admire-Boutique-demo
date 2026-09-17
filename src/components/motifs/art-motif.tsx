@@ -24,8 +24,10 @@ const ALT: Record<ArtMotifName, string> = {
 
 interface ArtMotifProps {
   motif: ArtMotifName;
-  /** Rendered box size in px (square). */
+  /** Rendered box size in px (square) on md+ screens. */
   size?: number;
+  /** Optional smaller box size in px on mobile (< md). Defaults to `size`. */
+  mobileSize?: number;
   /** Final visible opacity (keep these visible: 0.4–0.9). */
   opacity?: number;
   /** Blend against the section background. Use "multiply" on light grounds. */
@@ -42,6 +44,7 @@ interface ArtMotifProps {
 export function ArtMotif({
   motif,
   size = 220,
+  mobileSize,
   opacity = 0.6,
   blend = "multiply",
   feather = true,
@@ -53,13 +56,17 @@ export function ArtMotif({
     ? "radial-gradient(closest-side, #000 62%, transparent 100%)"
     : undefined;
 
+  const mSize = mobileSize ?? size;
+
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none select-none ${className}`}
+      className={`art-motif pointer-events-none select-none ${className}`}
       style={{
-        width: size,
-        height: size,
+        // Consumed by the .art-motif rule in globals.css: smaller on mobile,
+        // full size on md+ screens.
+        ["--am-size" as string]: `${size}px`,
+        ["--am-msize" as string]: `${mSize}px`,
         opacity,
         mixBlendMode: blend,
         transform: flip ? "scaleX(-1)" : undefined,
