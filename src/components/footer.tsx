@@ -24,7 +24,7 @@ export function Footer() {
         className="absolute bottom-0 right-[-60px] z-0 lg:right-[-90px]"
       />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-0 pt-14 md:px-8 lg:px-10">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-24 pt-14 md:px-8 md:pb-0 lg:px-10">
         <div className="mb-8 flex items-center justify-center gap-3 text-[#7D1D1D]">
           <span className="h-px w-10 bg-[var(--ink)]/15" />
           <span className="text-[10px] font-semibold uppercase tracking-[0.3em]">Crafted with tradition</span>

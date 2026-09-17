@@ -659,6 +659,7 @@ html.intro-active .site-chrome {
 .app-shell {
   position: relative;
   isolation: isolate;
+  overflow-x: clip;
 }
 
 .app-shell > * {
