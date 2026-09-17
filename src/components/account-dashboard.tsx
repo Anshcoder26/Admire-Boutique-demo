@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from "react";
 import { ArrowRight, CheckCircle2, MapPin, PackageCheck, Truck } from "lucide-react";
+import { ArtMotif } from "@/components/motifs/art-motif";
 
 type Customer = {
   id: string;
@@ -107,7 +108,9 @@ export function AccountDashboard() {
   const defaultAddress = addresses.find((item) => item.is_default === 1) || addresses[0];
 
   return (
-    <main className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
+    <div className="relative overflow-hidden">
+      <ArtMotif motif="peacock" size={360} opacity={0.4} flip className="absolute -left-24 top-24 z-0 hidden xl:block" />
+      <main className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7D1D1D]">My account</p>
@@ -217,5 +220,6 @@ export function AccountDashboard() {
         </div>
       </div>
     </main>
+    </div>
   );
 }

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { STORAGE_KEYS, readJSON, writeJSON } from "@/lib/storage";
+import { ArtMotif } from "@/components/motifs/art-motif";
 
 type CartItem = {
   productId: string;
@@ -57,7 +58,9 @@ export function CartPage() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
+    <div className="relative overflow-hidden">
+      <ArtMotif motif="peacock" size={360} opacity={0.4} className="absolute -right-24 top-16 z-0 hidden xl:block" />
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
       <div className="mb-6 flex items-center gap-3">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7D1D1D]">Your bag</p>
@@ -129,6 +132,7 @@ export function CartPage() {
           </aside>
         </div>
       )}
+    </div>
     </div>
   );
 }

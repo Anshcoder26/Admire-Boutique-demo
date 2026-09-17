@@ -7,6 +7,7 @@ import { ProductGrid } from "@/components/product-grid";
 import { products } from "@/data/products";
 import type { Product } from "@/data/products";
 import { STORAGE_KEYS, readJSON } from "@/lib/storage";
+import { ArtMotif } from "@/components/motifs/art-motif";
 
 export function WishlistPage() {
   const [wishlistProducts, setWishlistProducts] = useState<Product[]>([]);
@@ -27,7 +28,9 @@ export function WishlistPage() {
   if (!mounted) return null;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
+    <div className="relative overflow-hidden">
+      <ArtMotif motif="peacock" size={360} opacity={0.4} flip className="absolute -left-24 top-16 z-0 hidden xl:block" />
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
       <div className="mb-6 flex items-center gap-3">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7D1D1D]">Saved items</p>
@@ -52,6 +55,7 @@ export function WishlistPage() {
           <ProductGrid products={wishlistProducts} />
         </div>
       )}
+    </div>
     </div>
   );
 }

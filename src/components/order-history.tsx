@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { LotusOrnament } from "@/components/lotus-ornament";
+import { ArtMotif } from "@/components/motifs/art-motif";
 import { Package, ArrowRight } from "lucide-react";
 
 type Order = {
@@ -73,7 +74,9 @@ export function OrderHistory() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
+    <div className="relative overflow-hidden">
+      <ArtMotif motif="peacock" size={360} opacity={0.4} className="absolute -right-24 top-24 z-0 hidden xl:block" />
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
       <div className="mb-6 flex items-center gap-3">
         <LotusOrnament className="h-11 w-11 rounded-full border border-[#d7c1af] bg-white/80 p-2" />
         <div>
@@ -146,6 +149,7 @@ export function OrderHistory() {
           ))}
         </div>
       )}
+    </div>
     </div>
   );
 }
