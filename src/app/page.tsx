@@ -2,7 +2,7 @@ import Image from "next/image";
 import { ArrowRight, Gem, ShoppingBag, ShieldCheck } from "lucide-react";
 import { CategorySection } from "@/components/category-section";
 import { HeroIntro } from "@/components/hero-intro";
-import { FabricBooti } from "@/components/motifs/fabric-booti";
+import { MotifTile } from "@/components/motifs/motif-tile";
 import { ArtMotif } from "@/components/motifs/art-motif";
 import { ProductGrid } from "@/components/product-grid";
 import { InstagramFeed } from "@/components/instagram-feed";
@@ -44,7 +44,9 @@ export default async function HomePage() {
 
       <CategorySection />
 
-      <Section spacing="md">
+      <Section spacing="md" className="relative overflow-hidden">
+        <ArtMotif motif="peacock" size={340} opacity={0.4} className="absolute right-0 top-10 z-0 hidden xl:block" />
+        <div className="relative z-10">
         <Reveal>
           <SectionHeader
             eyebrow="Fresh Arrivals"
@@ -57,6 +59,7 @@ export default async function HomePage() {
           />
         </Reveal>
         <ProductGrid products={newArrivals} />
+        </div>
       </Section>
 
       <SectionDivider className="my-2" />
@@ -65,7 +68,7 @@ export default async function HomePage() {
       <Section spacing="md">
         <Reveal variant="scale">
         <div className="relative isolate overflow-hidden rounded-xl bg-[#7D1D1D] p-6 text-white shadow-[var(--shadow-lg)] md:p-12">
-          <FabricBooti opacity={0.06} size={140} motif="lotus" className="-z-10" />
+          <MotifTile motif="lotus" opacity={0.1} mobileOpacity={0.06} size={150} className="-z-10" />
           <div className="grid gap-8 lg:grid-cols-[1fr_0.95fr] lg:items-center">
             <div>
               <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#E9C766]">Featured Collection</p>
@@ -96,11 +99,14 @@ export default async function HomePage() {
 
       <SectionDivider className="my-2" />
 
-      <Section spacing="md">
+      <Section spacing="md" className="relative overflow-hidden">
+        <ArtMotif motif="peacock" size={340} opacity={0.4} flip className="absolute left-0 top-10 z-0 hidden xl:block" />
+        <div className="relative z-10">
         <Reveal>
           <SectionHeader eyebrow="Best Sellers" title="Loved by Everyone" />
         </Reveal>
         <ProductGrid products={bestSellers} />
+        </div>
       </Section>
 
       {/* Why choose us */}

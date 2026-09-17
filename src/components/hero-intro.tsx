@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
-import { FabricBooti } from "./motifs/fabric-booti";
+import { MotifTile } from "./motifs/motif-tile";
 import { ArtMotif } from "./motifs/art-motif";
 import { ButtonLink } from "@/components/ui/button";
 
@@ -165,7 +165,7 @@ export function HeroIntro() {
   if (!enabled) {
     return (
       <section className="relative overflow-hidden bg-[var(--background)] pb-12 pt-14 md:pb-16 md:pt-24 lg:pt-28">
-        <FabricBooti opacity={0.05} mobileOpacity={0.03} size={170} motif="lotus" />
+        <MotifTile motif="lotus" opacity={0.12} mobileOpacity={0.07} size={160} />
         <div className="relative z-10">
           <HeroContent />
         </div>
@@ -197,7 +197,7 @@ export function HeroIntro() {
           className="absolute inset-0 flex items-center justify-center will-change-transform"
           style={{ opacity: brandOpacity, pointerEvents: "none" }}
         >
-          <FabricBooti opacity={0.08} mobileOpacity={0.06} size={200} motif="lotus" />
+          <MotifTile motif="lotus" opacity={0.1} mobileOpacity={0.06} size={190} />
           <span aria-hidden className="pointer-events-none absolute inset-x-8 top-10 h-px bg-white/15" />
           <span aria-hidden className="pointer-events-none absolute inset-x-8 bottom-10 h-px bg-white/15" />
           <div
@@ -225,6 +225,7 @@ export function HeroIntro() {
             pointerEvents: heroOpacity > 0.6 ? "auto" : "none",
           }}
         >
+          <MotifTile motif="lotus" opacity={0.12} mobileOpacity={0.07} size={160} />
           <HeroContent />
         </div>
 

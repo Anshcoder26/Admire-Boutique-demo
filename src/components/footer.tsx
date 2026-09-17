@@ -6,15 +6,15 @@ import { useState } from "react";
 import { LotusOrnament } from "@/components/lotus-ornament";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NewsletterSignup } from "@/components/newsletter-signup";
-import { FabricBooti } from "@/components/motifs/fabric-booti";
+import { MotifTile } from "@/components/motifs/motif-tile";
 import { ArtMotif } from "@/components/motifs/art-motif";
 
 export function Footer() {
   const [open, setOpen] = useState(false);
   return (
     <footer className="relative isolate mt-0 overflow-hidden border-t border-[var(--ink)]/10 bg-white">
-      {/* Subtle Indian suit-fabric booti texture */}
-      <FabricBooti opacity={0.05} mobileOpacity={0.03} size={140} motif="lotus" className="-z-10" />
+      {/* Designer lotus, tiled as a subtle suit-fabric texture */}
+      <MotifTile motif="lotus" opacity={0.12} mobileOpacity={0.07} size={150} className="-z-10" />
       {/* Designer peacock resting in the corner of the footer (desktop only) */}
       <ArtMotif
         motif="peacock"
