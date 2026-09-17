@@ -21,8 +21,39 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://admire-boutique-demo.vercel.app"),
   title: "Admire Boutique | Premium Indian Kurtis",
   description: "Admire Boutique brings premium Indian fashion, elegant kurtis and festive ethnic wear for modern women.",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/admire-logo.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Admire Boutique",
+    title: "Admire Boutique | Premium Indian Kurtis",
+    description: "Premium Indian fashion, elegant kurtis and festive ethnic wear for modern women.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Admire Boutique — Ethnic Atelier",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Admire Boutique | Premium Indian Kurtis",
+    description: "Premium Indian fashion, elegant kurtis and festive ethnic wear for modern women.",
+    images: ["/og-image.png"],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

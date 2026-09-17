@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Mail, MapPin, MessageCircleMore, Phone, Camera, Video } from "lucide-react";
 import { useState } from "react";
-import { LotusOrnament } from "@/components/lotus-ornament";
+import { AbLogo } from "@/components/ab-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 import { MotifTile } from "@/components/motifs/motif-tile";
@@ -38,7 +38,7 @@ export function Footer() {
         <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-5">
           <div className="xl:col-span-2">
             <div className="mb-4 flex items-center gap-3">
-              <LotusOrnament className="h-11 w-11 rounded-full border border-[#7D1D1D]/25 bg-[#fff5f0] p-1.5" />
+              <AbLogo className="h-11 w-11 rounded-full border border-[#7D1D1D]/25 bg-[#fff5f0] p-1.5 text-[#7D1D1D]" />
               <div>
                 <div className="font-serif text-2xl font-semibold tracking-tight text-[var(--ink)]">Admire Boutique</div>
                 <div className="text-[10px] uppercase tracking-[0.3em] text-[#7D1D1D]">Ethnic Atelier</div>

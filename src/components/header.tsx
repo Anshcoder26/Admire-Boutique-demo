@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Heart, Search, ShoppingBag, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LotusOrnament } from "@/components/lotus-ornament";
+import { AbLogo } from "@/components/ab-logo";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/providers/auth-provider";
 
@@ -81,8 +81,8 @@ export function Header() {
         {/* Main header */}
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 md:px-8 lg:px-10">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 flex-1 md:flex-initial">
-            <LotusOrnament className="h-10 w-10 md:h-11 md:w-11 rounded-full border border-[#7D1D1D]/30 bg-[#fff5f0] p-1" />
+          <Link href="/" className="flex items-center gap-2.5 flex-1 md:flex-initial">
+            <AbLogo className="h-10 w-10 md:h-11 md:w-11 rounded-full border border-[#7D1D1D]/25 bg-[#fff5f0] p-1.5 text-[#7D1D1D]" />
             <div className="block">
               <div className="font-serif text-lg sm:text-xl md:text-2xl font-semibold tracking-tight text-[var(--ink)]">Admire Boutique</div>
               <div className="text-[9px] md:text-[10px] uppercase tracking-[0.3em] text-[#7D1D1D]">Ethnic Atelier</div>
