@@ -1,5 +1,10 @@
+import { Suspense } from "react";
 import { OrderConfirmation } from "@/components/order-confirmation";
 
 export default function OrderConfirmationRoute() {
-  return <OrderConfirmation />;
+  return (
+    <Suspense fallback={null}>
+      <OrderConfirmation />
+    </Suspense>
+  );
 }

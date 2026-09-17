@@ -470,6 +470,9 @@ if (!usesPostgres) {
       estimated_delivery TEXT,
       items_json TEXT NOT NULL,
       address_json TEXT DEFAULT '{}',
+      razorpay_order_id TEXT,
+      razorpay_payment_id TEXT,
+      payment_verified_at TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (customer_id) REFERENCES customers(id)
     );
@@ -531,6 +534,15 @@ if (!usesPostgres) {
   const sqliteOrderColumns = sqliteDb.prepare("PRAGMA table_info(orders)").all() as Array<{ name: string }>;
   if (!sqliteOrderColumns.some((column) => column.name === "address_json")) {
     sqliteDb.exec("ALTER TABLE orders ADD COLUMN address_json TEXT DEFAULT '{}';");
+  }
+  if (!sqliteOrderColumns.some((column) => column.name === "razorpay_order_id")) {
+    sqliteDb.exec("ALTER TABLE orders ADD COLUMN razorpay_order_id TEXT;");
+  }
+  if (!sqliteOrderColumns.some((column) => column.name === "razorpay_payment_id")) {
+    sqliteDb.exec("ALTER TABLE orders ADD COLUMN razorpay_payment_id TEXT;");
+  }
+  if (!sqliteOrderColumns.some((column) => column.name === "payment_verified_at")) {
+    sqliteDb.exec("ALTER TABLE orders ADD COLUMN payment_verified_at TEXT;");
   }
 
   const productsCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM products").get() as { count: number };
@@ -703,6 +715,9 @@ async function ensurePostgresReady() {
         estimated_delivery TEXT,
         items_json TEXT NOT NULL,
         address_json TEXT DEFAULT '{}',
+        razorpay_order_id TEXT,
+        razorpay_payment_id TEXT,
+        payment_verified_at TIMESTAMPTZ,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
@@ -778,6 +793,21 @@ async function ensurePostgresReady() {
     await postgresPool.query(`
       ALTER TABLE orders
       ADD COLUMN IF NOT EXISTS address_json TEXT DEFAULT '{}'
+    `);
+
+    await postgresPool.query(`
+      ALTER TABLE orders
+      ADD COLUMN IF NOT EXISTS razorpay_order_id TEXT
+    `);
+
+    await postgresPool.query(`
+      ALTER TABLE orders
+      ADD COLUMN IF NOT EXISTS razorpay_payment_id TEXT
+    `);
+
+    await postgresPool.query(`
+      ALTER TABLE orders
+      ADD COLUMN IF NOT EXISTS payment_verified_at TIMESTAMPTZ
     `);
 
   const productCount = await postgresPool.query("SELECT COUNT(*) as count FROM products");
@@ -2116,7 +2146,7 @@ export async function getOrderById(orderId: string) {
       discount: Number(row.discount),
       total: Number(row.total),
       items: row.items_json ? JSON.parse(row.items_json) : [],
-      shipping_address: row.shipping_address_json ? JSON.parse(row.shipping_address_json) : {},
+      shipping_address: row.address_json ? JSON.parse(row.address_json) : {},
     };
   }
 
@@ -2133,7 +2163,7 @@ export async function getOrderById(orderId: string) {
     discount: row.discount,
     total: row.total,
     items: row.items_json ? JSON.parse(row.items_json) : [],
-    shipping_address: row.shipping_address_json ? JSON.parse(row.shipping_address_json) : {},
+    shipping_address: row.address_json ? JSON.parse(row.address_json) : {},
   };
 }
 

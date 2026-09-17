@@ -4,6 +4,37 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, Loader } from "lucide-react";
 
+declare global {
+  interface Window {
+    Razorpay?: new (options: Record<string, unknown>) => { open: () => void; on: (event: string, cb: (resp: unknown) => void) => void };
+  }
+}
+
+// Load the Razorpay checkout script on demand. Resolves false if it can't load
+// (e.g. offline) so the caller can surface a friendly error.
+function loadRazorpayScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined") return resolve(false);
+    if (window.Razorpay) return resolve(true);
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
+
+// Safely read + parse a JSON array from localStorage; never throws on corrupt data.
+function readCart<T>(key: string): T[] {
+  try {
+    const raw = window.localStorage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? (parsed as T[]) : [];
+  } catch {
+    return [];
+  }
+}
+
 type CartItem = {
   productId: string;
   name: string;
@@ -41,12 +72,36 @@ export function CheckoutPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [customer, setCustomer] = useState<Customer | null>(null);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [paymentMethod, setPaymentMethod] = useState("Cash on Delivery");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>("");
+
+  // Controlled customer + address fields so typed-in values are actually
+  // captured (previously uncontrolled defaultValue inputs were ignored, which
+  // blocked checkout for anyone without a saved address).
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [line1, setLine1] = useState("");
+  const [line2, setLine2] = useState("");
+  const [city, setCity] = useState("");
+  const [stateName, setStateName] = useState("");
+  const [pincode, setPincode] = useState("");
+  const [country, setCountry] = useState("India");
+
+  // Select a saved address and copy its values into the editable fields.
+  const applyAddress = (addr: Address) => {
+    setSelectedAddress(addr);
+    setLine1(addr.line1 || "");
+    setLine2(addr.line2 || "");
+    setCity(addr.city || "");
+    setStateName(addr.state || "");
+    setPincode(addr.pincode || "");
+    setCountry(addr.country || "India");
+  };
 
   // Check authentication and load customer data
   useEffect(() => {
@@ -62,38 +117,32 @@ export function CheckoutPage() {
           setError(""); // Clear any error when authenticated
           const meData = (await meRes.json()) as { user?: Customer };
           if (meData.user) {
-            setCustomer(meData.user);
+            const parts = (meData.user.name || "").trim().split(" ");
+            setFirstName(parts[0] || "");
+            setLastName(parts.slice(1).join(" "));
+            setEmail(meData.user.email || "");
+            setPhone(meData.user.phone || "");
           }
 
           if (addressesRes.ok) {
             const addressData = (await addressesRes.json()) as { addresses?: Address[] };
             if (addressData.addresses?.length) {
               setAddresses(addressData.addresses);
-              // Set default address
+              // Set default address and prefill the editable address fields.
               const defaultAddr = addressData.addresses.find((a) => a.is_default === 1) || addressData.addresses[0];
-              setSelectedAddress(defaultAddr);
+              applyAddress(defaultAddr);
             }
           }
         } else {
-          const token = window.localStorage.getItem("admire-user-token");
-          if (token) {
-            setIsAuthenticated(true);
-            setError("");
-          } else {
-            setIsAuthenticated(false);
-            setError("Please log in to place an order");
-          }
-        }
-      } catch (e) {
-        console.error("[CHECKOUT] Auth check error:", e);
-        const token = window.localStorage.getItem("admire-user-token");
-        if (token) {
-          setIsAuthenticated(true);
-          setError("");
-        } else {
+          // The httpOnly session cookie is the single source of truth. If
+          // /api/auth/me rejects it, the user is not authenticated.
           setIsAuthenticated(false);
           setError("Please log in to place an order");
         }
+      } catch (e) {
+        console.error("[CHECKOUT] Auth check error:", e);
+        setIsAuthenticated(false);
+        setError("Please log in to place an order");
       } finally {
         setAuthLoading(false);
       }
@@ -112,13 +161,13 @@ export function CheckoutPage() {
       return;
     }
 
-    // Load cart items
-    const stored = JSON.parse(window.localStorage.getItem("admire-cart") || "[]") as CartItem[];
+    // Load cart items (safe parse — corrupt storage must not crash checkout)
+    const stored = readCart<CartItem>("admire-cart");
     if (!stored.length) {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError("Your cart is empty");
-      setTimeout(() => router.push("/products"), 2000);
-      return;
+      const timer = setTimeout(() => router.push("/products"), 2000);
+      return () => clearTimeout(timer);
     }
 
     setCartItems(stored);
@@ -128,6 +177,92 @@ export function CheckoutPage() {
   const shipping = subtotal > 2499 ? 0 : cartItems.length ? 149 : 0;
   const discount = 0;
   const total = subtotal + shipping - discount;
+
+  const payWithRazorpay = (
+    orderId: string,
+    orderNumber: string,
+    amount: number,
+    prefill: { name: string; email: string; contact: string }
+  ): Promise<boolean> =>
+    new Promise(async (resolve) => {
+      try {
+        const loaded = await loadRazorpayScript();
+        if (!loaded || !window.Razorpay) {
+          setError("Could not load the payment gateway. Please try again.");
+          return resolve(false);
+        }
+
+        const rzpRes = await fetch("/api/checkout/razorpay", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ amount, order_number: orderNumber, order_id: orderId }),
+        });
+        const rzpData = (await rzpRes.json()) as {
+          success?: boolean;
+          razorpay_order_id?: string;
+          key_id?: string;
+          error?: string;
+        };
+        if (!rzpRes.ok || !rzpData.success || !rzpData.razorpay_order_id) {
+          setError(rzpData.error || "Could not start the payment. Please try again.");
+          return resolve(false);
+        }
+
+        const rzp = new window.Razorpay({
+          key: rzpData.key_id,
+          amount: Math.round(amount * 100),
+          currency: "INR",
+          name: "Admire Boutique",
+          description: `Order ${orderNumber}`,
+          order_id: rzpData.razorpay_order_id,
+          prefill,
+          theme: { color: "#7D1D1D" },
+          handler: async (response: unknown) => {
+            const r = response as {
+              razorpay_order_id: string;
+              razorpay_payment_id: string;
+              razorpay_signature: string;
+            };
+            try {
+              const verifyRes = await fetch("/api/checkout/razorpay/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                  razorpay_order_id: r.razorpay_order_id,
+                  razorpay_payment_id: r.razorpay_payment_id,
+                  razorpay_signature: r.razorpay_signature,
+                  order_id: orderId,
+                }),
+              });
+              const verifyData = (await verifyRes.json()) as { success?: boolean; error?: string };
+              if (verifyRes.ok && verifyData.success) return resolve(true);
+              setError(verifyData.error || "Payment verification failed.");
+              resolve(false);
+            } catch {
+              setError("Could not verify the payment. Please contact support if you were charged.");
+              resolve(false);
+            }
+          },
+          modal: {
+            ondismiss: () => {
+              setError("Payment was cancelled. Your order is saved as pending.");
+              resolve(false);
+            },
+          },
+        });
+        rzp.on("payment.failed", (resp: unknown) => {
+          const desc = (resp as { error?: { description?: string } })?.error?.description;
+          setError(desc || "Payment failed. Please try again.");
+          resolve(false);
+        });
+        rzp.open();
+      } catch {
+        setError("Payment error. Please try again.");
+        resolve(false);
+      }
+    });
 
   const handlePlaceOrder = async () => {
     if (!isAuthenticated) {
@@ -140,8 +275,39 @@ export function CheckoutPage() {
       return;
     }
 
+    // Validate customer + address (server re-validates and re-computes money).
+    const trimmedPhone = phone.replace(/\D/g, "");
+    if (!firstName.trim() || !email.trim()) {
+      setError("Please enter your name and email.");
+      return;
+    }
+    if (!/^\d{10}$/.test(trimmedPhone)) {
+      setError("Please enter a valid 10-digit phone number.");
+      return;
+    }
+    if (!line1.trim() || !city.trim() || !stateName.trim()) {
+      setError("Please complete your shipping address.");
+      return;
+    }
+    if (!/^\d{6}$/.test(pincode.trim())) {
+      setError("Please enter a valid 6-digit PIN code.");
+      return;
+    }
+
     setIsSubmitting(true);
     setError("");
+
+    const orderNumber = `AB-${Date.now()}`;
+    const address = {
+      full_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
+      phone: trimmedPhone,
+      line1: line1.trim(),
+      line2: line2.trim(),
+      city: city.trim(),
+      state: stateName.trim(),
+      pincode: pincode.trim(),
+      country: country.trim() || "India",
+    };
 
     try {
       const response = await fetch("/api/checkout/create-order", {
@@ -151,7 +317,7 @@ export function CheckoutPage() {
         },
         credentials: "include",
         body: JSON.stringify({
-          order_number: `AB-${Date.now()}`,
+          order_number: orderNumber,
           items: cartItems.map((item) => ({
             productId: item.productId,
             name: item.name,
@@ -164,7 +330,7 @@ export function CheckoutPage() {
           discount,
           total,
           payment_method: paymentMethod,
-          address: selectedAddress, // P3: Send address to API
+          address,
         }),
       });
 
@@ -185,6 +351,20 @@ export function CheckoutPage() {
         setError("Order creation failed. Please try again.");
         setIsSubmitting(false);
         return;
+      }
+
+      // For online payment, run the Razorpay flow and only continue once the
+      // payment is verified. The order already exists as "Pending".
+      if (paymentMethod === "Razorpay") {
+        const paid = await payWithRazorpay(data.order.id, orderNumber, total, {
+          name: address.full_name,
+          email: email.trim(),
+          contact: trimmedPhone,
+        });
+        if (!paid) {
+          setIsSubmitting(false);
+          return;
+        }
       }
 
       // Clear cart
@@ -259,23 +439,33 @@ export function CheckoutPage() {
             <h2 className="mb-4 font-serif text-3xl font-semibold tracking-tight text-[var(--ink)]">Customer details</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <input
-                defaultValue={customer?.name.split(" ")[0] || ""}
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                aria-label="First name"
                 placeholder="First name"
                 className="rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
               />
               <input
-                defaultValue={customer?.name.split(" ").slice(1).join(" ") || ""}
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                aria-label="Last name"
                 placeholder="Last name"
                 className="rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
               />
               <input
-                defaultValue={customer?.email || ""}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                type="email"
+                aria-label="Email"
                 placeholder="Email"
                 className="md:col-span-2 rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
               />
               <input
-                defaultValue={customer?.phone || ""}
-                placeholder="Phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                type="tel"
+                aria-label="Phone"
+                placeholder="Phone (10 digits)"
                 className="md:col-span-2 rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
               />
             </div>
@@ -292,7 +482,7 @@ export function CheckoutPage() {
                         type="radio"
                         name="address"
                         checked={selectedAddress?.id === addr.id}
-                        onChange={() => setSelectedAddress(addr)}
+                        onChange={() => applyAddress(addr)}
                       />
                       <span className="text-sm">{addr.label}: {addr.line1}, {addr.city}, {addr.state} {addr.pincode}</span>
                     </label>
@@ -302,27 +492,45 @@ export function CheckoutPage() {
             ) : null}
             <div className="grid gap-4 md:grid-cols-2">
               <input
-                defaultValue={selectedAddress?.line1 || ""}
+                value={line1}
+                onChange={(e) => setLine1(e.target.value)}
+                aria-label="Street address"
                 placeholder="Street address"
                 className="md:col-span-2 rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
               />
               <input
-                defaultValue={selectedAddress?.city || ""}
+                value={line2}
+                onChange={(e) => setLine2(e.target.value)}
+                aria-label="Apartment, suite, etc. (optional)"
+                placeholder="Apartment, suite, etc. (optional)"
+                className="md:col-span-2 rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
+              />
+              <input
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                aria-label="City"
                 placeholder="City"
                 className="rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
               />
               <input
-                defaultValue={selectedAddress?.state || ""}
+                value={stateName}
+                onChange={(e) => setStateName(e.target.value)}
+                aria-label="State"
                 placeholder="State"
                 className="rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
               />
               <input
-                defaultValue={selectedAddress?.pincode || ""}
-                placeholder="ZIP code"
+                value={pincode}
+                onChange={(e) => setPincode(e.target.value)}
+                inputMode="numeric"
+                aria-label="PIN code"
+                placeholder="PIN code (6 digits)"
                 className="rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
               />
               <input
-                defaultValue={selectedAddress?.country || "India"}
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                aria-label="Country"
                 placeholder="Country"
                 className="rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#7D1D1D] focus:ring-2 focus:ring-[#7D1D1D]/10"
               />
@@ -332,10 +540,13 @@ export function CheckoutPage() {
           <div className="rounded-xl border border-[var(--ink)]/10 bg-white p-5">
             <h2 className="mb-4 font-serif text-3xl font-semibold tracking-tight text-[var(--ink)]">Payment</h2>
             <div className="space-y-3 text-sm text-[var(--ink)]/70">
-              {['Cash on Delivery', 'UPI', 'Credit / Debit Card', 'Net Banking', 'Razorpay'].map((method) => (
-                <label key={method} className="flex items-center gap-3 rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-[var(--ink)] cursor-pointer transition hover:border-[#7D1D1D]/30">
-                  <input type="radio" name="payment" checked={paymentMethod === method} onChange={() => setPaymentMethod(method)} />
-                  <span>{method}</span>
+              {[
+                { value: "Cash on Delivery", label: "Cash on Delivery" },
+                { value: "Razorpay", label: "Pay online (UPI / Cards / Net Banking)" },
+              ].map((method) => (
+                <label key={method.value} className="flex items-center gap-3 rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-[var(--ink)] cursor-pointer transition hover:border-[#7D1D1D]/30">
+                  <input type="radio" name="payment" checked={paymentMethod === method.value} onChange={() => setPaymentMethod(method.value)} />
+                  <span>{method.label}</span>
                 </label>
               ))}
             </div>

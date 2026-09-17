@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       response.cookies.set("admire-session", sessionToken, cookieOptions);
       response.cookies.set("admire-refresh", refreshToken, {
         ...cookieOptions,
-        maxAge: Math.floor(refreshTokenExpiry.getTime() / 1000),
+        maxAge: Math.floor((refreshTokenExpiry.getTime() - Date.now()) / 1000),
       });
       response.cookies.set("user-type", "admin", cookieOptions);
 
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
     response.cookies.set("admire-session", sessionToken, cookieOptions);
     response.cookies.set("admire-refresh", refreshToken, {
       ...cookieOptions,
-      maxAge: Math.floor(refreshTokenExpiry.getTime() / 1000),
+      maxAge: Math.floor((refreshTokenExpiry.getTime() - Date.now()) / 1000),
     });
     response.cookies.set("user-type", "customer", cookieOptions);
 

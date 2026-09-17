@@ -70,9 +70,12 @@ async function toOrderDetail(row: Record<string, any>) {
 
   return {
     id: row.id,
+    orderNumber: row.order_number || row.id,
     date: row.created_at || new Date().toISOString(),
     total: Number(row.total ?? 0),
     status: normalizeStatus(row.status),
+    paymentStatus: row.payment_status || "Pending",
+    paymentMethod: row.payment_method || "",
     subtotal: Number(row.sub_total ?? 0),
     shipping: Number(row.shipping ?? 0),
     discount: Number(row.discount ?? 0),

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createOrder, validateUserSessionToken, getProductById, getProductByName, getOrderByNumber } from "@/lib/db";
 import { AUTH_RATE_LIMITS } from "@/lib/auth-utils";
 import { checkRateLimit, tooManyRequests } from "@/lib/rate-limiter";
+import { sendOrderConfirmation, sendAdminNotification } from "@/lib/email-service";
 
 async function getUserFromRequest(request: Request) {
   // Try Authorization header first
@@ -137,7 +138,11 @@ export async function POST(request: Request) {
       shipping: computedShipping,
       discount: computedDiscount,
       total: computedTotal,
-      payment_status: paymentMethod === "Cash on Delivery" ? "Pending" : "Paid",
+      // Payment is never "Paid" at creation. COD is collected on delivery and
+      // online payments (Razorpay) are only marked Paid after the signature is
+      // verified in the verify route. Trusting the client here would let anyone
+      // create a "Paid" order without paying.
+      payment_status: "Pending",
       payment_method: paymentMethod,
       delivery_partner: "BlueDart",
       tracking_id: `BD-${Date.now()}`,
@@ -145,6 +150,18 @@ export async function POST(request: Request) {
       items: validatedItems,
       address: body.address, // FIX P3: Pass address to createOrder
     });
+
+    // Send confirmation + admin notification emails. These never throw (the
+    // email service returns false when unconfigured), so a failure here must
+    // not fail the order — the order is already persisted.
+    void sendOrderConfirmation(
+      user.email,
+      user.name,
+      orderNumber,
+      computedTotal,
+      validatedItems.map((item) => ({ name: item.name, quantity: item.qty, price: item.price }))
+    );
+    void sendAdminNotification(orderNumber, user.name, user.email, computedTotal, paymentMethod);
 
     return NextResponse.json({ success: true, order });
   } catch (error) {

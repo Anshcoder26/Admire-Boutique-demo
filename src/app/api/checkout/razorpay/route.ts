@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
-import { validateUserSessionToken } from "@/lib/db";
+import { validateUserSessionToken, getOrderById, updateOrder } from "@/lib/db";
 
 function getRazorpay() {
   return new Razorpay({
@@ -41,10 +41,22 @@ export async function POST(request: Request) {
   const body = (await request.json()) as {
     amount: number;
     order_number: string;
+    order_id?: string;
   };
 
   if (!body.amount || !body.order_number) {
     return NextResponse.json({ error: "Missing amount or order_number" }, { status: 400 });
+  }
+
+  // If a DB order id is supplied, it must belong to the authenticated user. We
+  // link the Razorpay order id back to it so the verify step can confirm the
+  // payment corresponds to this exact order (prevents cross-order replay).
+  let dbOrder = null;
+  if (body.order_id) {
+    dbOrder = await getOrderById(body.order_id);
+    if (!dbOrder || dbOrder.customer_id !== user.id) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
   }
 
   try {
@@ -59,6 +71,10 @@ export async function POST(request: Request) {
         customer_email: user.email,
       },
     });
+
+    if (body.order_id) {
+      await updateOrder(body.order_id, { razorpay_order_id: rzpOrder.id });
+    }
 
     return NextResponse.json({
       success: true,
