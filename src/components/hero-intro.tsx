@@ -44,7 +44,7 @@ function HeroContent() {
       </div>
 
       <h1 className="display-hero text-[clamp(2.85rem,9vw,7.5rem)] leading-[0.9]">
-        <span className="block" style={{ fontFamily: "'Lamitra', serif" }}>
+        <span className="block" style={{ fontFamily: "'Kalam', cursive", fontWeight: 400 }}>
           Rooted in tradition,
         </span>
         <span className="mt-1 block text-[#7D1D1D]">made for today.</span>
