@@ -40,6 +40,18 @@ export const DELIVERY_ESTIMATE =
   process.env.DELIVERY_ESTIMATE || "Estimated arrival in 4–7 business days";
 
 /**
+ * Whether to seed demo customer/addresses/orders. Real catalog (products/FAQ)
+ * and the admin account are always seeded because the storefront and admin
+ * panel depend on them. The demo login + fake orders are opt-in: enabled by
+ * default in development, disabled by default in production so we don't ship a
+ * demo customer account and placeholder orders to a live store. Override with
+ * SEED_DEMO_DATA=true|false.
+ */
+const SEED_DEMO_DATA =
+  (process.env.SEED_DEMO_DATA ??
+    (process.env.NODE_ENV === "production" ? "false" : "true")) === "true";
+
+/**
  * Generate a collision-resistant, server-authoritative order number.
  * Format: AB-YYYYMMDD-XXXXXXXX (8 random hex chars). Never derived from
  * client input or a plain timestamp, so it can't be spoofed or collide on
@@ -649,14 +661,14 @@ if (!usesPostgres) {
   }
 
   const customerCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM customers").get() as { count: number };
-  if (customerCount.count === 0) {
+  if (SEED_DEMO_DATA && customerCount.count === 0) {
     sqliteDb.prepare(`
       INSERT INTO customers (id, name, email, phone, password_hash) VALUES (?, ?, ?, ?, ?)
     `).run(seedCustomer.id, seedCustomer.name, seedCustomer.email, seedCustomer.phone, bcryptjs.hashSync(resolveSeedCustomerPassword(), 12));
   }
 
   const addressCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM addresses").get() as { count: number };
-  if (addressCount.count === 0) {
+  if (SEED_DEMO_DATA && addressCount.count === 0) {
     const insertAddress = sqliteDb.prepare(`
       INSERT INTO addresses (id, customer_id, label, full_name, phone, line1, line2, city, state, pincode, country, is_default)
       VALUES (@id, @customer_id, @label, @full_name, @phone, @line1, @line2, @city, @state, @pincode, @country, @is_default)
@@ -668,7 +680,7 @@ if (!usesPostgres) {
   }
 
   const orderCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM orders").get() as { count: number };
-  if (orderCount.count === 0) {
+  if (SEED_DEMO_DATA && orderCount.count === 0) {
     const insertOrder = sqliteDb.prepare(`
       INSERT INTO orders (
         id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method, delivery_partner,
@@ -942,7 +954,7 @@ async function ensurePostgresReady() {
   }
 
   const customerCount = await postgresPool.query("SELECT COUNT(*) as count FROM customers");
-  if (Number(customerCount.rows[0]?.count ?? 0) === 0) {
+  if (SEED_DEMO_DATA && Number(customerCount.rows[0]?.count ?? 0) === 0) {
     await postgresPool.query(
       "INSERT INTO customers (id, name, email, phone, password_hash) VALUES ($1, $2, $3, $4, $5)",
       [seedCustomer.id, seedCustomer.name, seedCustomer.email, seedCustomer.phone, await hashPassword(resolveSeedCustomerPassword())]
@@ -950,7 +962,7 @@ async function ensurePostgresReady() {
   }
 
   const addressCount = await postgresPool.query("SELECT COUNT(*) as count FROM addresses");
-  if (Number(addressCount.rows[0]?.count ?? 0) === 0) {
+  if (SEED_DEMO_DATA && Number(addressCount.rows[0]?.count ?? 0) === 0) {
     for (const address of seedAddresses) {
       await postgresPool.query(
         `INSERT INTO addresses (id, customer_id, label, full_name, phone, line1, line2, city, state, pincode, country, is_default)
@@ -974,7 +986,7 @@ async function ensurePostgresReady() {
   }
 
   const orderCount = await postgresPool.query("SELECT COUNT(*) as count FROM orders");
-  if (Number(orderCount.rows[0]?.count ?? 0) === 0) {
+  if (SEED_DEMO_DATA && Number(orderCount.rows[0]?.count ?? 0) === 0) {
     for (const order of seedOrders) {
       await postgresPool.query(
         `INSERT INTO orders (id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method, delivery_partner, tracking_id, estimated_delivery, items_json)
