@@ -112,6 +112,19 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcryptjs.compare(password, hash);
 }
 
+// A pre-computed bcrypt hash of a random string. Used to run a real hash
+// comparison even when the account does not exist, so login response timing
+// doesn't reveal whether an email is registered (user-enumeration defence).
+const DUMMY_PASSWORD_HASH = bcryptjs.hashSync("admire-dummy-timing-guard", 12);
+
+async function equalizeTiming(): Promise<void> {
+  try {
+    await bcryptjs.compare("admire-dummy-timing-guard-x", DUMMY_PASSWORD_HASH);
+  } catch {
+    // ignore
+  }
+}
+
 export type AdminUserRecord = {
   id: string;
   name: string;
@@ -1495,13 +1508,19 @@ export async function verifyCustomerCredentials(email: string, password: string)
     await ensurePostgresReady();
     const result = await postgresPool!.query("SELECT * FROM customers WHERE email = $1", [email]);
     const user = result.rows[0];
-    if (!user) return null;
+    if (!user) {
+      await equalizeTiming();
+      return null;
+    }
     if (!(await verifyPassword(password, user.password_hash))) return null;
     return { id: user.id, name: user.name, email: user.email, phone: user.phone };
   }
 
   const user = sqliteDb.prepare("SELECT * FROM customers WHERE email = ?").get(email) as Record<string, any> | undefined;
-  if (!user) return null;
+  if (!user) {
+    await equalizeTiming();
+    return null;
+  }
 
   const isValid = await verifyPassword(password, user.password_hash);
   if (!isValid) return null;

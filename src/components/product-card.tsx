@@ -21,12 +21,17 @@ export function ProductCard({ product }: { product: Product }) {
     }
 
     const cart = readJSON<Array<{ productId: string; color: string; size: string; quantity: number; [k: string]: unknown }>>(STORAGE_KEYS.cart, []);
+    const color = product.colors?.[0]?.name || "Default";
+    // Unstitched items have no size; otherwise default to the middle size (or first).
+    const size = product.stitchType === "Unstitched"
+      ? "Unstitched"
+      : product.sizes?.[2] || product.sizes?.[0] || "M";
     const item = {
       productId: product.id,
       name: product.name,
-      color: product.colors?.[0]?.name || "Default",
-      size: product.sizes?.[2] || product.sizes?.[0] || "M",
-      variant: `${product.colors?.[0]?.name || "Default"} / ${product.sizes?.[2] || product.sizes?.[0] || "M"}`,
+      color,
+      size,
+      variant: `${color} / ${size}`,
       image: product.images?.[0] || "",
       price: Number(product.price),
       quantity: 1,

@@ -35,13 +35,6 @@ export function generateRefreshToken(): string {
 }
 
 /**
- * Generate CSRF token for form protection
- */
-export function generateCsrfToken(): string {
-  return crypto.randomBytes(32).toString("hex");
-}
-
-/**
  * Validate email format
  */
 export function validateEmail(email: string): boolean {
@@ -141,13 +134,6 @@ export function getRefreshTokenExpiryTime(): Date {
  */
 export function isSessionExpired(expiresAt: Date): boolean {
   return new Date() > expiresAt;
-}
-
-/**
- * Sanitize user input to prevent XSS
- */
-export function sanitizeInput(input: string): string {
-  return input.replace(/[<>\"']/g, "").trim();
 }
 
 /**
