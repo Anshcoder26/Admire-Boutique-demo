@@ -54,6 +54,7 @@ export function AccountDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
     const token = window.localStorage.getItem("admire-user-token");
     if (!token) {
       router.push('/login');
@@ -66,6 +67,7 @@ export function AccountDashboard() {
       fetch("/api/me/addresses", { credentials: "include" }),
     ])
       .then(async ([meRes, ordersRes, addressesRes]) => {
+        if (!active) return;
         if (!meRes.ok) {
           console.error("[ACCOUNT] Me endpoint failed:", meRes.status);
           window.localStorage.removeItem("admire-user-token");
@@ -75,19 +77,27 @@ export function AccountDashboard() {
         }
 
         const meData = (await meRes.json()) as { user?: Customer };
-        const ordersData = (await ordersRes.json()) as { orders?: Order[] };
-        const addressesData = (await addressesRes.json()) as { addresses?: Address[] };
+        const ordersData = ordersRes.ok ? ((await ordersRes.json()) as { orders?: Order[] }) : { orders: [] };
+        const addressesData = addressesRes.ok ? ((await addressesRes.json()) as { addresses?: Address[] }) : { addresses: [] };
 
+        if (!active) return;
         setCustomer(meData.user || null);
         setOrders(ordersData.orders || []);
         setAddresses(addressesData.addresses || []);
       })
       .catch((err) => {
+        if (!active) return;
         console.error("[ACCOUNT] Error loading account data:", err);
         window.localStorage.removeItem("admire-user-token");
         router.push('/login');
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   if (loading) {

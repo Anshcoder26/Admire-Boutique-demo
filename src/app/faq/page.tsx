@@ -13,12 +13,28 @@ type FaqItem = {
 export default function FAQPage() {
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
 
   useEffect(() => {
+    let active = true;
     fetch("/api/faq")
-      .then((res) => res.json())
-      .then((data) => setFaqs(data.faqs || []))
-      .catch(() => setFaqs([]));
+      .then((res) => {
+        if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (!active) return;
+        setFaqs(data.faqs || []);
+        setStatus("ready");
+      })
+      .catch(() => {
+        if (!active) return;
+        setFaqs([]);
+        setStatus("error");
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   return (
@@ -29,7 +45,17 @@ export default function FAQPage() {
       </div>
 
       <div className="space-y-4">
-        {faqs.length === 0 ? (
+        {status === "loading" ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-20 animate-pulse rounded-[26px] border border-[#eadcce] bg-[#fffaf7]" />
+            ))}
+          </div>
+        ) : status === "error" ? (
+          <div className="rounded-[24px] border border-dashed border-[#d9b8b8] bg-[#fff7f7] p-6 text-sm text-[#7a3b3b]">
+            We couldn&apos;t load the FAQs right now. Please refresh the page or try again shortly.
+          </div>
+        ) : faqs.length === 0 ? (
           <div className="rounded-[24px] border border-dashed border-[#d9c3b8] bg-[#fffaf7] p-6 text-sm text-[#5a4b45]">No FAQs available right now.</div>
         ) : (
           faqs.map((faq) => (

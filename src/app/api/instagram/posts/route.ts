@@ -29,6 +29,7 @@ export async function GET() {
     console.log("[Instagram] No access token configured");
     return NextResponse.json(
       {
+        success: false,
         posts: [],
         message: "Instagram integration not configured",
       },
@@ -47,6 +48,7 @@ export async function GET() {
       console.log("[Instagram] API error:", errorData.error?.message);
       return NextResponse.json(
         {
+          success: false,
           posts: [],
           message: "Instagram API unavailable",
         },
@@ -60,6 +62,7 @@ export async function GET() {
       console.log("[Instagram] No data or API error:", data.error?.message);
       return NextResponse.json(
         {
+          success: false,
           posts: [],
           message: "No Instagram posts available",
         },
@@ -78,11 +81,12 @@ export async function GET() {
       timestamp: post.timestamp,
     }));
 
-    return NextResponse.json({ posts }, { status: 200 });
+    return NextResponse.json({ success: true, posts }, { status: 200 });
   } catch (error) {
     console.log("[Instagram] Fetch error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       {
+        success: false,
         posts: [],
         message: "Instagram service temporarily unavailable",
       },

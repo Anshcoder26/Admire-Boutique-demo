@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Mail, Check, AlertCircle } from "lucide-react";
 import { FabricBooti } from "@/components/motifs/fabric-booti";
 
@@ -9,6 +9,13 @@ export function NewsletterSignup() {
   const [name, setName] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (resetTimer.current) clearTimeout(resetTimer.current);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +32,16 @@ export function NewsletterSignup() {
 
       if (!response.ok) {
         setStatus("error");
-        setMessage(data.error || "Failed to subscribe");
+        setMessage(
+          response.status === 409
+            ? data.error || "You're already subscribed to our newsletter."
+            : data.error || "Failed to subscribe"
+        );
+        if (resetTimer.current) clearTimeout(resetTimer.current);
+        resetTimer.current = setTimeout(() => {
+          setStatus("idle");
+          setMessage("");
+        }, 5000);
         return;
       }
 
@@ -35,7 +51,8 @@ export function NewsletterSignup() {
       setName("");
 
       // Reset after 5 seconds
-      setTimeout(() => {
+      if (resetTimer.current) clearTimeout(resetTimer.current);
+      resetTimer.current = setTimeout(() => {
         setStatus("idle");
         setMessage("");
       }, 5000);
