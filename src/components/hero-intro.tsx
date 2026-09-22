@@ -51,8 +51,8 @@ function HeroContent() {
       </h1>
 
       <p className="mt-8 max-w-2xl text-lg leading-8 text-[var(--ink)]/70 md:text-xl">
-        Premium kurtis, festive edits and effortless everyday pieces —
-        curated with the warmth of Indian craftsmanship for the modern woman.
+        Premium Festive Collection —
+        curated with the warmth of Indian craftsmanship for the modern woman
       </p>
 
       <div className="mt-10 flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row">
@@ -208,14 +208,11 @@ export function HeroIntro() {
             style={{ transform: `translateY(${brandShift}px) scale(${brandScale})` }}
           >
             <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.4em] text-[#E6C866]">
-              Est. Admire · Since 2024
+              Est. Since 2016
             </p>
             <h1 className="display-hero text-[clamp(3rem,12vw,9rem)] leading-[0.9] text-white">
               Admire Boutique
             </h1>
-            <p className="mt-6 text-sm font-medium uppercase tracking-[0.32em] text-white/70">
-              Unstitched Suit Materials
-            </p>
           </div>
         </div>
 
