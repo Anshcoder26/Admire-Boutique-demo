@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/providers/auth-provider";
 
 export function Header() {
-  const { isAuthenticated, isLoading, userType } = useAuth();
+  const { isAuthenticated, isLoading, userType, logout } = useAuth();
   const [cartCount, setCartCount] = useState(0);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const router = useRouter();
@@ -68,6 +68,11 @@ export function Header() {
     router.push("/products");
   };
 
+  const handleLogout = async () => {
+    await logout();
+    router.push("/");
+  };
+
   return (
     <>
       <header className="site-chrome sticky top-0 z-50 border-b border-[var(--ink)]/10 bg-white/90 backdrop-blur-sm">
@@ -97,9 +102,19 @@ export function Header() {
             <Link href="/products" className="hover:text-[#7D1D1D] transition">Formals</Link>
             <Link href="/products" className="hover:text-[#7D1D1D] transition">Sale</Link>
             <Link href="/faq" className="hover:text-[#7D1D1D] transition">FAQ</Link>
-            <Link href={accountHref} className="rounded-sm bg-[#7D1D1D] px-5 py-2.5 text-white hover:bg-[#671818] transition font-semibold tracking-[0.14em]">
-              {isLoading ? "..." : isAuthenticated ? "Account" : "Sign in"}
-            </Link>
+            {isAuthenticated ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded-sm border border-[var(--ink)]/15 bg-white px-5 py-2.5 text-[#7D1D1D] hover:bg-[#faf7f2] transition font-semibold tracking-[0.14em]"
+              >
+                Sign out
+              </button>
+            ) : (
+              <Link href={accountHref} className="rounded-sm bg-[#7D1D1D] px-5 py-2.5 text-white hover:bg-[#671818] transition font-semibold tracking-[0.14em]">
+                {isLoading ? "..." : "Sign in"}
+              </Link>
+            )}
           </nav>
 
           {/* Right actions */}
@@ -114,9 +129,21 @@ export function Header() {
             <Link href="/wishlist" className="flex h-11 w-11 items-center justify-center rounded-md border border-[var(--ink)]/15 bg-white text-[var(--ink)] hover:bg-[#faf7f2] transition" aria-label="Wishlist">
               <Heart className="h-5 w-5" />
             </Link>
-            <Link href={accountHref} className="flex h-11 w-11 items-center justify-center rounded-md border border-[var(--ink)]/15 bg-white text-[var(--ink)] hover:bg-[#faf7f2] transition" aria-label="Account">
-              <User className="h-5 w-5" />
-            </Link>
+            {isAuthenticated ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex h-11 w-11 items-center justify-center rounded-md border border-[var(--ink)]/15 bg-white text-[var(--ink)] hover:bg-[#faf7f2] transition"
+                aria-label="Sign out"
+                title="Sign out"
+              >
+                <User className="h-5 w-5" />
+              </button>
+            ) : (
+              <Link href={accountHref} className="flex h-11 w-11 items-center justify-center rounded-md border border-[var(--ink)]/15 bg-white text-[var(--ink)] hover:bg-[#faf7f2] transition" aria-label="Account">
+                <User className="h-5 w-5" />
+              </Link>
+            )}
             <Link href="/cart" className="relative flex h-11 w-11 items-center justify-center rounded-md bg-[#7D1D1D] text-white hover:bg-[#671818] transition" aria-label={`Cart with ${cartCount} items`}>
               <ShoppingBag className="h-5 w-5" />
               {cartCount > 0 && (
