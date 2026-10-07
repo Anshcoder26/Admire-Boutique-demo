@@ -1,5 +1,6 @@
 import { getAppUrl, isEmailConfigured, sendEmailOrThrow } from "@/lib/email-service";
 import type { NotificationChannel, OrderNotification } from "@/lib/notifications/types";
+import { STORE_ADDRESS } from "@/lib/site-contact";
 
 const inr = (value: number) => `₹${Number(value).toLocaleString("en-IN")}`;
 
@@ -72,7 +73,8 @@ export function buildCustomerEmail(n: OrderNotification): { subject: string; htm
       <a href="${getAppUrl()}/orders" style="display:inline-block;background:#7D1D1D;color:#fff;padding:12px 28px;text-decoration:none;border-radius:25px;margin-top:10px;">Track your order</a>
       <p style="text-align:center;margin-top:24px;color:#888;font-size:12px;">
         Questions? Reply to this email or visit ${getAppUrl()}/support<br>
-        &copy; ${new Date().getFullYear()} Admire Boutique
+        &copy; ${new Date().getFullYear()} Admire Boutique<br>
+        ${escapeHtml(STORE_ADDRESS)}
       </p>
     </div>
   </div>

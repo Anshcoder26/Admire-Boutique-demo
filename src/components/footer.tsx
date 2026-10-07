@@ -9,7 +9,7 @@ import { NewsletterSignup } from "@/components/newsletter-signup";
 import { MotifTile } from "@/components/motifs/motif-tile";
 import { ArtMotif } from "@/components/motifs/art-motif";
 import { FacebookIcon, InstagramIcon } from "@/components/social-icons";
-import { FACEBOOK_URL, INSTAGRAM_URL, WHATSAPP_DISPLAY, WHATSAPP_URL } from "@/lib/site-contact";
+import { FACEBOOK_URL, INSTAGRAM_URL, STORE_ADDRESS_LINES, STORE_MAPS_URL, WHATSAPP_DISPLAY, WHATSAPP_URL } from "@/lib/site-contact";
 
 export function Footer() {
   const [open, setOpen] = useState(false);
@@ -86,7 +86,16 @@ export function Footer() {
           <div>
             <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ink)]">Contact</h3>
             <ul className="space-y-3 text-sm text-[var(--ink)]/70">
-              <li className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 text-[#7D1D1D]" /> 12 Saffron Lane, Bengaluru</li>
+              <li>
+                <a href={STORE_MAPS_URL} target="_blank" rel="noopener noreferrer" className="flex items-start gap-2 hover:text-[#7D1D1D] transition-colors">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#7D1D1D]" />
+                  <span>
+                    {STORE_ADDRESS_LINES.map((line) => (
+                      <span key={line} className="block">{line}</span>
+                    ))}
+                  </span>
+                </a>
+              </li>
               <li>
                 <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-[#7D1D1D] transition-colors">
                   <MessageCircleMore className="h-4 w-4 text-[#7D1D1D]" /> WhatsApp {WHATSAPP_DISPLAY}

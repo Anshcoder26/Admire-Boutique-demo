@@ -1,4 +1,5 @@
 import PDFDocument from "pdfkit";
+import { STORE_ADDRESS, WHATSAPP_DISPLAY } from "./site-contact";
 import { Readable } from "stream";
 
 interface InvoiceItem {
@@ -42,7 +43,8 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     // Header
     doc.fontSize(24).font("Helvetica-Bold").text("ADMIRE BOUTIQUE", 50, 50);
     doc.fontSize(10).font("Helvetica").text("Premium Indian Kurtis & Ethnic Wear", 50, 80);
-    doc.fontSize(9).text("Email: support@admireboutique.com", 50, 95);
+    doc.fontSize(9).text(STORE_ADDRESS, 50, 95);
+    doc.text(`WhatsApp: ${WHATSAPP_DISPLAY}  |  Email: support@admireboutique.com`, 50, 108);
 
     // Invoice details
     doc
@@ -91,9 +93,9 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     doc
       .fillColor("black")
       .text("Product", colX.name, tableTop + 5)
-      .text("Qty", colX.qty, tableTop + 5)
-      .text("Price", colX.price, tableTop + 5)
-      .text("Amount", colX.amount, tableTop + 5);
+      .text("Qty", colX.qty, tableTop + 5, { width: 50, align: "center" })
+      .text("Price", colX.price, tableTop + 5, { width: 70, align: "right" })
+      .text("Amount", colX.amount, tableTop + 5, { width: 55, align: "right" });
 
     // Table rows
     let currentY = tableTop + 30;
@@ -103,9 +105,9 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
       const itemTotal = item.price * item.quantity;
       doc
         .text(item.name, colX.name, currentY, { width: 280, height: itemHeight })
-        .text(`${item.quantity}`, colX.qty, currentY, { align: "center" })
-        .text(`₹${item.price.toLocaleString("en-IN")}`, colX.price, currentY, { align: "right" })
-        .text(`₹${itemTotal.toLocaleString("en-IN")}`, colX.amount, currentY, { align: "right" });
+        .text(`${item.quantity}`, colX.qty, currentY, { width: 50, align: "center" })
+        .text(`Rs. ${item.price.toLocaleString("en-IN")}`, colX.price, currentY, { width: 70, align: "right" })
+        .text(`Rs. ${itemTotal.toLocaleString("en-IN")}`, colX.amount, currentY, { width: 55, align: "right" });
       currentY += itemHeight + 10;
     });
 
@@ -120,20 +122,20 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
       .fontSize(10)
       .font("Helvetica")
       .text("Subtotal:", colX.price, totalsY)
-      .text(`₹${data.subtotal.toLocaleString("en-IN")}`, colX.amount, totalsY, { align: "right" })
+      .text(`Rs. ${data.subtotal.toLocaleString("en-IN")}`, colX.price, totalsY, { width: 135, align: "right" })
       .text("Shipping:", colX.price, totalsY + 20)
       .text(
-        data.shipping === 0 ? "FREE" : `₹${data.shipping.toLocaleString("en-IN")}`,
-        colX.amount,
+        data.shipping === 0 ? "FREE" : `Rs. ${data.shipping.toLocaleString("en-IN")}`,
+        colX.price,
         totalsY + 20,
-        { align: "right" }
+        { width: 135, align: "right" }
       );
 
     if (data.discount > 0) {
       doc
         .text("Discount:", colX.price, totalsY + 40)
-        .text(`-₹${data.discount.toLocaleString("en-IN")}`, colX.amount, totalsY + 40, {
-          align: "right",
+        .text(`-Rs. ${data.discount.toLocaleString("en-IN")}`, colX.price, totalsY + 40, {
+          width: 135, align: "right",
         });
     }
 
@@ -142,7 +144,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
       .font("Helvetica-Bold")
       .fontSize(12)
       .text("TOTAL:", colX.price, totalsY + 60)
-      .text(`₹${data.total.toLocaleString("en-IN")}`, colX.amount, totalsY + 60, { align: "right" });
+      .text(`Rs. ${data.total.toLocaleString("en-IN")}`, colX.price, totalsY + 60, { width: 135, align: "right" });
 
     // Payment and delivery info
     const infoY = totalsY + 100;
@@ -186,7 +188,8 @@ export async function generateInvoiceStream(data: InvoiceData): Promise<Readable
   // Header
   doc.fontSize(24).font("Helvetica-Bold").text("ADMIRE BOUTIQUE", 50, 50);
   doc.fontSize(10).font("Helvetica").text("Premium Indian Kurtis & Ethnic Wear", 50, 80);
-  doc.fontSize(9).text("Email: support@admireboutique.com", 50, 95);
+  doc.fontSize(9).text(STORE_ADDRESS, 50, 95);
+  doc.text(`WhatsApp: ${WHATSAPP_DISPLAY}  |  Email: support@admireboutique.com`, 50, 108);
 
   // Invoice details
   doc
@@ -235,9 +238,9 @@ export async function generateInvoiceStream(data: InvoiceData): Promise<Readable
   doc
     .fillColor("black")
     .text("Product", colX.name, tableTop + 5)
-    .text("Qty", colX.qty, tableTop + 5)
-    .text("Price", colX.price, tableTop + 5)
-    .text("Amount", colX.amount, tableTop + 5);
+    .text("Qty", colX.qty, tableTop + 5, { width: 50, align: "center" })
+    .text("Price", colX.price, tableTop + 5, { width: 70, align: "right" })
+    .text("Amount", colX.amount, tableTop + 5, { width: 55, align: "right" });
 
   // Table rows
   let currentY = tableTop + 30;
@@ -247,9 +250,9 @@ export async function generateInvoiceStream(data: InvoiceData): Promise<Readable
     const itemTotal = item.price * item.quantity;
     doc
       .text(item.name, colX.name, currentY, { width: 280, height: itemHeight })
-      .text(`${item.quantity}`, colX.qty, currentY, { align: "center" })
-      .text(`₹${item.price.toLocaleString("en-IN")}`, colX.price, currentY, { align: "right" })
-      .text(`₹${itemTotal.toLocaleString("en-IN")}`, colX.amount, currentY, { align: "right" });
+      .text(`${item.quantity}`, colX.qty, currentY, { width: 50, align: "center" })
+      .text(`Rs. ${item.price.toLocaleString("en-IN")}`, colX.price, currentY, { width: 70, align: "right" })
+      .text(`Rs. ${itemTotal.toLocaleString("en-IN")}`, colX.amount, currentY, { width: 55, align: "right" });
     currentY += itemHeight + 10;
   });
 
@@ -264,20 +267,20 @@ export async function generateInvoiceStream(data: InvoiceData): Promise<Readable
     .fontSize(10)
     .font("Helvetica")
     .text("Subtotal:", colX.price, totalsY)
-    .text(`₹${data.subtotal.toLocaleString("en-IN")}`, colX.amount, totalsY, { align: "right" })
+    .text(`Rs. ${data.subtotal.toLocaleString("en-IN")}`, colX.price, totalsY, { width: 135, align: "right" })
     .text("Shipping:", colX.price, totalsY + 20)
     .text(
-      data.shipping === 0 ? "FREE" : `₹${data.shipping.toLocaleString("en-IN")}`,
-      colX.amount,
+      data.shipping === 0 ? "FREE" : `Rs. ${data.shipping.toLocaleString("en-IN")}`,
+      colX.price,
       totalsY + 20,
-      { align: "right" }
+      { width: 135, align: "right" }
     );
 
   if (data.discount > 0) {
     doc
       .text("Discount:", colX.price, totalsY + 40)
-      .text(`-₹${data.discount.toLocaleString("en-IN")}`, colX.amount, totalsY + 40, {
-        align: "right",
+      .text(`-Rs. ${data.discount.toLocaleString("en-IN")}`, colX.price, totalsY + 40, {
+        width: 135, align: "right",
       });
   }
 
@@ -286,7 +289,7 @@ export async function generateInvoiceStream(data: InvoiceData): Promise<Readable
     .font("Helvetica-Bold")
     .fontSize(12)
     .text("TOTAL:", colX.price, totalsY + 60)
-    .text(`₹${data.total.toLocaleString("en-IN")}`, colX.amount, totalsY + 60, { align: "right" });
+    .text(`Rs. ${data.total.toLocaleString("en-IN")}`, colX.price, totalsY + 60, { width: 135, align: "right" });
 
   // Payment and delivery info
   const infoY = totalsY + 100;
