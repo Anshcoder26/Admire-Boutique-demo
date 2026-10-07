@@ -6,6 +6,7 @@ import {
   getProductByName,
   validateUserSessionToken,
 } from "@/lib/db";
+import { sweepExpiredOrders } from "@/lib/payments";
 
 async function getUserFromRequest(request: Request) {
   // Try Authorization header first
@@ -29,6 +30,7 @@ async function getUserFromRequest(request: Request) {
 function normalizeStatus(status: string): string {
   const s = (status || "").toLowerCase();
   if (s === "confirmed") return "processing";
+  if (s === "awaiting payment") return "awaiting_payment";
   if (["pending", "processing", "shipped", "delivered", "cancelled"].includes(s)) {
     return s;
   }
@@ -87,6 +89,7 @@ async function toOrderDetail(row: Record<string, unknown>) {
     status: normalizeStatus(String(row.status ?? "")),
     paymentStatus: row.payment_status || "Pending",
     paymentMethod: row.payment_method || "",
+    paymentExpiresAt: row.payment_expires_at || null,
     subtotal: Number(row.sub_total ?? 0),
     shipping: Number(row.shipping ?? 0),
     discount: Number(row.discount ?? 0),
@@ -110,6 +113,8 @@ export async function GET(request: Request) {
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  await sweepExpiredOrders();
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");

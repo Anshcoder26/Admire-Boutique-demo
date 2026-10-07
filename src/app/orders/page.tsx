@@ -1,10 +1,6 @@
-import { OrderHistory } from "@/components/order-history";
+import { redirect } from "next/navigation";
 
-export const metadata = {
-  title: "Order History | Admire Boutique",
-  description: "View your past orders and track your purchases",
-};
-
+// Order history lives under the account area.
 export default function OrdersPage() {
-  return <OrderHistory />;
+  redirect("/account/orders");
 }

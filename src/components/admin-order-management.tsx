@@ -14,7 +14,13 @@ interface Order {
 }
 
 const ORDER_STATUSES = ["Confirmed", "Packed", "Shipped", "Delivered"];
-const PAYMENT_STATUSES = ["Pending", "Paid", "Failed", "Refunded"];
+const PAYMENT_STATUSES = ["Pending", "Paid", "Failed", "Refund Due", "Refunded"];
+// Set automatically by the payment flow; not something to move orders into by hand.
+const SYSTEM_STATUSES = ["Awaiting Payment", "Cancelled"];
+
+// Keep the order's current value selectable even if it isn't a standard option.
+const withCurrent = (options: string[], current: string) =>
+  current && !options.includes(current) ? [current, ...options] : options;
 
 export function OrderManagement({ token }: { token: string }) {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -123,6 +129,20 @@ export function OrderManagement({ token }: { token: string }) {
                   ₹{Number(order.total).toLocaleString("en-IN")}
                 </td>
                 <td className="px-6 py-4">
+                  {SYSTEM_STATUSES.includes(order.status) ? (
+                    <span
+                      title={
+                        order.status === "Awaiting Payment"
+                          ? "Online payment not completed yet. Do not pack or ship; it is cancelled automatically if unpaid."
+                          : "Cancelled (stock already returned)."
+                      }
+                      className={`inline-block rounded-md px-3 py-1.5 text-xs font-semibold ${
+                        order.status === "Awaiting Payment" ? "bg-[#fff4e5] text-[#8a4b00]" : "bg-[#ffe6e6] text-[#8a1f1f]"
+                      }`}
+                    >
+                      {order.status === "Awaiting Payment" ? "Awaiting payment · don't ship" : order.status}
+                    </span>
+                  ) : (
                   <div className="relative inline-block">
                     <select
                       value={order.status}
@@ -130,7 +150,7 @@ export function OrderManagement({ token }: { token: string }) {
                       disabled={updatingId === order.id}
                       className="appearance-none rounded-md border border-[var(--ink)]/12 bg-white px-4 py-1.5 text-sm font-medium text-[var(--ink)]/70 outline-none focus:border-[#7D1D1D] disabled:opacity-50"
                     >
-                      {ORDER_STATUSES.map((status) => (
+                      {withCurrent(ORDER_STATUSES, order.status).map((status) => (
                         <option key={status} value={status}>
                           {status}
                         </option>
@@ -138,6 +158,7 @@ export function OrderManagement({ token }: { token: string }) {
                     </select>
                     <ChevronDown className="absolute right-2 top-2 h-4 w-4 text-[var(--ink)]/60 pointer-events-none" />
                   </div>
+                  )}
                 </td>
                 <td className="px-6 py-4">
                   <div className="relative inline-block">
@@ -147,7 +168,7 @@ export function OrderManagement({ token }: { token: string }) {
                       disabled={updatingId === order.id}
                       className="appearance-none rounded-md border border-[var(--ink)]/12 bg-white px-4 py-1.5 text-sm font-medium text-[var(--ink)]/70 outline-none focus:border-[#7D1D1D] disabled:opacity-50"
                     >
-                      {PAYMENT_STATUSES.map((status) => (
+                      {withCurrent(PAYMENT_STATUSES, order.payment_status).map((status) => (
                         <option key={status} value={status}>
                           {status}
                         </option>

@@ -16,6 +16,12 @@ import { checkOrigin } from "@/lib/csrf";
  * through. Only a *present but mismatched* origin is rejected.
  */
 export function proxy(request: NextRequest) {
+  // Webhooks are server-to-server and authenticated by their own HMAC
+  // signature, not by cookies, so the browser-origin check doesn't apply.
+  if (request.nextUrl.pathname.startsWith("/api/webhooks/")) {
+    return NextResponse.next();
+  }
+
   const result = checkOrigin({
     method: request.method,
     host: request.headers.get("host"),

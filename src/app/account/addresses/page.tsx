@@ -30,7 +30,7 @@ export default function AddressesPage() {
       return;
     }
 
-    fetch("/api/me/addresses", { headers: { Authorization: `Bearer ${token}` } })
+    fetch("/api/me/addresses", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => { setAddresses(data.addresses || []); })
       .catch(() => setAddresses([]));

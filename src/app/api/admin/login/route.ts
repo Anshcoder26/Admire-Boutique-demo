@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { storeSessionToken, verifyAdminCredentials } from "@/lib/db";
 import { ADMIN_SESSION_COOKIE } from "@/lib/admin-auth";
+import { SITE_SESSION_COOKIE } from "@/lib/session-cookies";
 import { getSecureCookieOptions, AUTH_RATE_LIMITS } from "@/lib/auth-utils";
 import { checkRateLimit, resetRateLimit, getClientIp, tooManyRequests } from "@/lib/rate-limiter";
 
@@ -41,7 +42,11 @@ export async function POST(request: Request) {
   });
 
   // Store the admin session in an httpOnly cookie (not exposed to JS, safe from XSS)
-  response.cookies.set(ADMIN_SESSION_COOKIE, token, getSecureCookieOptions());
+  const cookieOptions = getSecureCookieOptions();
+  response.cookies.set(ADMIN_SESSION_COOKIE, token, cookieOptions);
+  // Also sign the owner in on the storefront so the site header matches the dashboard.
+  response.cookies.set(SITE_SESSION_COOKIE, token, cookieOptions);
+  response.cookies.set("user-type", "admin", cookieOptions);
 
   return response;
 }

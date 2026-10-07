@@ -7,7 +7,7 @@ interface InvoiceItem {
   price: number;
 }
 
-interface InvoiceData {
+export interface InvoiceData {
   orderNumber: string;
   date: string;
   customerName: string;

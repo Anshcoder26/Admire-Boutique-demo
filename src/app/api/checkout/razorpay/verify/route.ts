@@ -1,15 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import Razorpay from "razorpay";
-import crypto from "crypto";
-import { validateUserSessionToken, updateOrder, getOrderById } from "@/lib/db";
+import { NextRequest, NextResponse, after } from "next/server";
+import { validateUserSessionToken, getOrderById } from "@/lib/db";
 import { captureException } from "@/lib/error-tracking";
+import { markOrderPaid, notifyPaymentOutcome } from "@/lib/payments";
+import { isValidCheckoutSignature } from "@/lib/payment-utils";
 
-function getRazorpay() {
-  return new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID || "",
-    key_secret: process.env.RAZORPAY_KEY_SECRET || "",
-  });
-}
+const REFUND_MESSAGE =
+  "Your payment arrived after this order's payment window closed and the items have sold out. It will be refunded in full within 5–7 business days.";
 
 async function getUserFromRequest(request: Request) {
   const authHeader = request.headers.get("authorization") || "";
@@ -47,65 +43,47 @@ export async function POST(request: Request) {
     order_id: string;
   };
 
-  if (!body.razorpay_order_id || !body.razorpay_payment_id || !body.razorpay_signature) {
+  if (!body.razorpay_order_id || !body.razorpay_payment_id || !body.razorpay_signature || !body.order_id) {
     return NextResponse.json({ error: "Missing payment details" }, { status: 400 });
   }
 
   try {
-    // Verify Razorpay signature
-    const generated_signature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-      .update(`${body.razorpay_order_id}|${body.razorpay_payment_id}`)
-      .digest("hex");
-
-    const expected = Buffer.from(generated_signature, "utf8");
-    const provided = Buffer.from(body.razorpay_signature ?? "", "utf8");
-    const signatureValid =
-      expected.length === provided.length && crypto.timingSafeEqual(expected, provided);
-
-    if (!signatureValid) {
-      console.error("[RAZORPAY] Signature verification failed for order:", body.order_id ?? "unknown");
-      return NextResponse.json(
-        { error: "Payment signature verification failed" },
-        { status: 400 }
-      );
+    if (!isValidCheckoutSignature(body.razorpay_order_id, body.razorpay_payment_id, body.razorpay_signature, process.env.RAZORPAY_KEY_SECRET)) {
+      console.error("[RAZORPAY] Signature verification failed for order:", body.order_id);
+      return NextResponse.json({ error: "Payment signature verification failed" }, { status: 400 });
     }
 
-    // Update order with payment details
-    if (body.order_id) {
-      // Prevent tampering / IDOR: the order must belong to the authenticated
-      // user, and the Razorpay order id in the (verified) signature must match
-      // the one we stored when creating the order.
-      const order = await getOrderById(body.order_id);
-      if (!order || order.customer_id !== user.id) {
-        return NextResponse.json({ error: "Order not found" }, { status: 404 });
-      }
-      if (order.razorpay_order_id && order.razorpay_order_id !== body.razorpay_order_id) {
-        return NextResponse.json(
-          { error: "Payment does not match this order" },
-          { status: 400 }
-        );
-      }
+    // Prevent tampering / IDOR: the order must belong to the authenticated user.
+    const order = await getOrderById(body.order_id);
+    if (!order || order.customer_id !== user.id) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+    // The Razorpay order must have been created by us for THIS order (which
+    // fixes the amount). Otherwise a valid signature from a cheaper order
+    // could be replayed to mark this one as paid.
+    if (!order.razorpay_order_id || order.razorpay_order_id !== body.razorpay_order_id) {
+      return NextResponse.json({ error: "Payment does not match this order" }, { status: 400 });
+    }
 
-      // Idempotency: if this order was already verified/paid, don't re-process.
-      if (order.payment_status === "Paid") {
-        return NextResponse.json({
-          success: true,
-          message: "Payment already verified",
-        });
-      }
+    // Shared with the webhook: atomic and idempotent, so whichever arrives
+    // first records the payment and only that one sends notifications.
+    const outcome = await markOrderPaid(
+      body.order_id,
+      { razorpayOrderId: body.razorpay_order_id, razorpayPaymentId: body.razorpay_payment_id },
+      "checkout"
+    );
+    after(() => notifyPaymentOutcome(outcome, body.order_id));
 
-      await updateOrder(body.order_id, {
-        razorpay_order_id: body.razorpay_order_id,
-        razorpay_payment_id: body.razorpay_payment_id,
-        payment_status: "Paid",
-        payment_verified_at: new Date().toISOString(),
-      });
+    const refundDue =
+      outcome === "refund_due" ||
+      (outcome === "already_processed" && (await getOrderById(body.order_id))?.payment_status === "Refund Due");
+    if (refundDue) {
+      return NextResponse.json({ success: false, refund_due: true, error: REFUND_MESSAGE }, { status: 409 });
     }
 
     return NextResponse.json({
       success: true,
-      message: "Payment verified successfully",
+      message: outcome === "already_processed" ? "Payment already verified" : "Payment verified successfully",
     });
   } catch (error) {
     console.error("[RAZORPAY VERIFY] Error:", error);

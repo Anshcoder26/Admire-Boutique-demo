@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { destroySession } from "@/lib/db";
+import { endAllSessions } from "@/lib/session-cookies";
 
 /**
  * POST /api/auth/logout
@@ -8,22 +8,14 @@ import { destroySession } from "@/lib/db";
  */
 export async function POST(request: NextRequest) {
   try {
-    // Revoke the server-side session before clearing cookies. Deleting by token
-    // works for both customer and admin sessions (they share the sessions table).
-    const token = request.cookies.get("admire-session")?.value;
-    if (token) {
-      await destroySession(token);
-    }
-
     const response = NextResponse.json(
       { success: true, message: "Logged out successfully" },
       { status: 200 }
     );
 
-    // Clear session cookies
-    response.cookies.delete("admire-session");
-    response.cookies.delete("admire-refresh");
-    response.cookies.delete("user-type");
+    // Revoke both storefront and owner-dashboard sessions server-side, then
+    // clear their cookies.
+    await endAllSessions(request, response);
 
     // Add security headers
     response.headers.set("X-Content-Type-Options", "nosniff");

@@ -69,10 +69,29 @@ export function generateTrackingId(): string {
   return `${DELIVERY_TRACKING_PREFIX}-${randomBytes(5).toString("hex").toUpperCase()}`;
 }
 
+/**
+ * SSL for Postgres. A database on the same machine (typical VPS setup) usually
+ * has no SSL, so it's disabled for localhost, `sslmode=disable` or
+ * DATABASE_SSL=false. Remote/managed databases keep SSL on in production.
+ */
+function resolvePostgresSsl(): false | { rejectUnauthorized: boolean } {
+  const flag = (process.env.DATABASE_SSL || "").trim().toLowerCase();
+  if (flag === "false" || flag === "disable") return false;
+  if (flag === "true" || flag === "require") return { rejectUnauthorized: false };
+  try {
+    const url = new URL(databaseUrl);
+    if (url.searchParams.get("sslmode") === "disable") return false;
+    if (["localhost", "127.0.0.1", "[::1]", "::1"].includes(url.hostname)) return false;
+  } catch {
+    // Unparseable URL: fall through to the environment default.
+  }
+  return process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false;
+}
+
 const sqliteDb = usesPostgres ? (null as unknown as Database.Database) : new Database(sqlitePath);
 const postgresPool = usesPostgres ? new Pool({
   connectionString: databaseUrl,
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+  ssl: resolvePostgresSsl(),
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
@@ -385,8 +404,8 @@ const seedFaqs = [
   },
   {
     id: "faq-3",
-    question: "What is your sizing guide?",
-    answer: "Our kurtis are designed to fit true to size. For best results, please check the size chart on each product page and compare against your usual measurements.",
+    question: "How do your sizes fit?",
+    answer: "Our kurtis are designed to fit true to size. If you're unsure which size to pick, message us on WhatsApp with your measurements and we'll help you choose.",
     category: "Sizing",
   },
   {
@@ -554,6 +573,7 @@ if (!usesPostgres) {
       razorpay_order_id TEXT,
       razorpay_payment_id TEXT,
       payment_verified_at TEXT,
+      payment_expires_at TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (customer_id) REFERENCES customers(id)
     );
@@ -626,6 +646,9 @@ if (!usesPostgres) {
   }
   if (!sqliteOrderColumns.some((column) => column.name === "payment_verified_at")) {
     sqliteDb.exec("ALTER TABLE orders ADD COLUMN payment_verified_at TEXT;");
+  }
+  if (!sqliteOrderColumns.some((column) => column.name === "payment_expires_at")) {
+    sqliteDb.exec("ALTER TABLE orders ADD COLUMN payment_expires_at TEXT;");
   }
 
   const productsCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM products").get() as { count: number };
@@ -801,6 +824,7 @@ async function ensurePostgresReady() {
         razorpay_order_id TEXT,
         razorpay_payment_id TEXT,
         payment_verified_at TIMESTAMPTZ,
+        payment_expires_at TEXT,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
@@ -893,6 +917,11 @@ async function ensurePostgresReady() {
     await postgresPool.query(`
       ALTER TABLE orders
       ADD COLUMN IF NOT EXISTS payment_verified_at TIMESTAMPTZ
+    `);
+
+    await postgresPool.query(`
+      ALTER TABLE orders
+      ADD COLUMN IF NOT EXISTS payment_expires_at TEXT
     `);
 
   const productCount = await postgresPool.query("SELECT COUNT(*) as count FROM products");
@@ -1691,6 +1720,48 @@ export async function updateCustomerPassword(customerId: string, newPassword: st
   return result.changes > 0;
 }
 
+/**
+ * Set an owner/admin password, creating the admin account if the email doesn't
+ * exist yet. Ends that admin's existing sessions. Used by
+ * scripts/set-admin-password.ts.
+ */
+export async function setAdminPassword(
+  email: string,
+  newPassword: string,
+  name = "Boutique Owner"
+): Promise<"updated" | "created"> {
+  const normalizedEmail = email.trim().toLowerCase();
+  const passwordHash = await hashPassword(newPassword);
+  const id = `admin-${randomBytes(6).toString("hex")}`;
+
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const existing = await postgresPool!.query("SELECT id, email FROM admin_users WHERE LOWER(email) = $1", [normalizedEmail]);
+    if (existing.rows.length > 0) {
+      const adminId = existing.rows[0].id;
+      await postgresPool!.query("UPDATE admin_users SET password_hash = $1 WHERE id = $2", [passwordHash, adminId]);
+      await postgresPool!.query("DELETE FROM sessions WHERE email = $1 AND user_type = 'admin'", [existing.rows[0].email]);
+      return "updated";
+    }
+    await postgresPool!.query(
+      "INSERT INTO admin_users (id, name, email, password_hash) VALUES ($1, $2, $3, $4)",
+      [id, name, normalizedEmail, passwordHash]
+    );
+    return "created";
+  }
+
+  const existing = sqliteDb.prepare("SELECT id, email FROM admin_users WHERE LOWER(email) = ?").get(normalizedEmail) as { id: string; email: string } | undefined;
+  if (existing) {
+    sqliteDb.prepare("UPDATE admin_users SET password_hash = ? WHERE id = ?").run(passwordHash, existing.id);
+    sqliteDb.prepare("DELETE FROM sessions WHERE email = ? AND user_type = 'admin'").run(existing.email);
+    return "updated";
+  }
+  sqliteDb
+    .prepare("INSERT INTO admin_users (id, name, email, password_hash) VALUES (?, ?, ?, ?)")
+    .run(id, name, normalizedEmail, passwordHash);
+  return "created";
+}
+
 export async function createCustomer(input: { name: string; email: string; phone: string; password: string }): Promise<CustomerRecord | null> {
   const name = input.name.trim();
   const email = input.email.trim().toLowerCase();
@@ -1886,6 +1957,8 @@ export async function createOrder(customerId: string, input: {
   estimated_delivery: string;
   items: Array<{ name: string; size: string; qty: number; price: number; productId?: string }>;
   address?: { id?: string; label?: string; full_name?: string; phone?: string; line1?: string; line2?: string; city?: string; state?: string; pincode?: string; country?: string };
+  /** ISO time after which an unpaid online order is auto-cancelled. */
+  payment_expires_at?: string | null;
 }) {
   const id = `ord-${randomBytes(8).toString("hex")}`;
   const order = {
@@ -1904,6 +1977,7 @@ export async function createOrder(customerId: string, input: {
     estimated_delivery: input.estimated_delivery,
     items_json: JSON.stringify(input.items),
     address_json: input.address ? JSON.stringify(input.address) : JSON.stringify({}),
+    payment_expires_at: input.payment_expires_at ?? null,
   };
 
   if (usesPostgres) {
@@ -1918,8 +1992,8 @@ export async function createOrder(customerId: string, input: {
       
       // Insert order
       await client.query(
-        `INSERT INTO orders (id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method, delivery_partner, tracking_id, estimated_delivery, items_json, address_json)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+        `INSERT INTO orders (id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method, delivery_partner, tracking_id, estimated_delivery, items_json, address_json, payment_expires_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
         [
           order.id,
           order.customer_id,
@@ -1936,6 +2010,7 @@ export async function createOrder(customerId: string, input: {
           order.estimated_delivery,
           order.items_json,
           order.address_json,
+          order.payment_expires_at,
         ]
       );
       
@@ -1979,10 +2054,10 @@ export async function createOrder(customerId: string, input: {
     sqliteDb.prepare(`
       INSERT INTO orders (
         id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method,
-        delivery_partner, tracking_id, estimated_delivery, items_json, address_json
+        delivery_partner, tracking_id, estimated_delivery, items_json, address_json, payment_expires_at
       ) VALUES (
         @id, @customer_id, @order_number, @status, @sub_total, @shipping, @discount, @total, @payment_status,
-        @payment_method, @delivery_partner, @tracking_id, @estimated_delivery, @items_json, @address_json
+        @payment_method, @delivery_partner, @tracking_id, @estimated_delivery, @items_json, @address_json, @payment_expires_at
       )
     `).run(order);
     
@@ -2008,6 +2083,238 @@ export async function createOrder(customerId: string, input: {
   return { ...order, items: input.items };
 }
 
+/** Order status for online orders until the payment is confirmed. */
+export const AWAITING_PAYMENT_STATUS = "Awaiting Payment";
+const ONLINE_PAYMENT_METHOD = "Razorpay";
+
+function stockItemsFromJson(itemsJson: unknown): Array<{ productId: string; qty: number }> {
+  return parseJsonArray(itemsJson as string)
+    .map((item: any) => ({ productId: String(item?.productId ?? ""), qty: Number(item?.qty) }))
+    .filter((item) => item.productId && Number.isInteger(item.qty) && item.qty > 0);
+}
+
+/**
+ * Cancel an unpaid online order and put its items back in stock. Only acts on
+ * orders that are still unpaid, so it is safe to call concurrently with a
+ * payment confirmation. Returns true if this call cancelled the order.
+ */
+export async function cancelUnpaidOrder(orderId: string): Promise<boolean> {
+  const where = `id = ${usesPostgres ? "$1" : "?"} AND payment_method = '${ONLINE_PAYMENT_METHOD}'
+    AND payment_status = 'Pending' AND status IN ('${AWAITING_PAYMENT_STATUS}', 'Confirmed')`;
+
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const client = await postgresPool!.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query(`SET LOCAL statement_timeout = ${PG_STATEMENT_TIMEOUT_MS}`);
+      const result = await client.query(
+        `UPDATE orders SET status = 'Cancelled', payment_status = 'Failed' WHERE ${where} RETURNING items_json`,
+        [orderId]
+      );
+      if (!result.rowCount) {
+        await client.query("ROLLBACK");
+        return false;
+      }
+      for (const item of stockItemsFromJson(result.rows[0].items_json)) {
+        await client.query("UPDATE products SET stock = stock + $1 WHERE id = $2", [item.qty, item.productId]);
+      }
+      await client.query("COMMIT");
+      return true;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  return sqliteDb.transaction(() => {
+    const row = sqliteDb.prepare(`SELECT items_json FROM orders WHERE ${where}`).get(orderId) as { items_json: string } | undefined;
+    if (!row) return false;
+    sqliteDb.prepare(`UPDATE orders SET status = 'Cancelled', payment_status = 'Failed' WHERE ${where}`).run(orderId);
+    for (const item of stockItemsFromJson(row.items_json)) {
+      sqliteDb.prepare("UPDATE products SET stock = stock + ? WHERE id = ?").run(item.qty, item.productId);
+    }
+    return true;
+  })();
+}
+
+/**
+ * Unpaid online orders whose payment window has passed. Orders created before
+ * payment_expires_at existed ("Confirmed" + Razorpay + Pending) expire
+ * `windowMinutes` after creation.
+ */
+export async function listExpiredUnpaidOrderIds(now: Date, windowMinutes: number): Promise<string[]> {
+  const nowIso = now.toISOString();
+  const legacyCutoff = new Date(now.getTime() - windowMinutes * 60_000).toISOString();
+
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query(
+      `SELECT id FROM orders
+       WHERE payment_method = '${ONLINE_PAYMENT_METHOD}' AND payment_status = 'Pending'
+         AND ((status = '${AWAITING_PAYMENT_STATUS}' AND payment_expires_at IS NOT NULL AND payment_expires_at < $1)
+           OR (status IN ('${AWAITING_PAYMENT_STATUS}', 'Confirmed') AND payment_expires_at IS NULL AND created_at < $2::timestamptz))
+       LIMIT 200`,
+      [nowIso, legacyCutoff]
+    );
+    return result.rows.map((row) => row.id as string);
+  }
+
+  const rows = sqliteDb.prepare(
+    `SELECT id FROM orders
+     WHERE payment_method = '${ONLINE_PAYMENT_METHOD}' AND payment_status = 'Pending'
+       AND ((status = '${AWAITING_PAYMENT_STATUS}' AND payment_expires_at IS NOT NULL AND payment_expires_at < ?)
+         OR (status IN ('${AWAITING_PAYMENT_STATUS}', 'Confirmed') AND payment_expires_at IS NULL AND datetime(created_at) < datetime(?)))
+     LIMIT 200`
+  ).all(nowIso, legacyCutoff) as Array<{ id: string }>;
+  return rows.map((row) => row.id);
+}
+
+/** A customer's online orders that are still waiting for payment. */
+export async function listAwaitingPaymentOrderIds(customerId: string): Promise<string[]> {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query(
+      `SELECT id FROM orders WHERE customer_id = $1 AND status = '${AWAITING_PAYMENT_STATUS}' AND payment_status = 'Pending'`,
+      [customerId]
+    );
+    return result.rows.map((row) => row.id as string);
+  }
+  const rows = sqliteDb.prepare(
+    `SELECT id FROM orders WHERE customer_id = ? AND status = '${AWAITING_PAYMENT_STATUS}' AND payment_status = 'Pending'`
+  ).all(customerId) as Array<{ id: string }>;
+  return rows.map((row) => row.id);
+}
+
+/**
+ * Result of recording a successful online payment:
+ * - paid: order confirmed now
+ * - late_paid: order had been auto-cancelled, stock was re-reserved and it's confirmed
+ * - refund_due: order had been auto-cancelled and the items are gone; money must be refunded
+ * - already_processed: this payment was recorded before (idempotent no-op)
+ * - not_found: no such order
+ */
+export type PaymentRecordOutcome = "paid" | "late_paid" | "refund_due" | "already_processed" | "not_found";
+
+/**
+ * Atomically record a verified payment. Exactly one concurrent caller gets a
+ * "paid"/"late_paid"/"refund_due" outcome, so notifications are sent once.
+ */
+export async function recordOrderPayment(
+  orderId: string,
+  payment: { razorpayOrderId: string; razorpayPaymentId: string }
+): Promise<PaymentRecordOutcome> {
+  const verifiedAt = new Date().toISOString();
+
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const client = await postgresPool!.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query(`SET LOCAL statement_timeout = ${PG_STATEMENT_TIMEOUT_MS}`);
+      const found = await client.query(
+        "SELECT status, payment_status, items_json FROM orders WHERE id = $1 FOR UPDATE",
+        [orderId]
+      );
+      const order = found.rows[0];
+      if (!order) {
+        await client.query("ROLLBACK");
+        return "not_found";
+      }
+      if (order.payment_status === "Paid" || order.payment_status === "Refund Due") {
+        await client.query("ROLLBACK");
+        return "already_processed";
+      }
+
+      let outcome: PaymentRecordOutcome = "paid";
+      let newStatus = order.status === AWAITING_PAYMENT_STATUS ? "Confirmed" : order.status;
+      let newPaymentStatus = "Paid";
+
+      if (order.status === "Cancelled") {
+        const items = stockItemsFromJson(order.items_json);
+        let available = true;
+        for (const item of items) {
+          const stock = await client.query("SELECT stock FROM products WHERE id = $1 FOR UPDATE", [item.productId]);
+          if (!stock.rows[0] || Number(stock.rows[0].stock) < item.qty) available = false;
+        }
+        if (available) {
+          for (const item of items) {
+            await client.query("UPDATE products SET stock = stock - $1 WHERE id = $2", [item.qty, item.productId]);
+          }
+          outcome = "late_paid";
+          newStatus = "Confirmed";
+        } else {
+          outcome = "refund_due";
+          newStatus = "Cancelled";
+          newPaymentStatus = "Refund Due";
+        }
+      }
+
+      await client.query(
+        `UPDATE orders SET status = $1, payment_status = $2, razorpay_order_id = $3, razorpay_payment_id = $4,
+           payment_verified_at = $5 WHERE id = $6`,
+        [newStatus, newPaymentStatus, payment.razorpayOrderId, payment.razorpayPaymentId, verifiedAt, orderId]
+      );
+      await client.query("COMMIT");
+      return outcome;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  return sqliteDb.transaction((): PaymentRecordOutcome => {
+    const order = sqliteDb
+      .prepare("SELECT status, payment_status, items_json FROM orders WHERE id = ?")
+      .get(orderId) as { status: string; payment_status: string; items_json: string } | undefined;
+    if (!order) return "not_found";
+    if (order.payment_status === "Paid" || order.payment_status === "Refund Due") return "already_processed";
+
+    let outcome: PaymentRecordOutcome = "paid";
+    let newStatus = order.status === AWAITING_PAYMENT_STATUS ? "Confirmed" : order.status;
+    let newPaymentStatus = "Paid";
+
+    if (order.status === "Cancelled") {
+      const items = stockItemsFromJson(order.items_json);
+      const available = items.every((item) => {
+        const product = sqliteDb.prepare("SELECT stock FROM products WHERE id = ?").get(item.productId) as { stock: number } | undefined;
+        return Boolean(product) && Number(product!.stock) >= item.qty;
+      });
+      if (available) {
+        for (const item of items) {
+          sqliteDb.prepare("UPDATE products SET stock = stock - ? WHERE id = ?").run(item.qty, item.productId);
+        }
+        outcome = "late_paid";
+        newStatus = "Confirmed";
+      } else {
+        outcome = "refund_due";
+        newStatus = "Cancelled";
+        newPaymentStatus = "Refund Due";
+      }
+    }
+
+    sqliteDb.prepare(
+      `UPDATE orders SET status = ?, payment_status = ?, razorpay_order_id = ?, razorpay_payment_id = ?,
+         payment_verified_at = ? WHERE id = ?`
+    ).run(newStatus, newPaymentStatus, payment.razorpayOrderId, payment.razorpayPaymentId, verifiedAt, orderId);
+    return outcome;
+  })();
+}
+
+/** Find an order by the Razorpay order id stored when payment was started. */
+export async function getOrderByRazorpayOrderId(razorpayOrderId: string) {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query("SELECT * FROM orders WHERE razorpay_order_id = $1", [razorpayOrderId]);
+    return result.rows[0] ?? null;
+  }
+  return (sqliteDb.prepare("SELECT * FROM orders WHERE razorpay_order_id = ?").get(razorpayOrderId) as Record<string, any> | undefined) ?? null;
+}
+
 export async function listFaqs() {
   if (usesPostgres) {
     await ensurePostgresReady();
@@ -2030,6 +2337,39 @@ export async function validateUserSessionToken(token: string): Promise<CustomerR
   const email = await readSession(token, "customer");
   if (!email) return null;
   return getCustomerByEmail(email);
+}
+
+export async function getAdminStats(): Promise<{ revenue: number; orders: number; customers: number }> {
+  // Only real orders count: online orders still awaiting payment, and ones
+  // auto-cancelled because payment never arrived, are excluded. Revenue also
+  // excludes cancelled, refunded and refund-due orders.
+  const ordersSql = `SELECT
+      COUNT(*) AS orders,
+      COALESCE(SUM(CASE WHEN status = 'Cancelled' OR payment_status IN ('Refunded', 'Refund Due') THEN 0 ELSE total END), 0) AS revenue
+    FROM orders
+    WHERE status <> '${AWAITING_PAYMENT_STATUS}' AND payment_status <> 'Failed'`;
+  const customersSql = "SELECT COUNT(*) AS customers FROM customers";
+
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const [orderResult, customerResult] = await Promise.all([
+      postgresPool!.query(ordersSql),
+      postgresPool!.query(customersSql),
+    ]);
+    return {
+      revenue: Number(orderResult.rows[0]?.revenue ?? 0),
+      orders: Number(orderResult.rows[0]?.orders ?? 0),
+      customers: Number(customerResult.rows[0]?.customers ?? 0),
+    };
+  }
+
+  const orderRow = sqliteDb.prepare(ordersSql).get() as { orders: number; revenue: number };
+  const customerRow = sqliteDb.prepare(customersSql).get() as { customers: number };
+  return {
+    revenue: Number(orderRow.revenue),
+    orders: Number(orderRow.orders),
+    customers: Number(customerRow.customers),
+  };
 }
 
 export async function listRecentAdminOrders() {

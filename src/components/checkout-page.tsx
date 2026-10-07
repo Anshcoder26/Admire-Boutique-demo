@@ -3,26 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, Loader } from "lucide-react";
-
-declare global {
-  interface Window {
-    Razorpay?: new (options: Record<string, unknown>) => { open: () => void; on: (event: string, cb: (resp: unknown) => void) => void };
-  }
-}
-
-// Load the Razorpay checkout script on demand. Resolves false if it can't load
-// (e.g. offline) so the caller can surface a friendly error.
-function loadRazorpayScript(): Promise<boolean> {
-  return new Promise((resolve) => {
-    if (typeof window === "undefined") return resolve(false);
-    if (window.Razorpay) return resolve(true);
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-}
+import { payOrderWithRazorpay } from "@/lib/razorpay-client";
 
 // Safely read + parse a JSON array from localStorage; never throws on corrupt data.
 function readCart<T>(key: string): T[] {
@@ -77,6 +58,9 @@ export function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState("Cash on Delivery");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>("");
+  // An online order whose payment didn't complete. Paying again with the same
+  // cart, address and method retries this order instead of creating a new one.
+  const [pendingOrder, setPendingOrder] = useState<{ id: string; orderNumber: string; key: string; expiresAt?: string } | null>(null);
 
   // Controlled customer + address fields so typed-in values are actually
   // captured (previously uncontrolled defaultValue inputs were ignored, which
@@ -178,93 +162,6 @@ export function CheckoutPage() {
   const discount = 0;
   const total = subtotal + shipping - discount;
 
-  const payWithRazorpay = (
-    orderId: string,
-    orderNumber: string,
-    amount: number,
-    prefill: { name: string; email: string; contact: string }
-  ): Promise<boolean> =>
-    new Promise(async (resolve) => {
-      try {
-        const loaded = await loadRazorpayScript();
-        if (!loaded || !window.Razorpay) {
-          setError("Could not load the payment gateway. Please try again.");
-          return resolve(false);
-        }
-
-        const rzpRes = await fetch("/api/checkout/razorpay", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ amount, order_number: orderNumber, order_id: orderId }),
-        });
-        const rzpData = (await rzpRes.json()) as {
-          success?: boolean;
-          razorpay_order_id?: string;
-          key_id?: string;
-          amount?: number;
-          error?: string;
-        };
-        if (!rzpRes.ok || !rzpData.success || !rzpData.razorpay_order_id) {
-          setError(rzpData.error || "Could not start the payment. Please try again.");
-          return resolve(false);
-        }
-
-        const rzp = new window.Razorpay({
-          key: rzpData.key_id,
-          amount: rzpData.amount ?? Math.round(amount * 100),
-          currency: "INR",
-          name: "Admire Boutique",
-          description: `Order ${orderNumber}`,
-          order_id: rzpData.razorpay_order_id,
-          prefill,
-          theme: { color: "#7D1D1D" },
-          handler: async (response: unknown) => {
-            const r = response as {
-              razorpay_order_id: string;
-              razorpay_payment_id: string;
-              razorpay_signature: string;
-            };
-            try {
-              const verifyRes = await fetch("/api/checkout/razorpay/verify", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({
-                  razorpay_order_id: r.razorpay_order_id,
-                  razorpay_payment_id: r.razorpay_payment_id,
-                  razorpay_signature: r.razorpay_signature,
-                  order_id: orderId,
-                }),
-              });
-              const verifyData = (await verifyRes.json()) as { success?: boolean; error?: string };
-              if (verifyRes.ok && verifyData.success) return resolve(true);
-              setError(verifyData.error || "Payment verification failed.");
-              resolve(false);
-            } catch {
-              setError("Could not verify the payment. Please contact support if you were charged.");
-              resolve(false);
-            }
-          },
-          modal: {
-            ondismiss: () => {
-              setError("Payment was cancelled. Your order is saved as pending.");
-              resolve(false);
-            },
-          },
-        });
-        rzp.on("payment.failed", (resp: unknown) => {
-          const desc = (resp as { error?: { description?: string } })?.error?.description;
-          setError(desc || "Payment failed. Please try again.");
-          resolve(false);
-        });
-        rzp.open();
-      } catch {
-        setError("Payment error. Please try again.");
-        resolve(false);
-      }
-    });
-
   const handlePlaceOrder = async () => {
     if (!isAuthenticated) {
       setError("Please log in to place an order");
@@ -309,61 +206,86 @@ export function CheckoutPage() {
       country: country.trim() || "India",
     };
 
+    const prefill = { name: address.full_name, email: email.trim(), contact: trimmedPhone };
+    // Same cart, address and payment method as the unpaid attempt -> retry it.
+    const attemptKey = JSON.stringify({ cartItems, address, paymentMethod });
+
     try {
-      const response = await fetch("/api/checkout/create-order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          items: cartItems.map((item) => ({
-            productId: item.productId,
-            name: item.name,
-            size: item.size,
-            qty: item.quantity,
-            price: item.price,
-          })),
-          subtotal,
-          shipping,
-          discount,
-          total,
-          payment_method: paymentMethod,
-          address,
-        }),
-      });
+      let orderId: string;
 
-      const data = (await response.json()) as { success?: boolean; order?: { id: string; order_number?: string }; error?: string };
-
-      if (!response.ok) {
-        if (response.status === 409) {
-          // Stock conflict
-          setError(data.error || "Some items are out of stock. Please update your cart.");
-        } else {
-          setError(data.error || "Failed to place order. Please try again.");
-        }
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!data.success || !data.order) {
-        setError("Order creation failed. Please try again.");
-        setIsSubmitting(false);
-        return;
-      }
-
-      // For online payment, run the Razorpay flow and only continue once the
-      // payment is verified. The order already exists as "Pending".
-      if (paymentMethod === "Razorpay") {
-        const paid = await payWithRazorpay(data.order.id, data.order.order_number || data.order.id, total, {
-          name: address.full_name,
-          email: email.trim(),
-          contact: trimmedPhone,
+      if (paymentMethod === "Razorpay" && pendingOrder && pendingOrder.key === attemptKey) {
+        orderId = pendingOrder.id;
+      } else {
+        const response = await fetch("/api/checkout/create-order", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            items: cartItems.map((item) => ({
+              productId: item.productId,
+              name: item.name,
+              size: item.size,
+              qty: item.quantity,
+              price: item.price,
+            })),
+            subtotal,
+            shipping,
+            discount,
+            total,
+            payment_method: paymentMethod,
+            address,
+          }),
         });
-        if (!paid) {
+
+        const data = (await response.json()) as {
+          success?: boolean;
+          order?: { id: string; order_number?: string; payment_expires_at?: string | null };
+          error?: string;
+        };
+
+        if (!response.ok) {
+          if (response.status === 409) {
+            // Stock conflict
+            setError(data.error || "Some items are out of stock. Please update your cart.");
+          } else {
+            setError(data.error || "Failed to place order. Please try again.");
+          }
           setIsSubmitting(false);
           return;
         }
+
+        if (!data.success || !data.order) {
+          setError("Order creation failed. Please try again.");
+          setIsSubmitting(false);
+          return;
+        }
+
+        orderId = data.order.id;
+        // Any earlier unpaid attempt was cancelled by the server.
+        setPendingOrder(
+          paymentMethod === "Razorpay"
+            ? {
+                id: data.order.id,
+                orderNumber: data.order.order_number || data.order.id,
+                key: attemptKey,
+                expiresAt: data.order.payment_expires_at || undefined,
+              }
+            : null
+        );
+      }
+
+      // Online orders stay "Awaiting Payment" until the payment is verified.
+      if (paymentMethod === "Razorpay") {
+        const result = await payOrderWithRazorpay(orderId, { prefill, onAttemptFailed: setError });
+        if (result.status !== "paid") {
+          setError(result.message || "Payment not completed.");
+          if (result.status === "expired" || result.status === "refund_due") setPendingOrder(null);
+          setIsSubmitting(false);
+          return;
+        }
+        setPendingOrder(null);
       }
 
       // Clear cart
@@ -371,7 +293,7 @@ export function CheckoutPage() {
       window.dispatchEvent(new Event("admire-cart-updated"));
 
       // Redirect to confirmation
-      router.push(`/order-confirmation?orderId=${data.order.id}`);
+      router.push(`/order-confirmation?orderId=${orderId}`);
     } catch (error) {
       console.error("[CHECKOUT] Error:", error);
       setError("Connection error. Please try again.");
@@ -576,7 +498,11 @@ export function CheckoutPage() {
             disabled={isSubmitting}
             className="mt-6 block min-h-[48px] w-full rounded-md border border-[#7D1D1D]/40 bg-[#7D1D1D] px-5 py-3.5 text-center text-sm font-semibold uppercase tracking-[0.08em] text-white shadow-[var(--shadow-sm)] transition hover:bg-[#641414] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:scale-100"
           >
-            {isSubmitting ? "Processing order..." : "Place order"}
+            {isSubmitting
+              ? "Processing order..."
+              : paymentMethod === "Razorpay" && pendingOrder
+                ? "Retry payment"
+                : "Place order"}
           </button>
         </aside>
       </div>

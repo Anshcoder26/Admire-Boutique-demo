@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { listRecentAdminOrders, updateAdminOrder } from "@/lib/db";
+import { getAdminStats, listRecentAdminOrders, updateAdminOrder } from "@/lib/db";
 import { authenticateAdmin } from "@/lib/admin-auth";
+import { sweepExpiredOrders } from "@/lib/payments";
 
 export async function GET(request: Request) {
   const user = await authenticateAdmin(request);
@@ -9,10 +10,12 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const rows = await listRecentAdminOrders();
+  await sweepExpiredOrders();
+  const [rows, stats] = await Promise.all([listRecentAdminOrders(), getAdminStats()]);
 
   return NextResponse.json({
     success: true,
+    stats,
     orders: rows.map((row) => ({
       ...row,
       total: Number(row.total),

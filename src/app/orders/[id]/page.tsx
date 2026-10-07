@@ -1,17 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { LotusOrnament } from "@/components/lotus-ornament";
 import { ArrowLeft, Truck, CheckCircle, Clock } from "lucide-react";
 import { useParams } from "next/navigation";
+import { OrderStatusBadge, RetryPaymentButton, isAwaitingPayment } from "@/components/order-payment-status";
 
 type OrderDetail = {
   id: string;
+  orderNumber?: string;
   date: string;
   total: number;
-  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled" | "awaiting_payment";
+  paymentStatus?: string;
+  paymentMethod?: string;
+  paymentExpiresAt?: string | null;
   shippingAddress?: {
     name: string;
     email: string;
@@ -40,10 +45,10 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadOrder = useCallback(() => {
     if (!orderId) return;
 
-    fetch(`/api/me/orders?id=${orderId}`)
+    fetch(`/api/me/orders?id=${orderId}`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.order) {
@@ -56,6 +61,10 @@ export default function OrderDetailPage() {
       .finally(() => setLoading(false));
   }, [orderId]);
 
+  useEffect(() => {
+    loadOrder();
+  }, [loadOrder]);
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -67,7 +76,7 @@ export default function OrderDetailPage() {
   if (!order) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
-        <Link href="/orders" className="inline-flex items-center gap-2 rounded-full bg-[#f5e9e4] px-4 py-2 text-sm font-medium text-[#4b1f1d] transition hover:bg-[#eadcd3]">
+        <Link href="/account/orders" className="inline-flex items-center gap-2 rounded-full bg-[#f5e9e4] px-4 py-2 text-sm font-medium text-[#4b1f1d] transition hover:bg-[#eadcd3]">
           <ArrowLeft className="h-4 w-4" /> Back to orders
         </Link>
         <div className="mt-8 rounded-[30px] border border-[#eadcd3] bg-[#fffaf6] p-8 text-center">
@@ -92,23 +101,42 @@ export default function OrderDetailPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 md:px-8 lg:px-10">
-      <Link href="/orders" className="inline-flex items-center gap-2 rounded-full bg-[#f5e9e4] px-4 py-2 text-sm font-medium text-[#4b1f1d] transition hover:bg-[#eadcd3] mb-6">
+      <Link href="/account/orders" className="inline-flex items-center gap-2 rounded-full bg-[#f5e9e4] px-4 py-2 text-sm font-medium text-[#4b1f1d] transition hover:bg-[#eadcd3] mb-6">
         <ArrowLeft className="h-4 w-4" /> Back to orders
       </Link>
 
       <div className="rounded-[30px] border border-[#eadcd3] bg-white p-6 shadow-[0_14px_32px_rgba(84,58,45,0.05)]">
         <div className="mb-8 flex items-start justify-between">
           <div>
-            <h1 className="font-serif text-3xl text-[#201614]">Order {order.id}</h1>
+            <h1 className="font-serif text-3xl text-[#201614]">Order {order.orderNumber || order.id}</h1>
             <p className="mt-1 text-sm text-[#584942]">{new Date(order.date).toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
           </div>
           <div className="flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
               {getStatusIcon(order.status)}
-              <span className="text-lg font-semibold capitalize text-[#241915]">{order.status}</span>
+              <OrderStatusBadge status={order.status} paymentStatus={order.paymentStatus} />
             </div>
+            {order.paymentMethod ? (
+              <span className="text-xs text-[#584942]">
+                {order.paymentMethod} · {order.paymentStatus}
+              </span>
+            ) : null}
           </div>
         </div>
+
+        {isAwaitingPayment(order.status) ? (
+          <div className="mb-8 rounded-2xl border border-[#f0d9b5] bg-[#fff8ee] p-5">
+            <p className="mb-3 text-sm text-[#584942]">
+              Payment for this order wasn&apos;t completed. Pay now to confirm it — unpaid orders are cancelled automatically and the items released.
+            </p>
+            <RetryPaymentButton orderId={order.id} expiresAt={order.paymentExpiresAt} onChange={loadOrder} />
+          </div>
+        ) : null}
+        {order.paymentStatus === "Refund Due" ? (
+          <div className="mb-8 rounded-2xl border border-[#f0d9b5] bg-[#fff8ee] p-5 text-sm text-[#584942]">
+            Your payment was received after this order was cancelled. The full amount will be refunded to your original payment method within 5–7 working days.
+          </div>
+        ) : null}
 
         {/* Order Items */}
         <div className="mb-8 border-t border-[#eadcd3] pt-6">

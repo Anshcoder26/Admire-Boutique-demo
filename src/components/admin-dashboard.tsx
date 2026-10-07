@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Bell, CheckCircle2, LogOut, Package, Plus, Search, ShieldCheck, ShoppingBag, Sparkles, Trash2, TrendingUp, Users, Edit } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, CheckCircle2, LogOut, Package, Plus, Search, ShieldCheck, ShoppingBag, Sparkles, Trash2, TrendingUp, Users, Edit } from "lucide-react";
 import { LotusOrnament } from "@/components/lotus-ornament";
 import { ProductEditor } from "@/components/admin-product-editor";
 import { OrderManagement } from "@/components/admin-order-management";
 import { CustomerManagement } from "@/components/admin-customer-management";
 import { categories } from "@/data/products";
 import { useToast } from "@/components/ui/toast";
+import { useAuth } from "@/providers/auth-provider";
 
 const productCategories = categories.map((category) => category.name);
 
@@ -64,34 +65,38 @@ type CatalogItem = {
   status: CatalogStatus;
 };
 
-const initialCatalog: CatalogItem[] = [
-  { id: "seed-1", name: "Saffron Grace Kurti", category: "Premium Cotton", price: "₹1,999", stock: 24, isSoldOut: false, status: "Live" },
-  { id: "seed-2", name: "Lotus Bloom Anarkali", category: "Georgette", price: "₹2,799", stock: 12, isSoldOut: false, status: "Live" },
-  { id: "seed-3", name: "Ivory Calm Straight Kurti", category: "Pure Mul", price: "₹2,299", stock: 18, isSoldOut: false, status: "Live" },
-];
-
 const formatCurrency = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 const getCatalogStatus = (stock: number, isSoldOut: boolean): CatalogStatus =>
   isSoldOut ? "Sold Out" : stock < 10 ? "Low stock" : "Live";
 
-const statCards = [
-  { label: "Revenue", value: "₹4.8L", change: "+12.4%", accent: "bg-[#7D1D1D]/8 text-[#7D1D1D]" },
-  { label: "Orders", value: "1,248", change: "+8.1%", accent: "bg-[#7D1D1D]/8 text-[#7D1D1D]" },
-  { label: "Products", value: "182", change: "+14", accent: "bg-[#7D1D1D]/8 text-[#7D1D1D]" },
-  { label: "Customers", value: "9.6K", change: "+4.7%", accent: "bg-[#7D1D1D]/8 text-[#7D1D1D]" },
-];
+type AdminStats = { revenue: number; orders: number; customers: number };
+type RecentOrder = { id: string; order_number: string; customer_name: string; status: string; payment_status?: string; total: number; created_at?: string };
 
-const activityFeed = [
-  { title: "New festive kurti collection approved", meta: "2 hours ago" },
-  { title: "Inventory restocked for Cotton Silk range", meta: "Today" },
-  { title: "Customer review score updated to 4.9/5", meta: "Yesterday" },
-];
+const ORDER_STATUS_STYLES: Record<string, string> = {
+  "Awaiting Payment": "bg-[#fff4e5] text-[#8a4b00]",
+  Confirmed: "bg-[#fff1e6] text-[#8a5d2b]",
+  Packed: "bg-[#eef2fb] text-[#2f4f8a]",
+  Shipped: "bg-[#f3ecfa] text-[#5d2f8a]",
+  Delivered: "bg-[#edf5ee] text-[#1d6a3d]",
+  Cancelled: "bg-[#ffe6e6] text-[#8a1f1f]",
+};
+const getOrderStatusStyle = (status: string) => ORDER_STATUS_STYLES[status] ?? "bg-[var(--ink)]/8 text-[var(--ink)]/70";
+
+const formatOrderDate = (value?: string) => {
+  if (!value) return "";
+  // SQLite returns "YYYY-MM-DD HH:MM:SS" in UTC without a zone marker.
+  const date = new Date(value.includes("T") ? value : `${value.replace(" ", "T")}Z`);
+  return Number.isNaN(date.getTime())
+    ? ""
+    : date.toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+};
 
 export function AdminDashboard() {
   const toast = useToast();
+  const { logout } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [email, setEmail] = useState("owner@admireboutique.in");
-  const [password, setPassword] = useState("admire123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [adminToken, setAdminToken] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"publish" | "products" | "orders" | "customers">("publish");
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
@@ -107,14 +112,71 @@ export function AdminDashboard() {
   });
   const [colorNameInput, setColorNameInput] = useState("");
   const [colorHexInput, setColorHexInput] = useState("#c06a4f");
-  const [catalog, setCatalog] = useState<CatalogItem[]>(initialCatalog);
+  const [catalog, setCatalog] = useState<CatalogItem[]>([]);
+  const [catalogLoaded, setCatalogLoaded] = useState(false);
+  const [productSearch, setProductSearch] = useState("");
   const [updatingProductId, setUpdatingProductId] = useState<string | null>(null);
-  const [recentOrders, setRecentOrders] = useState<Array<{ id: string; order_number: string; customer_name: string; status: string; total: number }>>([]);
+  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const addProductNameRef = useRef<HTMLInputElement>(null);
+  const productSearchRef = useRef<HTMLInputElement>(null);
 
   const totalStock = useMemo(
     () => catalog.reduce((sum, item) => sum + Number(item.stock), 0),
     [catalog],
   );
+
+  const filteredCatalog = useMemo(() => {
+    const query = productSearch.trim().toLowerCase();
+    if (!query) return catalog;
+    return catalog.filter(
+      (item) => item.name.toLowerCase().includes(query) || item.category.toLowerCase().includes(query)
+    );
+  }, [catalog, productSearch]);
+
+  const statCards = [
+    { label: "Revenue", value: stats ? formatCurrency(stats.revenue) : "—" },
+    { label: "Orders", value: stats ? stats.orders.toLocaleString("en-IN") : "—" },
+    { label: "Products", value: catalogLoaded ? catalog.length.toLocaleString("en-IN") : "—" },
+    { label: "Customers", value: stats ? stats.customers.toLocaleString("en-IN") : "—" },
+  ];
+
+  const applyProducts = (productsData: Array<{ id: string; name: string; category: string; price: number; stock: number; isSoldOut?: boolean }>) => {
+    setCatalog(
+      productsData.map((product) => ({
+        id: product.id,
+        name: product.name,
+        category: product.category,
+        price: formatCurrency(Number(product.price)),
+        stock: Number(product.stock),
+        isSoldOut: Boolean(product.isSoldOut),
+        status: getCatalogStatus(Number(product.stock), Boolean(product.isSoldOut)),
+      }))
+    );
+    setCatalogLoaded(true);
+  };
+
+  const reloadCatalog = async () => {
+    try {
+      const res = await fetch("/api/products", { cache: "no-store" });
+      if (res.ok) applyProducts(await res.json());
+    } catch {
+      toast.error("Unable to refresh the product list.");
+    }
+  };
+
+  const openAddProductForm = () => {
+    setActiveTab("publish");
+    requestAnimationFrame(() => {
+      addProductNameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      addProductNameRef.current?.focus({ preventScroll: true });
+    });
+  };
+
+  const openProductSearch = () => {
+    setActiveTab("products");
+    requestAnimationFrame(() => productSearchRef.current?.focus());
+  };
 
   const loadAdminData = async (): Promise<boolean> => {
     try {
@@ -122,7 +184,7 @@ export function AdminDashboard() {
         fetch("/api/admin/me", {
           credentials: "include",
         }),
-        fetch("/api/products"),
+        fetch("/api/products", { cache: "no-store" }),
         fetch("/api/admin/orders", {
           credentials: "include",
         }),
@@ -136,23 +198,13 @@ export function AdminDashboard() {
       setAdminToken("cookie");
 
       if (productsRes.ok) {
-        const productsData = (await productsRes.json()) as Array<{ id: string; name: string; category: string; price: number; stock: number; isSoldOut?: boolean }>;
-        setCatalog(
-          productsData.map((product) => ({
-            id: product.id,
-            name: product.name,
-            category: product.category,
-            price: formatCurrency(Number(product.price)),
-            stock: Number(product.stock),
-            isSoldOut: Boolean(product.isSoldOut),
-            status: getCatalogStatus(Number(product.stock), Boolean(product.isSoldOut)),
-          }))
-        );
+        applyProducts(await productsRes.json());
       }
 
       if (ordersRes.ok) {
-        const ordersData = (await ordersRes.json()) as { orders?: Array<{ id: string; order_number: string; customer_name: string; status: string; total: number }> };
+        const ordersData = (await ordersRes.json()) as { orders?: RecentOrder[]; stats?: AdminStats };
         setRecentOrders(ordersData.orders || []);
+        if (ordersData.stats) setStats(ordersData.stats);
       }
 
       return true;
@@ -207,6 +259,7 @@ export function AdminDashboard() {
 
     setIsAuthenticated(true);
     setAdminToken("cookie");
+    window.dispatchEvent(new Event("admire-auth-updated"));
     void loadAdminData();
   };
 
@@ -278,6 +331,7 @@ export function AdminDashboard() {
           },
           ...current,
         ]);
+        toast.success(`"${created.name}" is now live on the storefront.`);
       }
     } else {
       const error = (await response.json().catch(() => ({ error: "Unable to create product." }))) as { error?: string };
@@ -377,14 +431,10 @@ export function AdminDashboard() {
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-3">
-                  {[
-                    { value: "182", label: "active styles" },
-                    { value: "₹4.8L", label: "monthly revenue" },
-                    { value: "4.9/5", label: "customer rating" },
-                  ].map((item) => (
-                    <div key={item.label} className="rounded-lg border border-white/20 bg-white/10 p-3">
-                      <div className="font-serif text-2xl font-semibold text-white">{item.value}</div>
-                      <div className="text-[10px] uppercase tracking-[0.18em] text-white/70">{item.label}</div>
+                  {["Publish new styles", "Track every order", "Know your customers"].map((label) => (
+                    <div key={label} className="rounded-lg border border-white/20 bg-white/10 p-3">
+                      <CheckCircle2 className="mb-2 h-4 w-4 text-[#E9C766]" />
+                      <div className="text-[10px] uppercase tracking-[0.18em] text-white/80">{label}</div>
                     </div>
                   ))}
                 </div>
@@ -425,13 +475,9 @@ export function AdminDashboard() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-[var(--ink)]/60">
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" className="h-4 w-4 rounded border-[var(--ink)]/25 text-[#7D1D1D]" />
-                    Keep me signed in
-                  </label>
-                  <button type="button" className="font-semibold text-[#7D1D1D]">Forgot password?</button>
-                </div>
+                <p className="text-xs text-[var(--ink)]/60">
+                  You&apos;ll stay signed in on this device for 30 days. Forgot your password? Contact your site administrator to reset it.
+                </p>
 
                 <button
                   type="submit"
@@ -459,13 +505,10 @@ export function AdminDashboard() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="flex h-11 w-11 items-center justify-center rounded-md border border-[var(--ink)]/15 bg-white text-[var(--ink)]">
-            <Bell className="h-4 w-4" />
-          </button>
           <button
             type="button"
-            onClick={() => {
-              void fetch("/api/admin/logout", { method: "POST", credentials: "include" });
+            onClick={async () => {
+              await logout();
               setAdminToken(null);
               setIsAuthenticated(false);
             }}
@@ -505,9 +548,6 @@ export function AdminDashboard() {
           <section className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {statCards.map((card) => (
           <div key={card.label} className="rounded-lg border border-[var(--ink)]/10 bg-white p-5 shadow-[var(--shadow-sm)]">
-            <div className={`mb-4 inline-flex rounded-md px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${card.accent}`}>
-              {card.change}
-            </div>
             <div className="mb-2 text-sm uppercase tracking-[0.18em] text-[var(--ink)]/60">{card.label}</div>
             <div className="font-serif text-4xl text-[var(--ink)]">{card.value}</div>
           </div>
@@ -522,13 +562,22 @@ export function AdminDashboard() {
                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--ink)]/60">Catalog health</p>
                 <h2 className="mt-1 font-serif text-3xl text-[var(--ink)]">Newest in stock</h2>
               </div>
-              <button className="inline-flex items-center gap-2 rounded-md bg-[#7D1D1D] px-4 py-2 text-sm font-medium text-white">
+              <button
+                type="button"
+                onClick={openAddProductForm}
+                className="inline-flex items-center gap-2 rounded-md bg-[#7D1D1D] px-4 py-2 text-sm font-medium text-white"
+              >
                 <Plus className="h-4 w-4" />
                 Add product
               </button>
             </div>
 
             <div className="space-y-3">
+              {!catalogLoaded ? (
+                <p className="py-4 text-sm text-[var(--ink)]/70">Loading catalog…</p>
+              ) : catalog.length === 0 ? (
+                <p className="py-4 text-sm text-[var(--ink)]/70">No products yet. Publish your first style using the form.</p>
+              ) : null}
               {catalog.map((item) => (
                 <div key={item.id} className="flex flex-col gap-3 rounded-lg border border-[var(--ink)]/10 bg-white p-4 md:flex-row md:items-center md:justify-between">
                   <div className="flex items-center gap-3">
@@ -590,7 +639,11 @@ export function AdminDashboard() {
                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--ink)]/60">Orders</p>
                 <h2 className="mt-1 font-serif text-3xl text-[var(--ink)]">Recent purchases</h2>
               </div>
-              <button className="inline-flex items-center gap-2 text-sm font-medium text-[#7D1D1D]">
+              <button
+                type="button"
+                onClick={() => setActiveTab("orders")}
+                className="inline-flex items-center gap-2 text-sm font-medium text-[#7D1D1D]"
+              >
                 View all <ArrowRight className="h-4 w-4" />
               </button>
             </div>
@@ -615,9 +668,14 @@ export function AdminDashboard() {
                     <td className="py-3 pr-4 font-medium">{order.order_number}</td>
                     <td className="py-3 pr-4">{order.customer_name}</td>
                     <td className="py-3 pr-4">
-                      <span className="rounded-md bg-[#edf5ee] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#1d6a3d]">
+                      <span className={`rounded-md px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${getOrderStatusStyle(order.status)}`}>
                         {order.status}
                       </span>
+                      {order.payment_status === "Refund Due" ? (
+                        <span className="ml-2 rounded-md bg-[#ffe6e6] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8a1f1f]">
+                          Refund due
+                        </span>
+                      ) : null}
                     </td>
                     <td className="py-3 font-medium">{formatCurrency(order.total)}</td>
                   </tr>
@@ -644,6 +702,7 @@ export function AdminDashboard() {
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/60">Product name</label>
                 <input
+                  ref={addProductNameRef}
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm((current) => ({ ...current, name: e.target.value }))}
@@ -906,13 +965,19 @@ export function AdminDashboard() {
             </div>
 
             <div className="space-y-3">
-              {activityFeed.map((item) => (
-                <div key={item.title} className="rounded-lg border border-[var(--ink)]/10 bg-white p-3">
+              {recentOrders.length === 0 ? (
+                <p className="text-sm text-[var(--ink)]/70">No activity yet. New orders will appear here.</p>
+              ) : recentOrders.map((order) => (
+                <div key={order.id} className="rounded-lg border border-[var(--ink)]/10 bg-white p-3">
                   <div className="mb-1 flex items-center gap-2 text-[var(--ink)]">
                     <CheckCircle2 className="h-4 w-4 text-[#1d6a3d]" />
-                    <span className="font-medium">{item.title}</span>
+                    <span className="font-medium">
+                      {order.customer_name} placed {order.order_number} · {formatCurrency(order.total)}
+                    </span>
                   </div>
-                  <div className="text-xs uppercase tracking-[0.12em] text-[var(--ink)]/60">{item.meta}</div>
+                  <div className="text-xs uppercase tracking-[0.12em] text-[var(--ink)]/60">
+                    {[order.status, formatOrderDate(order.created_at)].filter(Boolean).join(" · ")}
+                  </div>
                 </div>
               ))}
             </div>
@@ -925,13 +990,32 @@ export function AdminDashboard() {
       {/* Products Tab - Edit Existing Products */}
       {activeTab === "products" && (
         <div className="rounded-lg border border-[var(--ink)]/10 bg-white p-5 shadow-[var(--shadow-sm)] md:p-6">
-          <div className="mb-6">
-            <h2 className="font-serif text-3xl text-[var(--ink)]">Edit Products</h2>
-            <p className="text-sm text-[var(--ink)]/60 mt-2">Click on a product to edit its details</p>
+          <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="font-serif text-3xl text-[var(--ink)]">Edit Products</h2>
+              <p className="text-sm text-[var(--ink)]/60 mt-2">Click on a product to edit its details</p>
+            </div>
+            <label className="relative block md:w-72">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--ink)]/50" />
+              <input
+                ref={productSearchRef}
+                type="search"
+                value={productSearch}
+                onChange={(e) => setProductSearch(e.target.value)}
+                placeholder="Search by name or category"
+                aria-label="Search products"
+                className="w-full rounded-md border border-[var(--ink)]/15 bg-white py-2.5 pl-9 pr-3 text-sm text-[var(--ink)] outline-none focus:border-[#7D1D1D]"
+              />
+            </label>
           </div>
 
           <div className="space-y-3">
-            {catalog.map((item) => (
+            {catalogLoaded && filteredCatalog.length === 0 ? (
+              <p className="py-4 text-sm text-[var(--ink)]/70">
+                {productSearch ? `No products match "${productSearch}".` : "No products yet."}
+              </p>
+            ) : null}
+            {filteredCatalog.map((item) => (
               <div key={item.id} className="flex flex-col gap-3 rounded-lg border border-[var(--ink)]/10 bg-white p-4 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-3 flex-1">
                   <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[#7D1D1D]/8 text-[#7D1D1D] shrink-0">
@@ -985,7 +1069,10 @@ export function AdminDashboard() {
           token={adminToken}
           productId={editingProductId}
           onClose={() => setEditingProductId(null)}
-          onSave={() => setEditingProductId(null)}
+          onSave={() => {
+            setEditingProductId(null);
+            void reloadCatalog();
+          }}
         />
       )}
 
@@ -999,7 +1086,11 @@ export function AdminDashboard() {
             <div className="text-xs uppercase tracking-[0.18em] text-[var(--ink)]/60">{totalStock} units in inventory</div>
           </div>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-md border border-[var(--ink)]/15 bg-white px-4 py-2 text-sm font-medium text-[var(--ink)]">
+        <button
+          type="button"
+          onClick={openProductSearch}
+          className="inline-flex items-center gap-2 rounded-md border border-[var(--ink)]/15 bg-white px-4 py-2 text-sm font-medium text-[var(--ink)]"
+        >
           <Search className="h-4 w-4" />
           Search products
         </button>

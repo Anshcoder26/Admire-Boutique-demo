@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test tests/*.test.ts"
+    "test": "node --import tsx --test tests/*.test.ts",
+    "admin:set-password": "tsx --env-file-if-exists=.env.local scripts/set-admin-password.ts"
   },
   "dependencies": {
     "@types/better-sqlite3": "^9.6.0",

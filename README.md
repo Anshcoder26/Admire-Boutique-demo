@@ -26,7 +26,10 @@ See `.env.local.example` for the full annotated list. Summary:
 | `ADMIN_BOOTSTRAP_EMAIL` | recommended | Email for the first admin account seeded on an empty DB. |
 | `ADMIN_BOOTSTRAP_PASSWORD` | **prod** | Password for the seeded admin (min 8 chars). In dev a random one is generated and logged once. |
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | for payments | Razorpay credentials; checkout is disabled without them. |
-| `RESEND_API_KEY` / `RESEND_FROM_EMAIL` / `ADMIN_EMAIL` | for email | Transactional email (password reset, order confirmation). No-ops if unset. |
+| `RAZORPAY_WEBHOOK_SECRET` | recommended with payments | Verifies the Razorpay webhook (see "Online payments" below). |
+| `PAYMENT_WINDOW_MINUTES` | optional | How long an unpaid online order holds stock before auto-cancel (default 15). |
+| `RESEND_API_KEY` / `RESEND_FROM_EMAIL` / `ADMIN_EMAIL` | for email | Transactional email (password reset, order confirmation + invoice). No-ops if unset. `RESEND_FROM_EMAIL` must be on a domain verified in Resend. |
+| `WHATSAPP_ACCESS_TOKEN` / `WHATSAPP_PHONE_NUMBER_ID` | for WhatsApp | Order notifications via Meta WhatsApp Cloud API. Skipped if unset. See "Order notifications" below. |
 | `NEXT_PUBLIC_APP_URL` | recommended | Public site URL; used for email links and CSRF origin allow-listing. |
 | `SENTRY_DSN` | optional | Enables server error reporting. No-op when unset. |
 
@@ -38,8 +41,9 @@ in production if `DATABASE_URL` is missing and warns for missing optional config
 - The first admin is seeded **only when `admin_users` is empty**, using
   `ADMIN_BOOTSTRAP_EMAIL` / `ADMIN_BOOTSTRAP_PASSWORD`.
 - Changing `ADMIN_BOOTSTRAP_PASSWORD` later does **not** update an existing admin.
-- To rotate: log in and change the password in the admin panel (or reset the
-  `admin_users` row and redeploy to re-seed).
+- To rotate or recover: run `npm run admin:set-password -- <email>` (prompts for
+  the new password; set `DATABASE_URL` to target production). It creates the
+  admin if missing and signs out existing admin sessions.
 
 ## Scripts
 
@@ -65,6 +69,67 @@ in production if `DATABASE_URL` is missing and warns for missing optional config
   `next.config.ts`; `x-powered-by` disabled.
 - **Redacting logger** (`src/lib/logger.ts`) — quiet in prod, strips secrets/tokens/
   signatures from log output.
+
+## Online payments (Razorpay)
+
+Order lifecycle for online payments:
+
+1. **Place order** → order is created as **Awaiting Payment** (payment `Pending`)
+   and the items are reserved, for `PAYMENT_WINDOW_MINUTES` (default 15).
+   No "order placed" notification is sent yet.
+2. **Payment fails / popup closed** → the order stays Awaiting Payment. The
+   customer can retry on the *same* order from checkout ("Retry payment") or
+   from My Orders; no duplicate orders are created.
+3. **Payment verified** (browser callback or webhook, whichever comes first)
+   → **Confirmed / Paid**, and the customer gets the email + WhatsApp receipt.
+4. **Not paid within the window** → automatically **Cancelled** (payment
+   `Failed`) and the stock is returned. Expiry is checked lazily on
+   checkout, product listings, My Orders and the admin orders list — no cron needed.
+5. **Paid after cancellation** (rare, e.g. a delayed UPI) → the order is revived
+   if stock is still available; otherwise it is marked **Refund Due**, and the
+   owner (`ADMIN_EMAIL`) and customer are emailed. Refund it from the Razorpay
+   dashboard and set the payment status to *Refunded*.
+
+Webhook setup (Razorpay Dashboard → Account & Settings → Webhooks → Add):
+
+- URL: `https://<your-domain>/api/webhooks/razorpay`
+- Secret: any strong random string; put the same value in `RAZORPAY_WEBHOOK_SECRET`
+- Events: `payment.captured` and `order.paid`
+
+## Order notifications
+
+`src/lib/notifications/` sends order updates through two independent channels:
+
+| Channel | Customer receives | Owner receives |
+| --- | --- | --- |
+| Email (`email-channel.ts`) | Order details + PDF invoice attached | "New order / payment received" alert at `ADMIN_EMAIL` |
+| WhatsApp (`whatsapp-channel.ts`) | Template message + PDF invoice | — |
+
+When they fire:
+
+- **Cash on Delivery:** when the order is placed (`order_placed`).
+- **Online (Razorpay):** only after the payment signature is verified (`payment_received`), so abandoned payments send nothing.
+
+Each channel is skipped if unconfigured, and one failing never blocks the other or the
+order. Results are logged with a `[NOTIFY]` prefix.
+
+### WhatsApp setup (Meta Cloud API)
+
+1. Create an app at developers.facebook.com, add the **WhatsApp** product, and note the
+   **Phone number ID** and access token under WhatsApp → API Setup. In production use a
+   permanent System User token.
+2. In WhatsApp Manager → Message templates, create two **Utility** templates in the same
+   language, each with a **Document** header and these body variables:
+   - `order_confirmation`: e.g. "Hi {{1}}, your order {{2}} is confirmed. Amount payable on
+     delivery: {{3}}. Your invoice is attached."
+   - `payment_receipt`: e.g. "Hi {{1}}, we've received your payment for order {{2}} of {{3}}.
+     Your receipt is attached."
+3. Once approved, set `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` and (if you used
+   different names or language) the `WHATSAPP_TEMPLATE_*` vars. While testing, add your own
+   number as a recipient on the API Setup page.
+
+WhatsApp's policy requires customers to opt in to business messages; make sure your checkout
+or terms cover this.
 
 ## Health check
 

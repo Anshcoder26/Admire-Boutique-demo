@@ -11,6 +11,7 @@ type OrderDetail = {
   id: string;
   orderNumber: string;
   total: number;
+  status: string;
   paymentStatus: string;
   paymentMethod: string;
   items: OrderItem[];
@@ -77,7 +78,7 @@ export function OrderConfirmation() {
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
-              href="/orders"
+              href="/account/orders"
               className="inline-flex min-h-[44px] items-center justify-center rounded-md bg-[#7D1D1D] px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.08em] text-white hover:bg-[#641414]"
             >
               View my orders
@@ -89,6 +90,38 @@ export function OrderConfirmation() {
               Continue shopping
             </Link>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // An online order that isn't paid (or was cancelled) is not a confirmed
+  // order; send the customer to its details to retry or see what happened.
+  const notConfirmed =
+    order.status === "awaiting_payment" ||
+    order.status === "cancelled" ||
+    (order.paymentMethod === "Razorpay" && order.paymentStatus !== "Paid");
+  if (notConfirmed) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-10 md:px-8 lg:px-10">
+        <div className="rounded-xl border border-[#f0d9b5] bg-[#fff8ee] p-6 text-center md:p-10">
+          <AlertCircle className="mx-auto mb-4 h-12 w-12 text-[#8a4b00]" />
+          <h1 className="font-serif text-3xl font-semibold tracking-tight text-[var(--ink)]">
+            {order.status === "awaiting_payment" ? "Payment not completed" : "This order is not active"}
+          </h1>
+          <p className="mt-3 text-[var(--ink)]/70">
+            {order.status === "awaiting_payment"
+              ? `Order ${order.orderNumber} is waiting for payment. Complete the payment to confirm it.`
+              : order.paymentStatus === "Refund Due"
+                ? `Order ${order.orderNumber} was cancelled and your payment will be refunded.`
+                : `Order ${order.orderNumber} was cancelled because the payment wasn't completed.`}
+          </p>
+          <Link
+            href={`/orders/${order.id}`}
+            className="mt-6 inline-flex rounded-md bg-[#7D1D1D] px-5 py-3 text-sm font-medium text-white"
+          >
+            View order
+          </Link>
         </div>
       </div>
     );

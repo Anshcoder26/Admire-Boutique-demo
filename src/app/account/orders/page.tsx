@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, PackageCheck } from "lucide-react";
+import { OrderStatusBadge, RetryPaymentButton, isAwaitingPayment } from "@/components/order-payment-status";
 
 type Order = {
   id: string;
@@ -15,6 +16,7 @@ type Order = {
   delivery_partner: string;
   tracking_id: string;
   estimated_delivery: string;
+  payment_expires_at?: string | null;
   items: Array<{ name: string; size: string; qty: number; price: number }>;
 };
 
@@ -22,18 +24,21 @@ export default function OrdersPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
 
+  const loadOrders = useCallback(() => {
+    fetch("/api/me/orders", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => { setOrders(data.orders || []); })
+      .catch(() => setOrders([]));
+  }, []);
+
   useEffect(() => {
     const token = window.localStorage.getItem("admire-user-token");
     if (!token) {
       router.push('/login');
       return;
     }
-
-    fetch("/api/me/orders", { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => res.json())
-      .then((data) => { setOrders(data.orders || []); })
-      .catch(() => setOrders([]));
-  }, []);
+    loadOrders();
+  }, [router, loadOrders]);
 
   return (
     <main className="relative z-10 mx-auto max-w-5xl px-4 py-8 md:px-8 lg:px-10">
@@ -58,10 +63,10 @@ export default function OrdersPage() {
               <div key={order.id} className="rounded-lg border border-[var(--ink)]/10 bg-white p-4">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <div>
-                    <div className="font-medium text-[var(--ink)]">{order.order_number}</div>
-                    <div className="text-xs uppercase tracking-[0.14em] text-[var(--ink)]/50">{order.payment_status}</div>
+                    <Link href={`/orders/${order.id}`} className="font-medium text-[var(--ink)] hover:text-[#7D1D1D]">{order.order_number}</Link>
+                    <div className="text-xs uppercase tracking-[0.14em] text-[var(--ink)]/50">{order.payment_method} · {order.payment_status}</div>
                   </div>
-                  <span className="rounded-md bg-[#edf5ee] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#1d6a3d]">{order.status}</span>
+                  <OrderStatusBadge status={order.status} paymentStatus={order.payment_status} />
                 </div>
                 <div className="space-y-2 text-sm text-[var(--ink)]/70">
                   {order.items.map((item) => (
@@ -71,12 +76,31 @@ export default function OrdersPage() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 border-t border-[var(--ink)]/10 pt-3 text-xs uppercase tracking-[0.14em] text-[var(--ink)]/50">
-                  <div>Delivery partner: {order.delivery_partner}</div>
-                  <div>Tracking: {order.tracking_id}</div>
-                  <div>ETA: {order.estimated_delivery}</div>
-                  <div className="mt-2 font-medium text-[var(--ink)]">Total: ₹{order.total}</div>
-                </div>
+                {isAwaitingPayment(order.status) ? (
+                  <div className="mt-4 border-t border-[var(--ink)]/10 pt-3">
+                    <p className="mb-3 text-sm text-[var(--ink)]/70">
+                      Payment for this order wasn&apos;t completed. Pay now to confirm it — unpaid orders are cancelled automatically.
+                    </p>
+                    <RetryPaymentButton orderId={order.id} expiresAt={order.payment_expires_at} onChange={loadOrders} />
+                    <div className="mt-3 text-xs font-medium uppercase tracking-[0.14em] text-[var(--ink)]">Total: ₹{order.total}</div>
+                  </div>
+                ) : order.status === "Cancelled" ? (
+                  <div className="mt-4 border-t border-[var(--ink)]/10 pt-3 text-xs uppercase tracking-[0.14em] text-[var(--ink)]/50">
+                    {order.payment_status === "Refund Due" ? (
+                      <div className="normal-case tracking-normal text-sm text-[#8a4b00]">
+                        Your payment was received after this order was cancelled. The full amount will be refunded to your original payment method within 5–7 working days.
+                      </div>
+                    ) : null}
+                    <div className="mt-2 font-medium text-[var(--ink)]">Total: ₹{order.total}</div>
+                  </div>
+                ) : (
+                  <div className="mt-4 border-t border-[var(--ink)]/10 pt-3 text-xs uppercase tracking-[0.14em] text-[var(--ink)]/50">
+                    <div>Delivery partner: {order.delivery_partner}</div>
+                    <div>Tracking: {order.tracking_id}</div>
+                    <div>ETA: {order.estimated_delivery}</div>
+                    <div className="mt-2 font-medium text-[var(--ink)]">Total: ₹{order.total}</div>
+                  </div>
+                )}
               </div>
             ))
           )}

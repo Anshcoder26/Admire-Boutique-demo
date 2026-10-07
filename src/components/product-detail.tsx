@@ -208,9 +208,8 @@ export function ProductDetail({ product }: { product: Product }) {
               </div>
               
               <div className="relative z-10">
-                <div className="flex items-center justify-between mb-4">
+                <div className="mb-4">
                   <label className="text-sm font-bold uppercase tracking-[0.1em] text-[#1a1612]">Select Size</label>
-                  <Link href="#size-guide" className="text-xs font-semibold text-[#8B7355] hover:text-[#7D1D1D] transition">Size Guide</Link>
                 </div>
                 <div className="flex flex-wrap gap-3">
                   {product.sizes.map((size) => (

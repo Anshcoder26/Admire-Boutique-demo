@@ -1,8 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createOrder, validateUserSessionToken, getProductById, getProductByName, getOrderByNumber, generateOrderNumber, generateTrackingId, DELIVERY_PARTNER, DELIVERY_ESTIMATE } from "@/lib/db";
+import { NextRequest, NextResponse, after } from "next/server";
+import { createOrder, validateUserSessionToken, getProductById, getProductByName, getOrderByNumber, generateOrderNumber, generateTrackingId, DELIVERY_PARTNER, DELIVERY_ESTIMATE, AWAITING_PAYMENT_STATUS } from "@/lib/db";
+import { cancelAwaitingOrdersForCustomer, sweepExpiredOrders } from "@/lib/payments";
+import { computePaymentExpiry } from "@/lib/payment-utils";
 import { AUTH_RATE_LIMITS } from "@/lib/auth-utils";
 import { checkRateLimit, tooManyRequests } from "@/lib/rate-limiter";
-import { sendOrderConfirmation, sendAdminNotification } from "@/lib/email-service";
+import { notifyOrderEvent } from "@/lib/notifications";
 
 async function getUserFromRequest(request: Request) {
   // Try Authorization header first
@@ -61,7 +63,16 @@ export async function POST(request: Request) {
     );
   }
 
+  const isOnlinePayment = paymentMethod === "Razorpay";
+
   try {
+    // Release stock held by expired unpaid orders before checking availability.
+    await sweepExpiredOrders();
+    // A new checkout replaces the customer's earlier unpaid online attempt
+    // (e.g. they retried, changed the address, or switched to COD), so
+    // abandoned attempts don't pile up as duplicate orders holding stock.
+    await cancelAwaitingOrdersForCustomer(user.id);
+
     // FIX P1 + P2: Validate items and enrich with database data
     const validatedItems = await Promise.all(
       body.items.map(async (item) => {
@@ -133,7 +144,10 @@ export async function POST(request: Request) {
 
     const order = await createOrder(user.id, {
       order_number: orderNumber,
-      status: "Confirmed",
+      // Online orders aren't confirmed until payment is verified; until then
+      // they hold stock for a limited window and are auto-cancelled after it.
+      status: isOnlinePayment ? AWAITING_PAYMENT_STATUS : "Confirmed",
+      payment_expires_at: isOnlinePayment ? computePaymentExpiry() : null,
       subtotal: computedSubtotal,
       shipping: computedShipping,
       discount: computedDiscount,
@@ -151,17 +165,12 @@ export async function POST(request: Request) {
       address: body.address, // FIX P3: Pass address to createOrder
     });
 
-    // Send confirmation + admin notification emails. These never throw (the
-    // email service returns false when unconfigured), so a failure here must
-    // not fail the order — the order is already persisted.
-    void sendOrderConfirmation(
-      user.email,
-      user.name,
-      orderNumber,
-      computedTotal,
-      validatedItems.map((item) => ({ name: item.name, quantity: item.qty, price: item.price }))
-    );
-    void sendAdminNotification(orderNumber, user.name, user.email, computedTotal, paymentMethod);
+    // Online orders are announced after payment is verified (see the Razorpay
+    // verify route), so abandoned payments don't trigger a "confirmed" message.
+    // after() keeps the work alive past the response on serverless hosts.
+    if (!isOnlinePayment) {
+      after(() => notifyOrderEvent("order_placed", order.id));
+    }
 
     return NextResponse.json({ success: true, order });
   } catch (error) {

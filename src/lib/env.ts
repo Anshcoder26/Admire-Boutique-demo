@@ -33,11 +33,22 @@ export function validateEnv(): EnvValidationResult {
   if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
     warnings.push("RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET not set — online payments will be unavailable.");
   }
+  if (process.env.RAZORPAY_KEY_ID && !process.env.RAZORPAY_WEBHOOK_SECRET) {
+    warnings.push(
+      "RAZORPAY_WEBHOOK_SECRET not set — payments are only recorded via the browser callback; if a customer closes the tab right after paying, the order may be cancelled and need a manual refund.",
+    );
+  }
 
   const hasSmtp = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
   const hasResend = Boolean(process.env.RESEND_API_KEY);
   if (!hasSmtp && !hasResend) {
     warnings.push("No email transport configured (set RESEND_API_KEY or SMTP_* vars) — transactional emails will not be sent.");
+  } else if (hasResend && !process.env.RESEND_FROM_EMAIL) {
+    warnings.push("RESEND_FROM_EMAIL not set — emails will be sent from noreply@admireboutique.com, which Resend rejects unless that domain is verified.");
+  }
+
+  if (!process.env.WHATSAPP_ACCESS_TOKEN || !process.env.WHATSAPP_PHONE_NUMBER_ID) {
+    warnings.push("WHATSAPP_ACCESS_TOKEN / WHATSAPP_PHONE_NUMBER_ID not set — WhatsApp order notifications are disabled.");
   }
 
   if (isProduction && !process.env.NEXT_PUBLIC_APP_URL) {

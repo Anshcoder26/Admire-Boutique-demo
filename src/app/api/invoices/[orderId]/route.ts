@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateUserSessionToken, getOrderById } from "@/lib/db";
 import { generateInvoiceStream } from "@/lib/invoice-generator";
+import { buildInvoiceData } from "@/lib/notifications/order-context";
 
 async function getUserFromRequest(request: Request) {
   const authHeader = request.headers.get("authorization") || "";
@@ -41,48 +42,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    // Parse items if stored as JSON string
-    type RawInvoiceItem = {
-      name?: string;
-      qty?: number;
-      quantity?: number;
-      price?: number;
-    };
-    const items: RawInvoiceItem[] =
-      typeof order.items === "string" ? JSON.parse(order.items) : order.items || [];
-
-    // Parse address if stored as JSON string
-    const address =
-      typeof order.shipping_address === "string"
-        ? JSON.parse(order.shipping_address)
-        : order.shipping_address || {};
-
-    const invoiceStream = await generateInvoiceStream({
-      orderNumber: order.order_number,
-      date: new Date(order.created_at).toLocaleDateString("en-IN"),
-      customerName: user.name || "Customer",
-      customerEmail: user.email,
-      customerPhone: user.phone || "N/A",
-      address: {
-        line1: address.line1 || "",
-        city: address.city || "",
-        state: address.state || "",
-        pincode: address.pincode || "",
-        country: address.country || "India",
-      },
-      items: items.map((item) => ({
-        name: item.name ?? "",
-        quantity: Number(item.qty ?? item.quantity ?? 0),
-        price: Number(item.price ?? 0),
-      })),
-      subtotal: order.subtotal,
-      shipping: order.shipping,
-      discount: order.discount || 0,
-      total: order.total,
-      paymentMethod: order.payment_method,
-      paymentStatus: order.payment_status,
-      estimatedDelivery: order.estimated_delivery || "4-7 business days",
-    });
+    const invoiceStream = await generateInvoiceStream(buildInvoiceData(order, user));
 
     return new NextResponse(invoiceStream as unknown as ReadableStream<Uint8Array>, {
       headers: {

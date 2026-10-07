@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from "react";
 import { ArrowRight, CheckCircle2, MapPin, PackageCheck, Truck } from "lucide-react";
 import { ArtMotif } from "@/components/motifs/art-motif";
+import { OrderStatusBadge } from "@/components/order-payment-status";
 
 type Customer = {
   id: string;
@@ -178,7 +179,7 @@ export function AccountDashboard() {
                   <div key={order.id} className="rounded-lg border border-[var(--ink)]/10 bg-white p-4">
                     <div className="mb-2 flex items-center justify-between gap-3">
                       <div className="font-medium text-[var(--ink)]">{order.order_number}</div>
-                      <span className="rounded-md bg-[#edf5ee] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#1d6a3d]">{order.status}</span>
+                      <OrderStatusBadge status={order.status} paymentStatus={order.payment_status} />
                     </div>
                     <div className="mb-3 text-sm text-[var(--ink)]/70">
                       {order.items.map((item) => `${item.name} (${item.size})`).join(" • ")}
