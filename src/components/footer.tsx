@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { Mail, MapPin, MessageCircleMore, Phone, Camera, Video } from "lucide-react";
+import { Mail, MapPin, MessageCircleMore } from "lucide-react";
 import { useState } from "react";
 import { AbLogo } from "@/components/ab-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 import { MotifTile } from "@/components/motifs/motif-tile";
 import { ArtMotif } from "@/components/motifs/art-motif";
+import { FacebookIcon, InstagramIcon } from "@/components/social-icons";
+import { FACEBOOK_URL, INSTAGRAM_URL, WHATSAPP_DISPLAY, WHATSAPP_URL } from "@/lib/site-contact";
 
 export function Footer() {
   const [open, setOpen] = useState(false);
@@ -49,33 +51,12 @@ export function Footer() {
             </p>
             <div className="mt-5 flex gap-3">
               {[
-                { 
-                  icon: (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                      <circle cx="17.5" cy="6.5" r="1.5" />
-                    </svg>
-                  ),
-                  href: "https://www.instagram.com/admire_boutique.ab/", 
-                  label: "Instagram" 
-                },
-                { 
-                  icon: (
-                    <MessageCircleMore className="h-4 w-4" />
-                  ),
-                  href: "https://wa.me/919876543210", 
-                  label: "WhatsApp" 
-                },
-                { 
-                  icon: (
-                    <Mail className="h-4 w-4" />
-                  ),
-                  href: "mailto:contact@admireboutique.com", 
-                  label: "Email" 
-                }
+                { icon: <InstagramIcon className="h-4 w-4" />, href: INSTAGRAM_URL, label: "Instagram" },
+                { icon: <FacebookIcon className="h-4 w-4" />, href: FACEBOOK_URL, label: "Facebook" },
+                { icon: <MessageCircleMore className="h-4 w-4" />, href: WHATSAPP_URL, label: "WhatsApp" },
+                { icon: <Mail className="h-4 w-4" />, href: "mailto:contact@admireboutique.com", label: "Email" },
               ].map(({ icon, href, label }, idx) => (
-                <a key={idx} href={href} target="_blank" rel="noopener noreferrer" title={label} className="flex h-10 w-10 items-center justify-center rounded-md border border-[var(--ink)]/15 bg-white text-[#7D1D1D] transition hover:-translate-y-0.5 hover:border-[#7D1D1D] hover:bg-[#fff5f0]">
+                <a key={idx} href={href} target="_blank" rel="noopener noreferrer" title={label} aria-label={label} className="flex h-10 w-10 items-center justify-center rounded-md border border-[var(--ink)]/15 bg-white text-[#7D1D1D] transition hover:-translate-y-0.5 hover:border-[#7D1D1D] hover:bg-[#fff5f0]">
                   {icon}
                 </a>
               ))}
@@ -106,7 +87,21 @@ export function Footer() {
             <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ink)]">Contact</h3>
             <ul className="space-y-3 text-sm text-[var(--ink)]/70">
               <li className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 text-[#7D1D1D]" /> 12 Saffron Lane, Bengaluru</li>
-              <li className="flex items-center gap-2"><Phone className="h-4 w-4 text-[#7D1D1D]" /> +91 98765 43210</li>
+              <li>
+                <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-[#7D1D1D] transition-colors">
+                  <MessageCircleMore className="h-4 w-4 text-[#7D1D1D]" /> WhatsApp {WHATSAPP_DISPLAY}
+                </a>
+              </li>
+              <li>
+                <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-[#7D1D1D] transition-colors">
+                  <InstagramIcon className="h-4 w-4 text-[#7D1D1D]" /> @admire_boutique.ab
+                </a>
+              </li>
+              <li>
+                <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-[#7D1D1D] transition-colors">
+                  <FacebookIcon className="h-4 w-4 text-[#7D1D1D]" /> Admire Boutique on Facebook
+                </a>
+              </li>
               <li className="flex items-center gap-2"><Mail className="h-4 w-4 text-[#7D1D1D]" /> hello@admireboutique.in</li>
             </ul>
           </div>
@@ -139,14 +134,14 @@ export function Footer() {
 
             {open && (
               <div className="flex gap-2">
-                <Link href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg hover:scale-110 transition">
+                <Link href={WHATSAPP_URL} target="_blank" rel="noreferrer" aria-label="WhatsApp" className="flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg hover:scale-110 transition">
                   <MessageCircleMore className="h-5 w-5" />
                 </Link>
-                <Link href="https://instagram.com" target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E1306C] text-white shadow-lg hover:scale-110 transition">
-                  <Camera className="h-5 w-5" />
+                <Link href={INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label="Instagram" className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E1306C] text-white shadow-lg hover:scale-110 transition">
+                  <InstagramIcon className="h-5 w-5" />
                 </Link>
-                <Link href="https://facebook.com" target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-lg hover:scale-110 transition">
-                  <Video className="h-5 w-5" />
+                <Link href={FACEBOOK_URL} target="_blank" rel="noreferrer" aria-label="Facebook" className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-lg hover:scale-110 transition">
+                  <FacebookIcon className="h-5 w-5" />
                 </Link>
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f3e7db] text-[#402320] shadow-lg">
                   <ThemeToggle />

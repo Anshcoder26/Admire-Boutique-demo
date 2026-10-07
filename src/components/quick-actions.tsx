@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Camera, Video } from "lucide-react";
+import { FacebookIcon, InstagramIcon } from "@/components/social-icons";
+import { FACEBOOK_URL, INSTAGRAM_URL } from "@/lib/site-contact";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -11,11 +12,11 @@ export function QuickActionsMenu() {
   return (
     <div className="fixed bottom-0 left-4 z-50 md:bottom-0 md:left-8">
       <div className={`mb-3 flex flex-col gap-2 transition-all ${open ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0"}`}>
-        <Link href="https://instagram.com" target="_blank" rel="noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full bg-[#E1306C] text-white shadow-lg shadow-[#E1306C]/30">
-          <Camera className="h-4 w-4" />
+        <Link href={INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label="Instagram" className="flex h-11 w-11 items-center justify-center rounded-full bg-[#E1306C] text-white shadow-lg shadow-[#E1306C]/30">
+          <InstagramIcon className="h-4 w-4" />
         </Link>
-        <Link href="https://facebook.com" target="_blank" rel="noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-lg shadow-[#1877F2]/30">
-          <Video className="h-4 w-4" />
+        <Link href={FACEBOOK_URL} target="_blank" rel="noreferrer" aria-label="Facebook" className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-lg shadow-[#1877F2]/30">
+          <FacebookIcon className="h-4 w-4" />
         </Link>
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f3e7db] text-[#402320] shadow-lg shadow-[#d7bca7]/20">
           <ThemeToggle />

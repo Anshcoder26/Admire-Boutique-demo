@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Headphones, MessageCircle, ShieldCheck, Truck } from "lucide-react";
+import { WHATSAPP_URL } from "@/lib/site-contact";
 
 const supportCards = [
   { icon: Truck, title: "Shipping support", text: "Track shipments, choose delivery preferences and confirm updates on every order." },
@@ -34,7 +35,7 @@ export default function SupportPage() {
             <h2 className="mt-1 font-serif text-4xl text-[#201614]">Need help right away?</h2>
           </div>
           <div className="flex gap-3">
-            <Link href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2.5 text-sm font-medium text-white">
+            <Link href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2.5 text-sm font-medium text-white">
               <MessageCircle className="h-4 w-4" />
               WhatsApp
             </Link>
