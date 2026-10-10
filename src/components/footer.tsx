@@ -76,10 +76,10 @@ export function Footer() {
           <div>
             <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ink)]">Support</h3>
             <ul className="space-y-3 text-sm text-[var(--ink)]/70">
-              <li><Link href="/support" className="hover:text-[#7D1D1D] transition-colors">Shipping</Link></li>
-              <li><Link href="/support" className="hover:text-[#7D1D1D] transition-colors">Returns</Link></li>
-              <li><Link href="/faq" className="hover:text-[#7D1D1D] transition-colors">Sizing guide</Link></li>
+              <li><Link href="/shipping-policy" className="hover:text-[#7D1D1D] transition-colors">Shipping</Link></li>
+              <li><Link href="/refund-policy" className="hover:text-[#7D1D1D] transition-colors">Returns &amp; refunds</Link></li>
               <li><Link href="/faq" className="hover:text-[#7D1D1D] transition-colors">FAQs</Link></li>
+              <li><Link href="/contact" className="hover:text-[#7D1D1D] transition-colors">Contact us</Link></li>
             </ul>
           </div>
 
@@ -118,11 +118,13 @@ export function Footer() {
 
         <div className="mb-0 mt-6 flex flex-col gap-3 border-t border-[var(--ink)]/10 pb-0 pt-4 text-xs uppercase tracking-[0.14em] text-[var(--ink)]/60 md:flex-row md:items-center md:justify-between">
           <p>© 2026 Admire Boutique. All rights reserved.</p>
-          <div className="flex gap-4">
-            <Link href="#" className="hover:text-[#7D1D1D] transition-colors">Privacy</Link>
-            <Link href="#" className="hover:text-[#7D1D1D] transition-colors">Terms</Link>
-            <Link href="#" className="hover:text-[#7D1D1D] transition-colors">Payments</Link>
-          </div>
+          <nav aria-label="Store policies" className="flex flex-wrap gap-x-4 gap-y-2">
+            <Link href="/privacy-policy" className="hover:text-[#7D1D1D] transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-[#7D1D1D] transition-colors">Terms</Link>
+            <Link href="/refund-policy" className="hover:text-[#7D1D1D] transition-colors">Refunds</Link>
+            <Link href="/shipping-policy" className="hover:text-[#7D1D1D] transition-colors">Shipping</Link>
+            <Link href="/contact" className="hover:text-[#7D1D1D] transition-colors">Contact</Link>
+          </nav>
         </div>
 
         {/* Quick Actions Menu - Integrated in Footer */}
