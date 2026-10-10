@@ -83,6 +83,14 @@ for p in / /products /cart /checkout /login /signup /faq /support /wishlist /acc
 done
 check "GET /orders redirects to /account/orders" "/account/orders" "$(curl -s -o /dev/null -w '%{redirect_url}' $BASE/orders | sed -E 's#^https?://[^/]+##')"
 
+echo "== Policy pages & footer links =="
+HOME_HTML=$(curl -s $BASE/)
+for p in /privacy-policy /terms /refund-policy /shipping-policy /contact; do
+  check "GET $p" 200 "$(status $BASE$p)"
+  check "footer links to $p" 1 "$(grep -c "href=\"$p\"" <<<"$HOME_HTML" | tr -d ' ' | sed 's/^[1-9][0-9]*$/1/')"
+done
+check "no dead href=\"#\" links on home page" 0 "$(grep -o 'href="#"' <<<"$HOME_HTML" | wc -l | tr -d ' ')"
+
 echo
 echo "==================================="
 echo "RESULTS: PASS=$PASS FAIL=$FAIL"
