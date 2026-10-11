@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
+import { ORDER_STATUSES, PAYMENT_STATUSES, SYSTEM_STATUSES } from "@/lib/order-status";
 
 interface Order {
   id: string;
@@ -12,11 +13,6 @@ interface Order {
   total: number;
   created_at: string;
 }
-
-const ORDER_STATUSES = ["Confirmed", "Packed", "Shipped", "Delivered"];
-const PAYMENT_STATUSES = ["Pending", "Paid", "Failed", "Refund Due", "Refunded"];
-// Set automatically by the payment flow; not something to move orders into by hand.
-const SYSTEM_STATUSES = ["Awaiting Payment", "Cancelled"];
 
 // Keep the order's current value selectable even if it isn't a standard option.
 const withCurrent = (options: string[], current: string) =>

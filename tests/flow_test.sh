@@ -76,6 +76,18 @@ check "admin products GET not allowed (uses /api/products)" 405 "$(status -b $AJ
 check "admin orders list" 200 "$(status -b $AJ $BASE/api/admin/orders)"
 check "admin customers list" 200 "$(status -b $AJ $BASE/api/admin/customers)"
 check "admin endpoint unauth blocked" 401 "$(status $BASE/api/admin/orders)"
+ADMIN_ORDERS=$(curl -s -b $AJ $BASE/api/admin/orders)
+A_ORDER_ID=$(node -e 'const d=JSON.parse(process.argv[1]);const o=(d.orders||[]).find(x=>["Confirmed","Packed","Shipped","Delivered"].includes(x.status));process.stdout.write(o?o.id+" "+o.status:"")' "$ADMIN_ORDERS")
+A_ORDER_STATUS=${A_ORDER_ID#* }; A_ORDER_ID=${A_ORDER_ID%% *}
+admin_put() { status -b $AJ -X PUT -H "$ORIGIN" -H 'Content-Type: application/json' -d "$1" $BASE/api/admin/orders; }
+BODY_CANCEL=$(printf '{"orderId":"%s","status":"Cancelled"}' "$A_ORDER_ID")
+BODY_BAD_STATUS=$(printf '{"orderId":"%s","status":"Lost"}' "$A_ORDER_ID")
+BODY_BAD_PAYMENT=$(printf '{"orderId":"%s","paymentStatus":"Chargeback"}' "$A_ORDER_ID")
+check "admin cannot cancel an order" 400 "$(admin_put "$BODY_CANCEL")"
+check "admin cannot set an unknown status" 400 "$(admin_put "$BODY_BAD_STATUS")"
+check "admin cannot set an unknown payment status" 400 "$(admin_put "$BODY_BAD_PAYMENT")"
+check "admin update of missing order" 404 "$(admin_put '{"orderId":"does-not-exist","status":"Packed"}')"
+check "rejected updates left the order unchanged" "$A_ORDER_STATUS" "$(curl -s -b $AJ $BASE/api/admin/orders | node -e 'const d=JSON.parse(require("fs").readFileSync(0));process.stdout.write((d.orders||[]).find(x=>x.id===process.argv[1])?.status||"")' "$A_ORDER_ID")"
 
 echo "== Pages (SSR) =="
 for p in / /products /cart /checkout /login /signup /faq /support /wishlist /account /account/orders /forgot-password; do

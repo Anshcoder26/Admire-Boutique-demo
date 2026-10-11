@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getAdminStats, listRecentAdminOrders, updateAdminOrder } from "@/lib/db";
+import { getAdminStats, getOrderById, listRecentAdminOrders, updateAdminOrder } from "@/lib/db";
+import { validateAdminOrderUpdate } from "@/lib/order-status";
 import { authenticateAdmin } from "@/lib/admin-auth";
 import { sweepExpiredOrders } from "@/lib/payments";
 
@@ -40,6 +41,16 @@ export async function PUT(request: Request) {
 
   if (!status && !paymentStatus) {
     return NextResponse.json({ error: "No updates provided" }, { status: 400 });
+  }
+
+  const order = await getOrderById(orderId);
+  if (!order) {
+    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
+
+  const invalid = validateAdminOrderUpdate(String(order.status ?? ""), { status, paymentStatus });
+  if (invalid) {
+    return NextResponse.json({ error: invalid.error }, { status: invalid.status });
   }
 
   const updated = await updateAdminOrder(orderId, { status, paymentStatus });
