@@ -139,4 +139,5 @@ echo "==================================="
 echo "RESULTS: PASS=$PASS FAIL=$FAIL"
 echo "==================================="
 rm -f $CJ $AJ
+[ "$FAIL" -eq 0 ] || exit 1
 exit 0
