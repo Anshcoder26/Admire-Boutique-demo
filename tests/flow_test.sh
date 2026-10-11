@@ -54,10 +54,21 @@ check "GET /api/me/orders" 200 "$(status -b $CJ $BASE/api/me/orders)"
 check "GET /api/me/addresses" 200 "$(status -b $CJ $BASE/api/me/addresses)"
 
 echo "== Checkout =="
-ORDER=$(curl -s -b $CJ -w '\n%{http_code}' -X POST -H "$ORIGIN" -H 'Content-Type: application/json' \
-  -d '{"items":[{"productId":"prod-1","name":"Saffron Silk Kurti","size":"M","qty":1,"price":1899}],"payment_method":"Cash on Delivery","address":{"full_name":"Flow Test","phone":"'"$TEST_PHONE"'","line1":"1 Test St","city":"Mumbai","state":"MH","pincode":"400001","country":"India"}}' \
-  $BASE/api/checkout/create-order)
+# Admin session (used here and in the admin section below).
+curl -s -c $AJ -o /dev/null -X POST -H "$ORIGIN" -H 'Content-Type: application/json' \
+  -d '{"email":"owner@admireboutique.in","password":"'"${ADMIN_PASSWORD:?set ADMIN_PASSWORD}"'"}' $BASE/api/admin/login
+# Order a throwaway product so repeated runs never use up real stock.
+TEST_PRODUCT=$(curl -s -b $AJ -X POST -H "$ORIGIN" -H 'Content-Type: application/json' \
+  -d "$(printf '{"name":"Flow Test Kurti %s","category":"Kurtis","price":999,"stock":1,"notifySubscribers":false}' "$ts")" \
+  $BASE/api/admin/products)
+TP_ID=$(node -e 'const d=JSON.parse(process.argv[1]);process.stdout.write((d.product&&d.product.id)||d.id||"")' "$TEST_PRODUCT")
+check "test product created" yes "$([ -n "$TP_ID" ] && echo yes || echo no)"
+ORDER_BODY=$(printf '{"items":[{"productId":"%s","name":"Flow Test Kurti %s","size":"M","qty":1,"price":999}],"payment_method":"Cash on Delivery","address":{"full_name":"Flow Test","phone":"%s","line1":"1 Test St","city":"Mumbai","state":"MH","pincode":"400001","country":"India"}}' "$TP_ID" "$ts" "$TEST_PHONE")
+ORDER=$(curl -s -b $CJ -w '\n%{http_code}' -X POST -H "$ORIGIN" -H 'Content-Type: application/json' -d "$ORDER_BODY" $BASE/api/checkout/create-order)
 check "create COD order" 200 "$(tail -n1 <<<"$ORDER")"
+check "order took the last unit of stock" 0 "$(curl -s $BASE/api/products/$TP_ID | node -e 'const d=JSON.parse(require("fs").readFileSync(0));const p=d.product||d;process.stdout.write(String(p.stock))')"
+check "ordering a sold-out product rejected" 409 "$(status -b $CJ -X POST -H "$ORIGIN" -H 'Content-Type: application/json' -d "$ORDER_BODY" $BASE/api/checkout/create-order)"
+check "test product deleted" 200 "$(status -b $AJ -X DELETE -H "$ORIGIN" $BASE/api/admin/products/$TP_ID)"
 check "checkout unauthenticated rejected" 401 "$(status -X POST -H "$ORIGIN" -H 'Content-Type: application/json' -d '{"items":[{"productId":"prod-1","name":"x","size":"M","qty":1,"price":1}],"address":{"line1":"a","city":"b"}}' $BASE/api/checkout/create-order)"
 check "checkout empty items rejected" 400 "$(status -b $CJ -X POST -H "$ORIGIN" -H 'Content-Type: application/json' -d '{"items":[],"address":{"line1":"a","city":"b"}}' $BASE/api/checkout/create-order)"
 
@@ -68,8 +79,6 @@ echo "== Forgot password =="
 check "forgot-password (always 200)" 200 "$(status -X POST -H "$ORIGIN" -H 'Content-Type: application/json' -d '{"email":"customer@admireboutique.in"}' $BASE/api/auth/forgot-password)"
 
 echo "== Admin auth & panel =="
-curl -s -c $AJ -o /dev/null -X POST -H "$ORIGIN" -H 'Content-Type: application/json' \
-  -d '{"email":"owner@admireboutique.in","password":"'"${ADMIN_PASSWORD:?set ADMIN_PASSWORD}"'"}' $BASE/api/admin/login
 check "admin login -> me" 200 "$(status -b $AJ $BASE/api/admin/me)"
 check "admin login wrong pw" 401 "$(status -X POST -H "$ORIGIN" -H 'Content-Type: application/json' -d '{"email":"owner@admireboutique.in","password":"nope"}' $BASE/api/admin/login)"
 check "admin products GET not allowed (uses /api/products)" 405 "$(status -b $AJ $BASE/api/admin/products)"
