@@ -91,6 +91,15 @@ for p in /privacy-policy /terms /refund-policy /shipping-policy /contact; do
 done
 check "no dead href=\"#\" links on home page" 0 "$(grep -o 'href="#"' <<<"$HOME_HTML" | wc -l | tr -d ' ')"
 
+echo "== Refund policy (no cancellations, exchange on issues only) =="
+REFUND_HTML=$(curl -s $BASE/refund-policy)
+has() { grep -qF "$1" <<<"$2" && echo yes || echo no; }
+check "refund policy: orders cannot be cancelled" yes "$(has 'Orders cannot be cancelled once they are placed.' "$REFUND_HTML")"
+check "refund policy: unboxing video required" yes "$(has 'Record an unboxing video' "$REFUND_HTML")"
+check "refund policy: 24-hour complaint window" yes "$(has 'within 24 hours of delivery' "$REFUND_HTML")"
+check "refund policy: no old 7-day return window" no "$(has '7 days of delivery' "$REFUND_HTML")"
+check "refund policy: no customer cancellation before shipping" no "$(has 'cancel an order any time before it is shipped' "$REFUND_HTML")"
+
 echo
 echo "==================================="
 echo "RESULTS: PASS=$PASS FAIL=$FAIL"

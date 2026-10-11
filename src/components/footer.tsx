@@ -77,7 +77,7 @@ export function Footer() {
             <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ink)]">Support</h3>
             <ul className="space-y-3 text-sm text-[var(--ink)]/70">
               <li><Link href="/shipping-policy" className="hover:text-[#7D1D1D] transition-colors">Shipping</Link></li>
-              <li><Link href="/refund-policy" className="hover:text-[#7D1D1D] transition-colors">Returns &amp; refunds</Link></li>
+              <li><Link href="/refund-policy" className="hover:text-[#7D1D1D] transition-colors">Exchanges &amp; refunds</Link></li>
               <li><Link href="/faq" className="hover:text-[#7D1D1D] transition-colors">FAQs</Link></li>
               <li><Link href="/contact" className="hover:text-[#7D1D1D] transition-colors">Contact us</Link></li>
             </ul>

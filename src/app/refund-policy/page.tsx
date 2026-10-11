@@ -5,7 +5,7 @@ import { WHATSAPP_DISPLAY, WHATSAPP_URL } from "@/lib/site-contact";
 
 export const metadata: Metadata = {
   title: "Cancellation & Refund Policy | Admire Boutique",
-  description: "How to cancel an order, return or exchange an item, and get a refund at Admire Boutique.",
+  description: "Admire Boutique's policy on order cancellations, exchanges for damaged or wrong items, and refunds.",
 };
 
 export default function RefundPolicyPage() {
@@ -21,57 +21,51 @@ export default function RefundPolicyPage() {
       currentHref="/refund-policy"
       intro={
         <p>
-          We want you to love what you buy. If something isn&apos;t right, this policy explains how to cancel an
-          order, return or exchange an item, and when you will get your money back.
+          We want you to love what you buy. This policy explains our cancellation rules, how to get an exchange if
+          your item arrives damaged, defective or wrong, and when you will get your money back.
         </p>
       }
       sections={[
         {
-          heading: "Cancelling an order",
+          heading: "Cancellations",
           body: (
             <ul>
-              <li>You can cancel an order any time before it is shipped. Message us on {whatsapp} with your order number.</li>
-              <li>Orders that have already been shipped cannot be cancelled, but you can return them after delivery under the return policy below.</li>
-              <li>If you cancel a prepaid order before it ships, you will receive a full refund.</li>
-              <li>Online orders that are not paid within 15 minutes are cancelled automatically. Nothing is charged for these.</li>
+              <li><strong>Orders cannot be cancelled once they are placed.</strong></li>
+              <li>In rare cases we may cancel an order ourselves: a pricing or listing error, an item that is out of stock, an address we cannot deliver to, or suspected fraud. If we cancel a paid order, you receive a full refund.</li>
+              <li>Online orders that are not paid within 15 minutes are not placed. Nothing is charged for these.</li>
             </ul>
           ),
         },
         {
-          heading: "Returns and exchanges",
+          heading: "Exchanges",
           body: (
             <>
-              <p>You can request a return or exchange within <strong>7 days of delivery</strong>, provided that:</p>
+              <p>
+                We exchange an item only if it arrives <strong>damaged, defective or wrong</strong> (for example, a
+                different product, colour or size from what you ordered). We do not accept returns or exchanges for a
+                change of mind, preference or fit.
+              </p>
+              <p>To be eligible for an exchange:</p>
               <ul>
-                <li>The item is unused, unwashed and unaltered.</li>
-                <li>All original tags are attached and the item is in its original packaging.</li>
+                <li><strong>Record an unboxing video</strong> when the parcel is delivered, starting from the sealed package and showing the product clearly.</li>
+                <li>Message us on {whatsapp} <strong>within 24 hours of delivery</strong> with your order number, a description of the issue and the unboxing video.</li>
+                <li>Keep the item unused, unwashed and unaltered, with all original tags and packaging.</li>
               </ul>
               <p>
-                To start a return, message us on {whatsapp} with your order number, the item and the reason. We will
-                arrange a pickup where available, or share the return address.
+                Complaints without an unboxing video, or made more than 24 hours after delivery, are not eligible.
+                Once we approve your request, we will arrange the exchange at no extra cost to you.
               </p>
             </>
-          ),
-        },
-        {
-          heading: "Damaged, defective or wrong items",
-          body: (
-            <p>
-              If you receive a damaged, defective or wrong item, please tell us within 48 hours of delivery and share
-              photos of the product and packaging on {whatsapp}. We will replace it or give you a full refund at no
-              extra cost, including shipping.
-            </p>
           ),
         },
         {
           heading: "Refunds",
           body: (
             <ul>
-              <li>Once we receive and check the returned item, we will confirm your refund on WhatsApp or email.</li>
+              <li>If your exchange is approved but a replacement is not available, you receive a <strong>full refund</strong>, including any shipping charge.</li>
               <li>Approved refunds are processed within <strong>5–7 working days</strong>.</li>
               <li>Prepaid orders are refunded to the original payment method (UPI, card, net banking or wallet). Your bank may take a few more days to show the credit.</li>
               <li>Cash on Delivery orders are refunded by bank transfer or UPI to an account you share with us.</li>
-              <li>For change-of-mind returns, the original shipping charge (if any) is not refundable.</li>
             </ul>
           ),
         },
@@ -89,7 +83,7 @@ export default function RefundPolicyPage() {
           heading: "Contact",
           body: (
             <>
-              <p>For cancellations, returns or refund questions, contact us:</p>
+              <p>For exchanges or refund questions, contact us:</p>
               <StoreContactDetails />
             </>
           ),
