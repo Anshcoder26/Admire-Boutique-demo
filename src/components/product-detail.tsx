@@ -155,8 +155,8 @@ export function ProductDetail({ product }: { product: Product }) {
             <div className="flex items-start gap-3 p-4 bg-[#fafaf9] rounded border border-[#ddd]/30">
               <Shield className="w-5 h-5 text-[#7D1D1D] flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#8B7355]">7-Day Returns</p>
-                <p className="text-sm text-[#584942] mt-1">Easy, no-questions-asked</p>
+                <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#8B7355]">Easy Exchange</p>
+                <p className="text-sm text-[#584942] mt-1">For damaged or wrong items</p>
               </div>
             </div>
             <div className="flex items-start gap-3 p-4 bg-[#fafaf9] rounded border border-[#ddd]/30">
@@ -327,7 +327,7 @@ export function ProductDetail({ product }: { product: Product }) {
             <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#8B7355] flex items-center gap-2">
               <Check className="w-4 h-4" /> Guarantee
             </p>
-            <p className="text-sm font-semibold mt-3 text-[#1a1612]">7-day money-back guarantee</p>
+            <p className="text-sm font-semibold mt-3 text-[#1a1612]">Exchange or full refund if it arrives damaged or wrong</p>
           </div>
         </div>
       </div>

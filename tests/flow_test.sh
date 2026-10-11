@@ -100,6 +100,16 @@ check "refund policy: 24-hour complaint window" yes "$(has 'within 24 hours of d
 check "refund policy: no old 7-day return window" no "$(has '7 days of delivery' "$REFUND_HTML")"
 check "refund policy: no customer cancellation before shipping" no "$(has 'cancel an order any time before it is shipped' "$REFUND_HTML")"
 
+echo "== No return / money-back claims on storefront =="
+HOME_NOW=$(curl -s $BASE/)
+SLUG=$(curl -s $BASE/api/products | node -e 'const d=JSON.parse(require("fs").readFileSync(0));const a=Array.isArray(d)?d:(d.products||[]);process.stdout.write(a[0]?.slug||"")')
+PRODUCT_HTML=$(curl -s "$BASE/products/$SLUG")
+check "home banner offers exchange on damaged/wrong items" yes "$(has 'exchange on damaged or wrong items' "$HOME_NOW")"
+check "home: no 7-day returns claim" no "$(has '7-day returns' "$HOME_NOW")"
+check "product page ($SLUG) shows exchange badge" yes "$(has 'For damaged or wrong items' "$PRODUCT_HTML")"
+check "product page: no 7-day returns claim" no "$(has '7-Day Returns' "$PRODUCT_HTML")"
+check "product page: no money-back guarantee claim" no "$(has 'money-back' "$PRODUCT_HTML")"
+
 echo
 echo "==================================="
 echo "RESULTS: PASS=$PASS FAIL=$FAIL"

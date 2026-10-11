@@ -79,7 +79,7 @@ export function Header() {
         {/* Promo banner */}
         <div className="relative overflow-hidden bg-[#7D1D1D] px-4 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.28em] text-white md:text-xs">
           <span className="relative z-10">
-            Free shipping on orders above ₹2,499 &middot; easy 7-day returns
+            Free shipping on orders above ₹2,499 &middot; exchange on damaged or wrong items
           </span>
         </div>
 
