@@ -389,6 +389,13 @@ const seedProducts = [
   },
 ];
 
+// faq-2's answer before the no-cancellation / exchange-on-issue policy. Databases
+// that still have this exact text are updated at startup; edited answers are left alone.
+const LEGACY_FAQ_RETURNS_ANSWER =
+  "Yes. We offer easy returns and exchanges on eligible items within 7 days of delivery, provided the product is unused and in original packaging.";
+const FAQ_RETURNS_ANSWER =
+  "Orders cannot be cancelled, and we don't accept returns for a change of mind or fit. If your item arrives damaged, defective or wrong, record an unboxing video and message us on WhatsApp within 24 hours of delivery. We will exchange it, or refund you in full if a replacement isn't available. See our Cancellation & Refund Policy for details.";
+
 const seedFaqs = [
   {
     id: "faq-1",
@@ -399,7 +406,7 @@ const seedFaqs = [
   {
     id: "faq-2",
     question: "Do you offer returns or exchanges?",
-    answer: "Yes. We offer easy returns and exchanges on eligible items within 7 days of delivery, provided the product is unused and in original packaging.",
+    answer: FAQ_RETURNS_ANSWER,
     category: "Returns",
   },
   {
@@ -729,6 +736,9 @@ if (!usesPostgres) {
       insertFaq.run(faq);
     }
   }
+  sqliteDb
+    .prepare("UPDATE faq_items SET answer = ? WHERE id = 'faq-2' AND answer = ?")
+    .run(FAQ_RETURNS_ANSWER, LEGACY_FAQ_RETURNS_ANSWER);
 }
 
 async function ensurePostgresReady() {
@@ -1049,6 +1059,10 @@ async function ensurePostgresReady() {
       );
     }
   }
+  await postgresPool.query(
+    "UPDATE faq_items SET answer = $1 WHERE id = 'faq-2' AND answer = $2",
+    [FAQ_RETURNS_ANSWER, LEGACY_FAQ_RETURNS_ANSWER]
+  );
 
   postgresReady = true;
   logger.debug("[DB] PostgreSQL initialization completed successfully");

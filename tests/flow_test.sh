@@ -109,6 +109,9 @@ check "home: no 7-day returns claim" no "$(has '7-day returns' "$HOME_NOW")"
 check "product page ($SLUG) shows exchange badge" yes "$(has 'For damaged or wrong items' "$PRODUCT_HTML")"
 check "product page: no 7-day returns claim" no "$(has '7-Day Returns' "$PRODUCT_HTML")"
 check "product page: no money-back guarantee claim" no "$(has 'money-back' "$PRODUCT_HTML")"
+FAQ_JSON=$(curl -s $BASE/api/faq)
+check "FAQ: no 7-day returns promise" no "$(has 'within 7 days of delivery' "$FAQ_JSON")"
+check "FAQ: exchange needs unboxing video within 24 hours" yes "$(has 'unboxing video and message us on WhatsApp within 24 hours of delivery' "$FAQ_JSON")"
 
 echo
 echo "==================================="
