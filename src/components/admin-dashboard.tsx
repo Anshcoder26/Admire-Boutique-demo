@@ -14,46 +14,6 @@ const productCategories = categories.map((category) => category.name);
 
 const STITCH_TYPES = ["Stitched", "Unstitched"] as const;
 
-// Curated palette for common boutique colour names that aren't valid CSS keywords.
-const CURATED_COLORS: Record<string, string> = {
-  "lemon yellow": "#fff44f",
-  "mustard": "#e1ad01",
-  "maroon": "#7d1d1d",
-  "rani pink": "#ff1a8c",
-  "rose gold": "#b76e79",
-  "peach": "#ffb59e",
-  "bottle green": "#006a4e",
-  "off white": "#faf9f6",
-  "sky blue": "#87ceeb",
-  "terracotta": "#c06a4f",
-  "wine": "#722f37",
-  "saffron": "#f4c430",
-  "charcoal": "#36454f",
-  "blush": "#de5d83",
-  "mauve": "#e0b0ff",
-  "emerald": "#046307",
-};
-
-// Resolve a colour name (e.g. "Lemon Yellow") to a hex value using the curated
-// map first, then the browser's own CSS colour parser. Returns null if unknown.
-function resolveColorHex(name: string): string | null {
-  const key = name.trim().toLowerCase().replace(/\s+/g, " ");
-  if (!key) return null;
-  if (CURATED_COLORS[key]) return CURATED_COLORS[key];
-
-  if (typeof document === "undefined") return null;
-  const ctx = document.createElement("canvas").getContext("2d");
-  if (!ctx) return null;
-  const candidate = key.replace(/\s+/g, "");
-  ctx.fillStyle = "#000000";
-  ctx.fillStyle = candidate;
-  const first = ctx.fillStyle;
-  ctx.fillStyle = "#ffffff";
-  ctx.fillStyle = candidate;
-  const second = ctx.fillStyle;
-  return first === second ? first : null;
-}
-
 type CatalogStatus = "Live" | "Low stock" | "Sold Out";
 type CatalogItem = {
   id: string;
@@ -108,10 +68,7 @@ export function AdminDashboard() {
     fabric: "Cotton",
     stitchType: "" as "" | "Stitched" | "Unstitched",
     images: [] as string[],
-    colors: [] as Array<{ name: string; hex: string }>,
   });
-  const [colorNameInput, setColorNameInput] = useState("");
-  const [colorHexInput, setColorHexInput] = useState("#c06a4f");
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [catalogLoaded, setCatalogLoaded] = useState(false);
   const [productSearch, setProductSearch] = useState("");
@@ -263,37 +220,11 @@ export function AdminDashboard() {
     void loadAdminData();
   };
 
-  const handleColorNameChange = (value: string) => {
-    setColorNameInput(value);
-    const resolved = resolveColorHex(value);
-    if (resolved) setColorHexInput(resolved);
-  };
-
-  const handleAddColor = () => {
-    const name = colorNameInput.trim();
-    if (!name) return;
-    setForm((current) => {
-      if (current.colors.some((color) => color.name.toLowerCase() === name.toLowerCase())) {
-        return current;
-      }
-      return { ...current, colors: [...current.colors, { name, hex: colorHexInput }] };
-    });
-    setColorNameInput("");
-    setColorHexInput("#c06a4f");
-  };
-
   const handleAddProduct = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!form.name || !form.price || !form.stock) return;
 
     const imageUrls = form.images.filter(Boolean);
-
-    // Include any colour the owner typed but didn't explicitly "Add" yet.
-    const finalColors = [...form.colors];
-    const pendingName = colorNameInput.trim();
-    if (pendingName && !finalColors.some((color) => color.name.toLowerCase() === pendingName.toLowerCase())) {
-      finalColors.push({ name: pendingName, hex: resolveColorHex(pendingName) || colorHexInput });
-    }
 
     const payload = {
       name: form.name,
@@ -302,7 +233,6 @@ export function AdminDashboard() {
       stock: Number(form.stock),
       fabric: form.fabric,
       stitchType: form.stitchType || undefined,
-      colors: finalColors.length ? finalColors : undefined,
       description: `${form.name} has been added via the owner dashboard and is ready to be published on the storefront.`,
       images: imageUrls.length ? imageUrls : undefined,
     };
@@ -339,9 +269,7 @@ export function AdminDashboard() {
       return;
     }
 
-    setForm({ name: "", category: productCategories[0] || "Premium Cotton", price: "", stock: "", fabric: "Cotton", stitchType: "", images: [], colors: [] });
-    setColorNameInput("");
-    setColorHexInput("#c06a4f");
+    setForm({ name: "", category: productCategories[0] || "Premium Cotton", price: "", stock: "", fabric: "Cotton", stitchType: "", images: [] });
   };
 
   const handleSoldOutToggle = async (productId: string, currentSoldOutStatus: boolean) => {
@@ -892,59 +820,6 @@ export function AdminDashboard() {
                     <option key={type} value={type}>{type}</option>
                   ))}
                 </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/60">Colours</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={colorNameInput}
-                    onChange={(e) => handleColorNameChange(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddColor();
-                      }
-                    }}
-                    className="flex-1 rounded-md border border-[var(--ink)]/12 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[#7D1D1D]"
-                    placeholder="e.g. Lemon Yellow"
-                  />
-                  <input
-                    type="color"
-                    value={colorHexInput}
-                    onChange={(e) => setColorHexInput(e.target.value)}
-                    className="h-11 w-12 shrink-0 cursor-pointer rounded-xl border border-[var(--ink)]/12 bg-white"
-                    aria-label="Pick colour shade"
-                    title="Pick or fine-tune the shade"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddColor}
-                    className="shrink-0 rounded-md bg-[#7D1D1D] px-4 py-2.5 text-xs font-semibold text-white"
-                  >
-                    Add
-                  </button>
-                </div>
-                <p className="text-[11px] text-[var(--ink)]/60">Type a colour name — the swatch auto-fills. Adjust the shade with the picker if needed.</p>
-                {form.colors.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {form.colors.map((color, idx) => (
-                      <span key={`${color.name}-${idx}`} className="inline-flex items-center gap-2 rounded-md border border-[var(--ink)]/12 bg-white py-1 pl-1.5 pr-2 text-xs text-[var(--ink)]">
-                        <span className="h-5 w-5 rounded-md border border-[var(--ink)]/12" style={{ backgroundColor: color.hex }} />
-                        {color.name}
-                        <button
-                          type="button"
-                          onClick={() => setForm((current) => ({ ...current, colors: current.colors.filter((_, i) => i !== idx) }))}
-                          className="text-[#7D1D1D] hover:text-[#7D1D1D]"
-                          aria-label={`Remove ${color.name}`}
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
               </div>
 
               <button type="submit" className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#7D1D1D] px-5 py-3.5 text-sm font-semibold text-white ">

@@ -17,33 +17,8 @@ interface Product {
   stitchType?: string;
 }
 
-const CURATED_COLORS: Record<string, string> = {
-  "lemon yellow": "#fff44f",
-  "mustard": "#e1ad01",
-  "maroon": "#7d1d1d",
-  "rani pink": "#ff1a8c",
-  "rose gold": "#b76e79",
-  "peach": "#ffb59e",
-  "bottle green": "#006a4e",
-  "off white": "#faf9f6",
-  "sky blue": "#87ceeb",
-  "terracotta": "#c06a4f",
-  "wine": "#722f37",
-  "saffron": "#f4c430",
-  "charcoal": "#36454f",
-  "blush": "#de5d83",
-  "mauve": "#e0b0ff",
-  "emerald": "#046307",
-};
-
 const productCategories = ["Premium Cotton", "Georgette", "Pure Mul", "Silk"];
 const STITCH_TYPES = ["Stitched", "Unstitched"];
-
-function resolveColorHex(name: string): string | null {
-  const key = name.trim().toLowerCase().replace(/\s+/g, " ");
-  if (!key) return null;
-  return CURATED_COLORS[key] || "#c06a4f";
-}
 
 export function ProductEditor({
   token,
@@ -61,8 +36,6 @@ export function ProductEditor({
   const [saving, setSaving] = useState(false);
   const toast = useToast();
   const [form, setForm] = useState<Partial<Product>>({});
-  const [colorNameInput, setColorNameInput] = useState("");
-  const [colorHexInput, setColorHexInput] = useState("#c06a4f");
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -101,21 +74,6 @@ export function ProductEditor({
 
     fetchProduct();
   }, [token, productId]);
-
-  const handleAddColor = () => {
-    if (!colorNameInput.trim()) return;
-
-    const hex = resolveColorHex(colorNameInput) || colorHexInput;
-    const newColor = { name: colorNameInput, hex };
-
-    setForm((current) => ({
-      ...current,
-      colors: [...(current.colors || []), newColor],
-    }));
-
-    setColorNameInput("");
-    setColorHexInput("#c06a4f");
-  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -267,64 +225,6 @@ export function ProductEditor({
               rows={3}
               className="w-full rounded-md border border-[var(--ink)]/12 bg-white px-4 py-3 text-sm outline-none focus:border-[#7D1D1D]"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-[var(--ink)]/70 mb-2">
-              Colors
-            </label>
-            <div className="flex gap-2 mb-3">
-              <input
-                type="text"
-                value={colorNameInput}
-                onChange={(e) => setColorNameInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddColor())}
-                placeholder="e.g. Lemon Yellow"
-                className="flex-1 rounded-md border border-[var(--ink)]/12 bg-white px-4 py-3 text-sm outline-none focus:border-[#7D1D1D]"
-              />
-              <input
-                type="color"
-                value={colorHexInput}
-                onChange={(e) => setColorHexInput(e.target.value)}
-                className="h-11 w-12 rounded-xl border border-[var(--ink)]/12 cursor-pointer"
-              />
-              <button
-                type="button"
-                onClick={handleAddColor}
-                className="shrink-0 rounded-md bg-[#7D1D1D] px-4 py-2.5 text-sm font-semibold text-white"
-              >
-                Add
-              </button>
-            </div>
-
-            {form.colors && Array.isArray(form.colors) && form.colors.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {form.colors.map((color, idx) => (
-                  <span
-                    key={`${color.name}-${idx}`}
-                    className="inline-flex items-center gap-2 rounded-md border border-[var(--ink)]/12 bg-white py-1 pl-1.5 pr-2 text-xs"
-                  >
-                    <span
-                      className="h-5 w-5 rounded-md border border-[var(--ink)]/12"
-                      style={{ backgroundColor: color.hex }}
-                    />
-                    {color.name}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setForm({
-                          ...form,
-                          colors: form.colors?.filter((_, i) => i !== idx),
-                        })
-                      }
-                      className="text-[#7D1D1D] hover:text-[#7D1D1D]"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
 
           <div className="flex gap-3 pt-4">
