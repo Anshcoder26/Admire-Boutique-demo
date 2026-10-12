@@ -7,6 +7,7 @@ import { WishlistHeart } from "@/components/wishlist-heart";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/toast";
 import { STORAGE_KEYS, readJSON, writeJSON } from "@/lib/storage";
+import { remainingStock } from "@/lib/cart-limits";
 import type { Product } from "@/data/products";
 
 export function ProductCard({ product }: { product: Product }) {
@@ -21,6 +22,10 @@ export function ProductCard({ product }: { product: Product }) {
     }
 
     const cart = readJSON<Array<{ productId: string; color: string; size: string; quantity: number; [k: string]: unknown }>>(STORAGE_KEYS.cart, []);
+    if (remainingStock(cart, product.id, Number(product.stock)) < 1) {
+      toast.error(`You already have all ${Number(product.stock)} of ${product.name} in your cart.`);
+      return;
+    }
     const color = product.colors?.[0]?.name || "Default";
     // Unstitched items have no size; otherwise default to the middle size (or first).
     const size = product.stitchType === "Unstitched"

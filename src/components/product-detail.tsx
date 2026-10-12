@@ -9,6 +9,7 @@ import { BootiPattern } from "@/components/motifs/booti-pattern";
 import { motifOpacity } from "@/components/motifs/motif-utils";
 import { useToast } from "@/components/ui/toast";
 import { STORAGE_KEYS, readJSON, writeJSON } from "@/lib/storage";
+import { remainingStock } from "@/lib/cart-limits";
 import type { Product } from "@/data/products";
 
 export function ProductDetail({ product }: { product: Product }) {
@@ -48,6 +49,18 @@ export function ProductDetail({ product }: { product: Product }) {
     }
 
     const cart = readJSON<Array<{ productId: string; color: string; size: string; quantity: number; [k: string]: unknown }>>(STORAGE_KEYS.cart, []);
+    const remaining = remainingStock(cart, product.id, Number(product.stock));
+    if (quantity > remaining) {
+      const inCart = Number(product.stock) - remaining;
+      toast.error(
+        remaining > 0
+          ? `Only ${remaining} more of ${product.name} available${inCart > 0 ? ` (you already have ${inCart} in your cart)` : ""}.`
+          : `You already have all ${Number(product.stock)} of ${product.name} in your cart.`
+      );
+      if (remaining > 0) setQuantity(remaining);
+      return;
+    }
+
     const effectiveSize = isUnstitched ? "Unstitched" : selectedSize;
     const item = {
       productId: product.id,
@@ -243,8 +256,8 @@ export function ProductDetail({ product }: { product: Product }) {
                 </button>
                 <span className="px-6 py-3 text-base font-semibold text-[var(--ink)] border-x border-[#7D1D1D]/20">{quantity}</span>
                 <button
-                  onClick={() => setQuantity((value) => value + 1)}
-                  disabled={isSoldOut}
+                  onClick={() => setQuantity((value) => Math.min(value + 1, Math.max(1, Number(product.stock))))}
+                  disabled={isSoldOut || quantity >= Number(product.stock)}
                   className="px-4 py-3 text-[#7D1D1D] hover:bg-[#f9f7f6] rounded-r-md transition"
                 >
                   +

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { STORAGE_KEYS, readJSON, writeJSON } from "@/lib/storage";
+import { remainingStock } from "@/lib/cart-limits";
 import { ArtMotif } from "@/components/motifs/art-motif";
 
 type CartItem = {
@@ -20,6 +21,24 @@ type CartItem = {
 
 export function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [stockById, setStockById] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/products", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : []))
+      .then((products: Array<{ id: string; stock: number }>) => {
+        if (cancelled || !Array.isArray(products)) return;
+        setStockById(Object.fromEntries(products.map((product) => [product.id, Number(product.stock)])));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const canIncrease = (productId: string) =>
+    !(productId in stockById) || remainingStock(cartItems, productId, stockById[productId]) > 0;
 
   useEffect(() => {
     const syncCart = () => {
@@ -43,6 +62,7 @@ export function CartPage() {
   const total = subtotal + shipping;
 
   const updateQuantity = (productId: string, size: string, color: string, change: number) => {
+    if (change > 0 && !canIncrease(productId)) return;
     const nextItems = cartItems
       .map((item) =>
         item.productId === productId && item.size === size && item.color === color
@@ -101,12 +121,17 @@ export function CartPage() {
                         <Minus className="h-3.5 w-3.5" />
                       </button>
                       <span className="w-5 text-center text-sm text-[var(--ink)]">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.productId, item.size, item.color, 1)} className="flex h-11 w-11 items-center justify-center rounded-md transition hover:bg-[var(--background)]">
+                      <button onClick={() => updateQuantity(item.productId, item.size, item.color, 1)} disabled={!canIncrease(item.productId)} aria-label={`Increase quantity of ${item.name}`} className="flex h-11 w-11 items-center justify-center rounded-md transition hover:bg-[var(--background)] disabled:cursor-not-allowed disabled:opacity-40">
                         <Plus className="h-3.5 w-3.5" />
                       </button>
                     </div>
                     <span className="text-xl font-semibold text-[var(--ink)]">₹{item.price * item.quantity}</span>
                   </div>
+                  {item.productId in stockById && remainingStock(cartItems, item.productId, stockById[item.productId]) === 0 && (
+                    <p className="text-xs text-[var(--ink)]/60">
+                      {stockById[item.productId] > 0 ? `Only ${stockById[item.productId]} in stock.` : "This item is now sold out."}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
