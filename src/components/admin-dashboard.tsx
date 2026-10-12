@@ -8,6 +8,7 @@ import { OrderManagement } from "@/components/admin-order-management";
 import { CustomerManagement } from "@/components/admin-customer-management";
 import { categories } from "@/data/products";
 import { useToast } from "@/components/ui/toast";
+import { compressImageFile } from "@/lib/image-compress";
 import { useAuth } from "@/providers/auth-provider";
 
 const productCategories = categories.map((category) => category.name);
@@ -218,6 +219,18 @@ export function AdminDashboard() {
     setAdminToken("cookie");
     window.dispatchEvent(new Event("admire-auth-updated"));
     void loadAdminData();
+  };
+
+  const addImageFiles = async (files: File[]) => {
+    for (const file of files) {
+      if (!file.type.startsWith("image/")) continue;
+      try {
+        const dataUrl = await compressImageFile(file);
+        setForm((current) => ({ ...current, images: [...current.images, dataUrl] }));
+      } catch {
+        toast.error(`Couldn't read "${file.name}". Please try a JPG or PNG photo.`);
+      }
+    }
   };
 
   const handleAddProduct = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -704,40 +717,15 @@ export function AdminDashboard() {
                   onDrop={(e) => {
                     e.preventDefault();
                     e.currentTarget.classList.remove("border-[#7D1D1D]", "bg-[#7D1D1D]/5");
-                    const files = Array.from(e.dataTransfer.files);
-                    files.forEach((file) => {
-                      if (file.type.startsWith("image/")) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                          const base64 = event.target?.result as string;
-                          setForm((current) => ({
-                            ...current,
-                            images: [...current.images, base64],
-                          }));
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    });
+                    void addImageFiles(Array.from(e.dataTransfer.files));
                   }}
                   onPaste={(e) => {
                     const items = e.clipboardData?.items;
                     if (!items) return;
-                    Array.from(items).forEach((item) => {
-                      if (item.type.startsWith("image/")) {
-                        const file = item.getAsFile();
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = (event) => {
-                            const base64 = event.target?.result as string;
-                            setForm((current) => ({
-                              ...current,
-                              images: [...current.images, base64],
-                            }));
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }
-                    });
+                    const files = Array.from(items)
+                      .map((item) => (item.type.startsWith("image/") ? item.getAsFile() : null))
+                      .filter((file): file is File => Boolean(file));
+                    void addImageFiles(files);
                   }}
                   className="relative rounded-md border-2 border-dashed border-[var(--ink)]/15 bg-white p-6 text-center transition-colors cursor-pointer"
                 >
@@ -746,16 +734,9 @@ export function AdminDashboard() {
                     multiple
                     accept="image/*"
                     onChange={(e) => {
-                      Array.from(e.currentTarget.files || []).forEach((file) => {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                          const base64 = event.target?.result as string;
-                          setForm((current) => ({
-                            ...current,
-                            images: [...current.images, base64],
-                          }));
-                        };
-                        reader.readAsDataURL(file);
+                      const input = e.currentTarget;
+                      void addImageFiles(Array.from(input.files || [])).finally(() => {
+                        input.value = "";
                       });
                     }}
                     className="absolute inset-0 h-full w-full opacity-0 cursor-pointer"
