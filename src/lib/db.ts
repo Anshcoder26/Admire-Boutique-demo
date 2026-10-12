@@ -40,12 +40,13 @@ export const DELIVERY_ESTIMATE =
   process.env.DELIVERY_ESTIMATE || "Estimated arrival in 4–7 business days";
 
 /**
- * Whether to seed demo customer/addresses/orders. Real catalog (products/FAQ)
+ * Whether to seed demo products and the demo customer/addresses/orders. FAQs
  * and the admin account are always seeded because the storefront and admin
- * panel depend on them. The demo login + fake orders are opt-in: enabled by
- * default in development, disabled by default in production so we don't ship a
- * demo customer account and placeholder orders to a live store. Override with
- * SEED_DEMO_DATA=true|false.
+ * panel depend on them. Demo data is opt-in: enabled by default in
+ * development, disabled by default in production so placeholder products, a
+ * demo customer account and fake orders never reach the live store (and
+ * deleted demo products don't come back when the products table is empty).
+ * Override with SEED_DEMO_DATA=true|false.
  */
 const SEED_DEMO_DATA =
   (process.env.SEED_DEMO_DATA ??
@@ -668,7 +669,7 @@ if (!usesPostgres) {
   }
 
   const productsCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM products").get() as { count: number };
-  if (productsCount.count === 0) {
+  if (SEED_DEMO_DATA && productsCount.count === 0) {
     const insertProduct = sqliteDb.prepare(`
       INSERT INTO products (
         id, slug, name, category, price, originalPrice, discount, rating, reviews, stock, is_sold_out, badge, fabric, description, images, colors, sizes
@@ -947,7 +948,7 @@ async function ensurePostgresReady() {
     `);
 
   const productCount = await postgresPool.query("SELECT COUNT(*) as count FROM products");
-  if (Number(productCount.rows[0]?.count ?? 0) === 0) {
+  if (SEED_DEMO_DATA && Number(productCount.rows[0]?.count ?? 0) === 0) {
     for (const product of seedProducts) {
       await postgresPool.query(
         `INSERT INTO products (id, slug, name, category, price, "originalPrice", discount, rating, reviews, stock, is_sold_out, badge, fabric, description, images, colors, sizes)
