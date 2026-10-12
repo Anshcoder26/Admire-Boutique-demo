@@ -19,7 +19,7 @@ test("redacts sensitive keys", () => {
 });
 
 test("redacts nested sensitive keys", () => {
-  const out = redact({ payment: { secret: "x", amount: 100 } }) as Record<string, any>;
+  const out = redact({ payment: { secret: "x", amount: 100 } }) as { payment: Record<string, unknown> };
   assert.equal(out.payment.secret, "[REDACTED]");
   assert.equal(out.payment.amount, 100);
 });
