@@ -17,7 +17,6 @@ export function ProductDetail({ product }: { product: Product }) {
   const toast = useToast();
   const isSoldOut = Boolean(product.isSoldOut) || Number(product.stock) <= 0;
   const isUnstitched = product.stitchType === "Unstitched";
-  const [selectedColor, setSelectedColor] = useState(product.colors[0].name);
   const [selectedSize, setSelectedSize] = useState(product.sizes[2] || product.sizes[0]);
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -65,17 +64,17 @@ export function ProductDetail({ product }: { product: Product }) {
     const item = {
       productId: product.id,
       name: product.name,
-      color: selectedColor,
+      color: "",
       size: effectiveSize,
-      variant: isUnstitched ? `${selectedColor} / Unstitched` : `${selectedColor} / ${selectedSize}`,
+      variant: effectiveSize,
       image: product.images[0],
       price: Number(product.price),
       quantity,
     };
 
+    // Colour is no longer chosen, so one line per product + size (older carts may still carry a colour).
     const existingIndex = cart.findIndex(
-      (entry) =>
-        entry.productId === product.id && entry.color === selectedColor && entry.size === effectiveSize
+      (entry) => entry.productId === product.id && entry.size === effectiveSize
     );
 
     if (existingIndex >= 0) {
@@ -178,34 +177,6 @@ export function ProductDetail({ product }: { product: Product }) {
                 <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#8B7355]">3-5 Day Delivery</p>
                 <p className="text-sm text-[#584942] mt-1">Free shipping included</p>
               </div>
-            </div>
-          </div>
-
-          {/* Color Selection */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <label className="text-sm font-bold uppercase tracking-[0.1em] text-[#1a1612]">Select Color</label>
-              <span className="text-sm text-[#8B7355] font-semibold">{selectedColor}</span>
-            </div>
-            <div className="flex gap-3 flex-wrap items-center">
-              {product.colors && product.colors.length > 0 ? (
-                product.colors.map((color) => (
-                  <button
-                    key={color.name}
-                    onClick={() => setSelectedColor(color.name)}
-                    className={`h-12 w-12 rounded-lg border-2 transition-all ${
-                      selectedColor === color.name 
-                        ? "border-[#7D1D1D] ring-2 ring-[#7D1D1D]/30 shadow-sm" 
-                        : "border-[#7D1D1D]/20 hover:border-[#7D1D1D]/60"
-                    }`}
-                    style={{ backgroundColor: color.hex || "#cccccc" }}
-                    aria-label={color.name}
-                    title={color.name}
-                  />
-                ))
-              ) : (
-                <span className="text-sm text-[#8b7965]">No colors available</span>
-              )}
             </div>
           </div>
 

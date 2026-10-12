@@ -26,7 +26,6 @@ export function ProductCard({ product }: { product: Product }) {
       toast.error(`You already have all ${Number(product.stock)} of ${product.name} in your cart.`);
       return;
     }
-    const color = product.colors?.[0]?.name || "Default";
     // Unstitched items have no size; otherwise default to the middle size (or first).
     const size = product.stitchType === "Unstitched"
       ? "Unstitched"
@@ -34,19 +33,16 @@ export function ProductCard({ product }: { product: Product }) {
     const item = {
       productId: product.id,
       name: product.name,
-      color,
+      color: "",
       size,
-      variant: `${color} / ${size}`,
+      variant: size,
       image: product.images?.[0] || "",
       price: Number(product.price),
       quantity: 1,
     };
 
     const existingIndex = cart.findIndex(
-      (entry) =>
-        entry.productId === product.id &&
-        entry.color === item.color &&
-        entry.size === item.size,
+      (entry) => entry.productId === product.id && entry.size === item.size,
     );
 
     if (existingIndex >= 0) {
