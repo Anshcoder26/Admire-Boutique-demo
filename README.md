@@ -55,6 +55,8 @@ in production if `DATABASE_URL` is missing and warns for missing optional config
 | `npm run typecheck` | `tsc --noEmit`. |
 | `npm test` | Unit tests (Node test runner via tsx). |
 | `npm run lint` | ESLint. |
+| `CUSTOMER_PASSWORD=… ADMIN_PASSWORD=… bash tests/flow_test.sh` | End-to-end flow checks against a running dev server (exits 1 on any failure). |
+| `CUSTOMER_PASSWORD=… ADMIN_PASSWORD=… bash tests/payment_e2e.sh` | Payment-failure end-to-end checks; see the header of the script for the test server setup (uses `tests/sinks.mjs`). |
 
 ## Security features
 
