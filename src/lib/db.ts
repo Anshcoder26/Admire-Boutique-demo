@@ -395,6 +395,15 @@ const LEGACY_FAQ_RETURNS_ANSWER =
   "Yes. We offer easy returns and exchanges on eligible items within 7 days of delivery, provided the product is unused and in original packaging.";
 const FAQ_RETURNS_ANSWER =
   "Orders cannot be cancelled, and we don't accept returns for a change of mind or fit. If your item arrives damaged, defective or wrong, record an unboxing video and message us on WhatsApp within 24 hours of delivery. We will exchange it, or refund you in full if a replacement isn't available. See our Cancellation & Refund Policy for details.";
+// faq-3's earlier answers (size chart / true to size). Databases that still have one
+// of these are updated at startup; edited answers are left alone.
+const LEGACY_FAQ_SIZING_ANSWERS = [
+  "Our kurtis are designed to fit true to size. For best results, please check the size chart on each product page and compare against your usual measurements.",
+  "Our kurtis are designed to fit true to size. If you're unsure which size to pick, message us on WhatsApp with your measurements and we'll help you choose.",
+];
+const FAQ_SIZING_QUESTION = "What is your sizing guide?";
+const FAQ_SIZING_ANSWER =
+  "Our suits are unstitched, so there is no particular size to them. You can get them stitched to your own measurements.";
 
 const seedFaqs = [
   {
@@ -411,8 +420,8 @@ const seedFaqs = [
   },
   {
     id: "faq-3",
-    question: "How do your sizes fit?",
-    answer: "Our kurtis are designed to fit true to size. If you're unsure which size to pick, message us on WhatsApp with your measurements and we'll help you choose.",
+    question: FAQ_SIZING_QUESTION,
+    answer: FAQ_SIZING_ANSWER,
     category: "Sizing",
   },
   {
@@ -739,6 +748,9 @@ if (!usesPostgres) {
   sqliteDb
     .prepare("UPDATE faq_items SET answer = ? WHERE id = 'faq-2' AND answer = ?")
     .run(FAQ_RETURNS_ANSWER, LEGACY_FAQ_RETURNS_ANSWER);
+  sqliteDb
+    .prepare("UPDATE faq_items SET question = ?, answer = ? WHERE id = 'faq-3' AND answer IN (?, ?)")
+    .run(FAQ_SIZING_QUESTION, FAQ_SIZING_ANSWER, ...LEGACY_FAQ_SIZING_ANSWERS);
 }
 
 async function ensurePostgresReady() {
@@ -1062,6 +1074,10 @@ async function ensurePostgresReady() {
   await postgresPool.query(
     "UPDATE faq_items SET answer = $1 WHERE id = 'faq-2' AND answer = $2",
     [FAQ_RETURNS_ANSWER, LEGACY_FAQ_RETURNS_ANSWER]
+  );
+  await postgresPool.query(
+    "UPDATE faq_items SET question = $1, answer = $2 WHERE id = 'faq-3' AND answer IN ($3, $4)",
+    [FAQ_SIZING_QUESTION, FAQ_SIZING_ANSWER, ...LEGACY_FAQ_SIZING_ANSWERS]
   );
 
   postgresReady = true;

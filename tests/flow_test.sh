@@ -133,6 +133,8 @@ check "product page: no money-back guarantee claim" no "$(has 'money-back' "$PRO
 FAQ_JSON=$(curl -s $BASE/api/faq)
 check "FAQ: no 7-day returns promise" no "$(has 'within 7 days of delivery' "$FAQ_JSON")"
 check "FAQ: exchange needs unboxing video within 24 hours" yes "$(has 'unboxing video and message us on WhatsApp within 24 hours of delivery' "$FAQ_JSON")"
+check "FAQ: sizing answer says suits are unstitched" yes "$(has 'Our suits are unstitched, so there is no particular size to them.' "$FAQ_JSON")"
+check "FAQ: no size chart reference" no "$(has 'size chart' "$FAQ_JSON")"
 
 echo
 echo "==================================="
