@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createProduct, getNotificationRecipients } from "@/lib/db";
 import { authenticateAdmin } from "@/lib/admin-auth";
 import { sendEmail, generateNewProductEmail } from "@/lib/mailer";
+import { readProductBody } from "@/lib/product-body";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +15,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    const parsed = await readProductBody(request);
+    if (!parsed.ok) return parsed.response;
+    const body = parsed.body as {
+      name?: string; category?: string; price?: number | string; stock?: number | string; fabric?: string;
+      stitching?: string; description?: string; images?: string[]; colors?: Array<{ name: string; hex: string }>;
+      notifySubscribers?: boolean;
+    };
     const {
       name,
       category,

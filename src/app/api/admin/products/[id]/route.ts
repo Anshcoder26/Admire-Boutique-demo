@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminProductById, updateProductById, deleteProductById } from "@/lib/db";
 import { authenticateAdmin } from "@/lib/admin-auth";
+import { readProductBody } from "@/lib/product-body";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const admin = await authenticateAdmin(request);
@@ -25,7 +26,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   const { id } = await params;
-  const body = await request.json();
+  const parsed = await readProductBody(request);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.body as {
+    name?: string; category?: string; price?: number | string; stock?: number | string; fabric?: string;
+    description?: string; images?: string[]; colors?: Array<{ name: string; hex: string }>; stitchType?: string;
+  };
   const { name, category, price, stock, fabric, description, images, colors, stitchType } = body;
 
   if (!name || !price) {

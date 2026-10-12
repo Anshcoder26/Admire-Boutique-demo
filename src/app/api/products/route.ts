@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { Product } from "@/data/products";
 import { getCatalogProducts, addCatalogProduct } from "@/lib/catalog-store";
 import { authenticateAdmin } from "@/lib/admin-auth";
+import { readProductBody } from "@/lib/product-body";
 
 export async function GET() {
   const products = await getCatalogProducts();
@@ -14,7 +15,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized - Admin token required" }, { status: 401 });
   }
 
-  const body = (await request.json()) as Partial<Product> & { images?: string[] | string; colors?: Array<{ name: string; hex: string }>; sizes?: string[]; stitchType?: string };
+  const parsed = await readProductBody(request);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.body as Partial<Product> & { images?: string[] | string; colors?: Array<{ name: string; hex: string }>; sizes?: string[]; stitchType?: string };
 
   const name = String(body.name || "").trim();
   const category = String(body.category || "Premium Cotton").trim();
