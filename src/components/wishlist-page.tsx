@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { Heart, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { ProductGrid } from "@/components/product-grid";
-import { products } from "@/data/products";
 import type { Product } from "@/data/products";
 import { STORAGE_KEYS, readJSON } from "@/lib/storage";
 import { ArtMotif } from "@/components/motifs/art-motif";
@@ -14,15 +13,27 @@ export function WishlistPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-
     const wishlistIds = readJSON<string[]>(STORAGE_KEYS.wishlist, []);
-
-    if (wishlistIds.length > 0) {
-      const filtered = products.filter((p: Product) => wishlistIds.includes(p.id));
-      setWishlistProducts(filtered);
+    if (wishlistIds.length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setMounted(true);
+      return;
     }
+
+    let cancelled = false;
+    fetch("/api/products", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : []))
+      .then((products: Product[]) => {
+        if (cancelled || !Array.isArray(products)) return;
+        setWishlistProducts(products.filter((p) => wishlistIds.includes(p.id)));
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setMounted(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (!mounted) return null;
