@@ -1,11 +1,11 @@
 import type { Product } from "@/data/products";
-import { createProduct, deleteProductById, getProductById, getProductBySlug, listProducts, replaceAllProducts } from "@/lib/db";
+import { createProduct, deleteProductById, getProductById, getProductBySlug, listStorefrontProducts, replaceAllProducts } from "@/lib/db";
 import { sweepExpiredOrders } from "@/lib/payments";
 
 export async function getCatalogProducts(): Promise<Product[]> {
   // Return stock held by expired unpaid orders before showing availability.
   await sweepExpiredOrders();
-  return (await listProducts()) as Product[];
+  return await listStorefrontProducts();
 }
 
 export async function saveCatalogProducts(products: Product[]) {

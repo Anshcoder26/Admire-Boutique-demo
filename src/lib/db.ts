@@ -7,6 +7,7 @@ import { Pool } from "pg";
 import bcryptjs from "bcryptjs";
 import type { Product } from "@/data/products";
 import { logger } from "@/lib/logger";
+import { INLINE_PHOTO_PREFIX, toPublicImages } from "@/lib/product-images";
 
 const databaseUrl = process.env.DATABASE_URL || "";
 const usesPostgres = Boolean(databaseUrl);
@@ -1153,6 +1154,32 @@ export async function listProducts(): Promise<Product[]> {
 
   const rows = sqliteDb.prepare(`SELECT * FROM products ORDER BY created_at DESC`).all() as Record<string, any>[];
   return rows.map(normalizeProductRow);
+}
+
+/**
+ * Products for shop pages: stored photos are swapped for short photo links so
+ * pages stay small. On Postgres the photo data never leaves the database —
+ * only an md5 fingerprint per photo is returned.
+ */
+export async function listStorefrontProducts(): Promise<Product[]> {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query(`
+      SELECT to_jsonb(p) - 'images' AS product,
+        COALESCE((
+          SELECT json_agg(CASE WHEN t.image LIKE 'data:%' THEN '${INLINE_PHOTO_PREFIX}' || md5(t.image) ELSE t.image END ORDER BY t.n)
+          FROM json_array_elements_text(p.images::json) WITH ORDINALITY AS t(image, n)
+        ), '[]'::json) AS images
+      FROM products p
+      ORDER BY p.created_at DESC
+    `);
+    return result.rows.map((row) => {
+      const product = normalizeProductRow({ ...row.product, images: row.images });
+      return { ...product, images: toPublicImages(product.id, product.images) };
+    });
+  }
+
+  return (await listProducts()).map((product) => ({ ...product, images: toPublicImages(product.id, product.images) }));
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {

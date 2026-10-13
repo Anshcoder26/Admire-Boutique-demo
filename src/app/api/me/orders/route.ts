@@ -7,6 +7,7 @@ import {
   validateUserSessionToken,
 } from "@/lib/db";
 import { sweepExpiredOrders } from "@/lib/payments";
+import { toPublicImages } from "@/lib/product-images";
 
 async function getUserFromRequest(request: Request) {
   // Try Authorization header first
@@ -59,7 +60,7 @@ async function toOrderDetail(row: Record<string, unknown>) {
         const product = item.productId
           ? await getProductById(item.productId)
           : await getProductByName(item.name);
-        image = product?.images?.[0] || "";
+        image = product ? toPublicImages(product.id, product.images.slice(0, 1))[0] || "" : "";
       }
       return {
         name: item.name,
