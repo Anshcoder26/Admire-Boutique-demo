@@ -1177,6 +1177,23 @@ export async function getProductById(id: string): Promise<Product | undefined> {
   return row ? normalizeProductRow(row) : undefined;
 }
 
+/** Read a single stored photo of a product without loading the others. */
+export async function getProductPhoto(id: string, index: number): Promise<string | null> {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query(
+      "SELECT (images::json) ->> ($2::int) AS image FROM products WHERE id = $1",
+      [id, index]
+    );
+    return result.rows[0]?.image ?? null;
+  }
+
+  const row = sqliteDb
+    .prepare(`SELECT json_extract(images, ?) AS image FROM products WHERE id = ?`)
+    .get(`$[${Math.trunc(index)}]`, id) as { image: unknown } | undefined;
+  return typeof row?.image === "string" ? row.image : null;
+}
+
 export async function getProductByName(name: string): Promise<Product | undefined> {
   if (usesPostgres) {
     await ensurePostgresReady();
