@@ -97,7 +97,7 @@ export function Header() {
           {/* Desktop navigation */}
           <nav className="hidden items-center gap-7 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--ink)] lg:flex">
             <Link href="/products" className="hover:text-[#7D1D1D] transition">New In</Link>
-            <Link href="/products" className="hover:text-[#7D1D1D] transition">Kurtis</Link>
+            <Link href="/products" className="hover:text-[#7D1D1D] transition">Suits</Link>
             <Link href="/products" className="hover:text-[#7D1D1D] transition">Festive</Link>
             <Link href="/products" className="hover:text-[#7D1D1D] transition">Formals</Link>
             <Link href="/products" className="hover:text-[#7D1D1D] transition">Sale</Link>
@@ -159,7 +159,7 @@ export function Header() {
         <div className="mx-auto hidden max-w-7xl items-center justify-center gap-4 border-t border-[var(--ink)]/8 px-4 py-2.5 md:flex md:px-8 lg:px-10">
           <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#7D1D1D]">Trending</span>
           <span className="h-3 w-px bg-[var(--ink)]/15" />
-          <span className="text-xs uppercase tracking-[0.14em] text-[var(--ink)]/70">Cotton kurtis</span>
+          <span className="text-xs uppercase tracking-[0.14em] text-[var(--ink)]/70">Cotton suits</span>
           <span className="text-xs uppercase tracking-[0.14em] text-[var(--ink)]/70">Festive edit</span>
           <span className="text-xs uppercase tracking-[0.14em] text-[var(--ink)]/70">Formals</span>
         </div>
@@ -180,7 +180,7 @@ export function Header() {
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <p className="eyebrow mb-1">Explore the atelier</p>
-                  <h2 className="font-serif text-2xl text-[#201614]">Search Kurtis</h2>
+                  <h2 className="font-serif text-2xl text-[#201614]">Search Suits</h2>
                 </div>
                 <button
                   onClick={() => setIsSearchOpen(false)}

@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Admire Boutique",
     short_name: "Admire",
-    description: "Premium Indian fashion, elegant kurtis and festive ethnic wear for modern women.",
+    description: "Premium Indian fashion, elegant suits and festive ethnic wear for modern women.",
     start_url: "/",
     display: "standalone",
     background_color: "#FBF7F0",

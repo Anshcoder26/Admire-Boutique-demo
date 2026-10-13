@@ -5,7 +5,7 @@ import { PaisleyMotif } from "./motifs/paisley-motif";
 import { motifOpacity, motifColors } from "./motifs/motif-utils";
 
 const filters = [
-  "All Kurtis",
+  "All Suits",
   "Cotton",
   "Printed",
   "Anarkali",
@@ -31,17 +31,17 @@ export function ProductFilters() {
           <button
             key={filter}
             className={`rounded-full border px-3 py-2 text-xs font-medium transition inline-flex items-center gap-2 ${
-              filter === "All Kurtis"
+              filter === "All Suits"
                 ? "border-[#4b1f1d] bg-[#4b1f1d] text-white"
                 : "border-[#e4d3c7] bg-white text-[#4d362d] hover:border-[#d5b9a6]"
             }`}
           >
-            {filter !== "All Kurtis" && (
+            {filter !== "All Suits" && (
               <div className="w-3 h-3">
                 <PaisleyMotif
                   size="xs"
                   opacity={motifOpacity.light}
-                  color={filter === "All Kurtis" ? motifColors.cream : motifColors.secondary}
+                  color={filter === "All Suits" ? motifColors.cream : motifColors.secondary}
                   variant="filled"
                 />
               </div>

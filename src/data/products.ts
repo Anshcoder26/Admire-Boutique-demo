@@ -255,12 +255,12 @@ export const reviews = [
   {
     name: "Megha S.",
     title: "Soft, elegant and premium feeling",
-    text: "The fit is flattering and the fabric feels premium without being stiff. The color looked exactly like the photos and the kurti arrived promptly.",
+    text: "The fit is flattering and the fabric feels premium without being stiff. The color looked exactly like the photos and the suit arrived promptly.",
   },
   {
     name: "Nisha R.",
     title: "Perfect for work and family wear",
-    text: "I bought the charcoal office kurti and wore it to a client dinner. It looks polished and still comfortable enough to sit in for hours.",
+    text: "I bought the charcoal office suit and wore it to a client dinner. It looks polished and still comfortable enough to sit in for hours.",
   },
   {
     name: "Aditi P.",

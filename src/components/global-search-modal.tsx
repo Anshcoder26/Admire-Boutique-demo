@@ -75,7 +75,7 @@ export function GlobalSearchModal() {
                   margin: 0,
                 }}
               >
-                Search Kurtis
+                Search Suits
               </h2>
               <button
                 onClick={() => setIsOpen(false)}

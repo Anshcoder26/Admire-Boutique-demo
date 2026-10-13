@@ -367,7 +367,7 @@ export function AdminDashboard() {
                   <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#E9C766]">Private access</p>
                   <h1 className="max-w-sm font-serif text-5xl font-semibold leading-[0.9] tracking-tight text-white md:text-6xl">Grow your boutique with clarity.</h1>
                   <p className="max-w-md text-base leading-7 text-white/75">
-                    Manage stock, review sales, add new dawn-to-dusk kurti drops and keep the brand booth feeling premium from day one.
+                    Manage stock, review sales, add new dawn-to-dusk suit drops and keep the brand booth feeling premium from day one.
                   </p>
                 </div>
 
@@ -648,7 +648,7 @@ export function AdminDashboard() {
                   value={form.name}
                   onChange={(e) => setForm((current) => ({ ...current, name: e.target.value }))}
                   className="w-full rounded-md border border-[var(--ink)]/12 bg-white px-4 py-3 text-sm text-[var(--ink)] outline-none focus:border-[#7D1D1D]"
-                  placeholder="e.g. Rose Gold Straight Kurti"
+                  placeholder="e.g. Maheshwari Silk Suit"
                 />
               </div>
 

@@ -22,8 +22,8 @@ const fraunces = Fraunces({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://admire-boutique-demo.vercel.app"),
-  title: "Admire Boutique | Premium Indian Kurtis",
-  description: "Admire Boutique brings premium Indian fashion, elegant kurtis and festive ethnic wear for modern women.",
+  title: "Admire Boutique | Premium Indian Suits",
+  description: "Admire Boutique brings premium Indian fashion, elegant suits and festive ethnic wear for modern women.",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
@@ -37,8 +37,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "Admire Boutique",
-    title: "Admire Boutique | Premium Indian Kurtis",
-    description: "Premium Indian fashion, elegant kurtis and festive ethnic wear for modern women.",
+    title: "Admire Boutique | Premium Indian Suits",
+    description: "Premium Indian fashion, elegant suits and festive ethnic wear for modern women.",
     images: [
       {
         url: "/og-image.png",
@@ -50,8 +50,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Admire Boutique | Premium Indian Kurtis",
-    description: "Premium Indian fashion, elegant kurtis and festive ethnic wear for modern women.",
+    title: "Admire Boutique | Premium Indian Suits",
+    description: "Premium Indian fashion, elegant suits and festive ethnic wear for modern women.",
     images: ["/og-image.png"],
   },
   appleWebApp: {

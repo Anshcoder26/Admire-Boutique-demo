@@ -66,7 +66,7 @@ export function Footer() {
           <div>
             <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ink)]">Shop</h3>
             <ul className="space-y-3 text-sm text-[var(--ink)]/70">
-              <li><Link href="/products" className="hover:text-[#7D1D1D] transition-colors">Kurtis</Link></li>
+              <li><Link href="/products" className="hover:text-[#7D1D1D] transition-colors">Suits</Link></li>
               <li><Link href="/products" className="hover:text-[#7D1D1D] transition-colors">Festive wear</Link></li>
               <li><Link href="/products" className="hover:text-[#7D1D1D] transition-colors">Office wear</Link></li>
               <li><Link href="/products" className="hover:text-[#7D1D1D] transition-colors">Sale</Link></li>

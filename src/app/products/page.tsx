@@ -21,7 +21,7 @@ export default async function ProductsPage({
           <div>
             <p className="text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7D1D1D]">Curated edit</p>
             <h1 className="mt-1 font-serif text-3xl md:text-5xl font-semibold tracking-tight text-[var(--ink)]">
-              {selectedCategory ? selectedCategory : "Kurtis for every mood"}
+              {selectedCategory ? selectedCategory : "Suits for every mood"}
             </h1>
           </div>
         </div>

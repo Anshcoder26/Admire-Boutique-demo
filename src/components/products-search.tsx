@@ -77,7 +77,7 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
         }}
       >
         <Search size={20} />
-        <span>Search kurtis...</span>
+        <span>Search suits...</span>
       </button>
 
       {/* Active Filters Display */}

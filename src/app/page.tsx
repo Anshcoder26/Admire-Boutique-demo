@@ -50,7 +50,7 @@ export default async function HomePage() {
         <Reveal>
           <SectionHeader
             eyebrow="Fresh Arrivals"
-            title="New in Kurtis"
+            title="New in Suits"
             action={
               <ButtonLink href="/products" variant="ghost" size="sm">
                 View all <ArrowRight className="h-4 w-4" />

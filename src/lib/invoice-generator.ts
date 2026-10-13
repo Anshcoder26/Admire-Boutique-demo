@@ -42,7 +42,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
 
     // Header
     doc.fontSize(24).font("Helvetica-Bold").text("ADMIRE BOUTIQUE", 50, 50);
-    doc.fontSize(10).font("Helvetica").text("Premium Indian Kurtis & Ethnic Wear", 50, 80);
+    doc.fontSize(10).font("Helvetica").text("Premium Indian Suits & Ethnic Wear", 50, 80);
     doc.fontSize(9).text(STORE_ADDRESS, 50, 95);
     doc.text(`WhatsApp: ${WHATSAPP_DISPLAY}  |  Email: support@admireboutique.com`, 50, 108);
 
@@ -187,7 +187,7 @@ export async function generateInvoiceStream(data: InvoiceData): Promise<Readable
 
   // Header
   doc.fontSize(24).font("Helvetica-Bold").text("ADMIRE BOUTIQUE", 50, 50);
-  doc.fontSize(10).font("Helvetica").text("Premium Indian Kurtis & Ethnic Wear", 50, 80);
+  doc.fontSize(10).font("Helvetica").text("Premium Indian Suits & Ethnic Wear", 50, 80);
   doc.fontSize(9).text(STORE_ADDRESS, 50, 95);
   doc.text(`WhatsApp: ${WHATSAPP_DISPLAY}  |  Email: support@admireboutique.com`, 50, 108);
 
