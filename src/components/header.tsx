@@ -99,7 +99,6 @@ export function Header() {
             <Link href="/products" className="hover:text-[#7D1D1D] transition">New In</Link>
             <Link href="/products" className="hover:text-[#7D1D1D] transition">Suits</Link>
             <Link href="/products" className="hover:text-[#7D1D1D] transition">Festive</Link>
-            <Link href="/products" className="hover:text-[#7D1D1D] transition">Formals</Link>
             <Link href="/products" className="hover:text-[#7D1D1D] transition">Sale</Link>
             <Link href="/faq" className="hover:text-[#7D1D1D] transition">FAQ</Link>
             {isAuthenticated ? (
@@ -161,7 +160,6 @@ export function Header() {
           <span className="h-3 w-px bg-[var(--ink)]/15" />
           <span className="text-xs uppercase tracking-[0.14em] text-[var(--ink)]/70">Cotton suits</span>
           <span className="text-xs uppercase tracking-[0.14em] text-[var(--ink)]/70">Festive edit</span>
-          <span className="text-xs uppercase tracking-[0.14em] text-[var(--ink)]/70">Formals</span>
         </div>
       </header>
 
