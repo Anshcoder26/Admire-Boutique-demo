@@ -40,6 +40,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Redirect before rendering so it stays a real 307 even with streaming loading screens.
+  async redirects() {
+    return [{ source: "/orders", destination: "/account/orders", permanent: false }];
+  },
   images: {
     remotePatterns: [
       {
