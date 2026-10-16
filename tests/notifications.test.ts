@@ -1,12 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { normalizeWhatsAppNumber, buildTemplateMessage } from "../src/lib/notifications/whatsapp-channel.ts";
-import { buildCustomerEmail, escapeHtml } from "../src/lib/notifications/email-channel.ts";
+import { buildCustomerEmail, buildOwnerEmail, escapeHtml } from "../src/lib/notifications/email-channel.ts";
 import { dispatchToChannels } from "../src/lib/notifications/dispatcher.ts";
 import type { NotificationChannel, OrderNotification } from "../src/lib/notifications/types.ts";
 
 const sample: OrderNotification = {
-  event: "order_placed",
+  event: "payment_received",
   orderId: "ord-1",
   orderNumber: "AB-20261006-ABCD1234",
   customer: { name: "Asha <b>", email: "asha@example.com", phone: "98765 43210" },
@@ -15,8 +15,8 @@ const sample: OrderNotification = {
   shipping: 149,
   discount: 0,
   total: 2048,
-  paymentMethod: "Cash on Delivery",
-  paymentStatus: "Pending",
+  paymentMethod: "Razorpay",
+  paymentStatus: "Paid",
   invoice: { filename: "Invoice-AB-20261006-ABCD1234.pdf", content: Buffer.from("%PDF") },
 };
 
@@ -41,11 +41,11 @@ test("rejects numbers that can't be interpreted", () => {
 });
 
 test("builds a template message with invoice header and body variables", () => {
-  const config = { languageCode: "en", templates: { order_placed: "order_confirmation", payment_received: "payment_receipt" } };
+  const config = { languageCode: "en", templates: { payment_received: "payment_receipt" } };
   const msg = buildTemplateMessage(sample, "919876543210", config, "media-123");
 
   assert.equal(msg.to, "919876543210");
-  assert.equal(msg.template.name, "order_confirmation");
+  assert.equal(msg.template.name, "payment_receipt");
   assert.deepEqual(msg.template.language, { code: "en" });
   assert.deepEqual(msg.template.components[0], {
     type: "header",
@@ -55,26 +55,29 @@ test("builds a template message with invoice header and body variables", () => {
   assert.deepEqual(body.parameters.map((p) => p.text), ["Asha <b>", sample.orderNumber, "₹2,048"]);
 });
 
-test("omits the header and picks the receipt template for payments", () => {
-  const config = { languageCode: "en", templates: { order_placed: "order_confirmation", payment_received: "payment_receipt" } };
-  const msg = buildTemplateMessage({ ...sample, event: "payment_received" }, "919876543210", config);
+test("omits the header when there is no invoice upload", () => {
+  const config = { languageCode: "en", templates: { payment_received: "payment_receipt" } };
+  const msg = buildTemplateMessage(sample, "919876543210", config);
 
   assert.equal(msg.template.name, "payment_receipt");
   assert.equal(msg.template.components.length, 1);
   assert.equal(msg.template.components[0].type, "body");
 });
 
-test("customer email escapes user data and reflects the event", () => {
-  const placed = buildCustomerEmail(sample);
-  assert.match(placed.subject, /Order confirmed/);
-  assert.match(placed.html, /Asha &lt;b&gt;/);
-  assert.doesNotMatch(placed.html, /Asha <b>/);
-  assert.match(placed.html, /Amount due on delivery/);
-
-  const paid = buildCustomerEmail({ ...sample, event: "payment_received", paymentStatus: "Paid" });
+test("customer email escapes user data and confirms the payment", () => {
+  const paid = buildCustomerEmail(sample);
   assert.match(paid.subject, /Payment received/);
+  assert.match(paid.html, /Asha &lt;b&gt;/);
+  assert.doesNotMatch(paid.html, /Asha <b>/);
   assert.match(paid.html, /Amount paid/);
+  assert.doesNotMatch(paid.html, /on delivery/i);
   assert.equal(escapeHtml(`"'&`), "&quot;&#39;&amp;");
+});
+
+test("owner email announces the online payment, never COD", () => {
+  const owner = buildOwnerEmail(sample);
+  assert.match(owner.subject, /Payment received: AB-20261006-ABCD1234/);
+  assert.doesNotMatch(owner.subject + owner.html, /COD|Cash.on.Delivery/i);
 });
 
 test("dispatcher isolates channel failures and skips unconfigured channels", async () => {

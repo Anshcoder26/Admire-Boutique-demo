@@ -14,14 +14,9 @@ export function escapeHtml(value: string): string {
 }
 
 export function buildCustomerEmail(n: OrderNotification): { subject: string; html: string } {
-  const paid = n.event === "payment_received";
-  const subject = paid
-    ? `Payment received – Order ${n.orderNumber}`
-    : `Order confirmed – ${n.orderNumber}`;
-  const heading = paid ? "Payment received" : "Order confirmed";
-  const intro = paid
-    ? `We've received your payment of <strong>${inr(n.total)}</strong>. Your receipt is attached to this email.`
-    : `Your order has been placed. Please keep <strong>${inr(n.total)}</strong> ready to pay on delivery. Your invoice is attached to this email.`;
+  const subject = `Payment received – Order ${n.orderNumber}`;
+  const heading = "Payment received";
+  const intro = `We've received your payment of <strong>${inr(n.total)}</strong>. Your receipt is attached to this email.`;
 
   const rows = n.items
     .map(
@@ -64,7 +59,7 @@ export function buildCustomerEmail(n: OrderNotification): { subject: string; htm
         ${summaryRow("Subtotal", inr(n.subtotal))}
         ${summaryRow("Shipping", n.shipping ? inr(n.shipping) : "Free")}
         ${n.discount ? summaryRow("Discount", `−${inr(n.discount)}`) : ""}
-        ${summaryRow(paid ? "Amount paid" : "Amount due on delivery", inr(n.total), true)}
+        ${summaryRow("Amount paid", inr(n.total), true)}
       </table>
       <p style="margin-top:20px;line-height:1.6;">
         <strong>Payment:</strong> ${escapeHtml(n.paymentMethod)} (${escapeHtml(n.paymentStatus)})<br>
@@ -84,10 +79,9 @@ export function buildCustomerEmail(n: OrderNotification): { subject: string; htm
 }
 
 export function buildOwnerEmail(n: OrderNotification): { subject: string; html: string } {
-  const paid = n.event === "payment_received";
   return {
-    subject: paid ? `Payment received: ${n.orderNumber} (${inr(n.total)})` : `New COD order: ${n.orderNumber} (${inr(n.total)})`,
-    html: `<h2>${paid ? "Online payment received" : "New Cash-on-Delivery order"}</h2>
+    subject: `Payment received: ${n.orderNumber} (${inr(n.total)})`,
+    html: `<h2>Online payment received</h2>
       <p><strong>Order:</strong> ${escapeHtml(n.orderNumber)}</p>
       <p><strong>Customer:</strong> ${escapeHtml(n.customer.name)} (${escapeHtml(n.customer.email)}${n.customer.phone ? `, ${escapeHtml(n.customer.phone)}` : ""})</p>
       <p><strong>Amount:</strong> ${inr(n.total)} via ${escapeHtml(n.paymentMethod)}</p>

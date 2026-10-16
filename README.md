@@ -104,13 +104,13 @@ Webhook setup (Razorpay Dashboard → Account & Settings → Webhooks → Add):
 
 | Channel | Customer receives | Owner receives |
 | --- | --- | --- |
-| Email (`email-channel.ts`) | Order details + PDF invoice attached | "New order / payment received" alert at `ADMIN_EMAIL` |
+| Email (`email-channel.ts`) | Order details + PDF invoice attached | "Payment received" alert at `ADMIN_EMAIL` |
 | WhatsApp (`whatsapp-channel.ts`) | Template message + PDF invoice | — |
 
 When they fire:
 
-- **Cash on Delivery:** when the order is placed (`order_placed`).
-- **Online (Razorpay):** only after the payment signature is verified (`payment_received`), so abandoned payments send nothing.
+- Only after the Razorpay payment signature is verified (`payment_received`), so abandoned
+  payments send nothing. The store accepts online payment only (no Cash on Delivery).
 
 Each channel is skipped if unconfigured, and one failing never blocks the other or the
 order. Results are logged with a `[NOTIFY]` prefix.
@@ -120,10 +120,8 @@ order. Results are logged with a `[NOTIFY]` prefix.
 1. Create an app at developers.facebook.com, add the **WhatsApp** product, and note the
    **Phone number ID** and access token under WhatsApp → API Setup. In production use a
    permanent System User token.
-2. In WhatsApp Manager → Message templates, create two **Utility** templates in the same
-   language, each with a **Document** header and these body variables:
-   - `order_confirmation`: e.g. "Hi {{1}}, your order {{2}} is confirmed. Amount payable on
-     delivery: {{3}}. Your invoice is attached."
+2. In WhatsApp Manager → Message templates, create a **Utility** template with a
+   **Document** header and these body variables:
    - `payment_receipt`: e.g. "Hi {{1}}, we've received your payment for order {{2}} of {{3}}.
      Your receipt is attached."
 3. Once approved, set `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` and (if you used

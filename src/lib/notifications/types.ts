@@ -1,8 +1,8 @@
 /**
- * "order_placed"     – a Cash-on-Delivery order was confirmed.
- * "payment_received" – an online (Razorpay) payment was verified.
+ * "payment_received" – an online (Razorpay) payment was verified. Orders are
+ * only announced then, so abandoned payments send nothing.
  */
-export type OrderEvent = "order_placed" | "payment_received";
+export type OrderEvent = "payment_received";
 
 export interface OrderNotification {
   event: OrderEvent;

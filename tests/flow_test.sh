@@ -54,6 +54,8 @@ check "GET /api/me/orders" 200 "$(status -b $CJ $BASE/api/me/orders)"
 check "GET /api/me/addresses" 200 "$(status -b $CJ $BASE/api/me/addresses)"
 
 echo "== Checkout =="
+# Orders need RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET set on the server (fake test keys are fine;
+# create-order only checks they exist). Cash on Delivery is not offered.
 # Admin session (used here and in the admin section below).
 curl -s -c $AJ -o /dev/null -X POST -H "$ORIGIN" -H 'Content-Type: application/json' \
   -d '{"email":"owner@admireboutique.in","password":"'"${ADMIN_PASSWORD:?set ADMIN_PASSWORD}"'"}' $BASE/api/admin/login
@@ -63,11 +65,22 @@ TEST_PRODUCT=$(curl -s -b $AJ -X POST -H "$ORIGIN" -H 'Content-Type: application
   $BASE/api/admin/products)
 TP_ID=$(node -e 'const d=JSON.parse(process.argv[1]);process.stdout.write((d.product&&d.product.id)||d.id||"")' "$TEST_PRODUCT")
 check "test product created" yes "$([ -n "$TP_ID" ] && echo yes || echo no)"
-ORDER_BODY=$(printf '{"items":[{"productId":"%s","name":"Flow Test Kurti %s","size":"M","qty":1,"price":999}],"payment_method":"Cash on Delivery","address":{"full_name":"Flow Test","phone":"%s","line1":"1 Test St","city":"Mumbai","state":"MH","pincode":"400001","country":"India"}}' "$TP_ID" "$ts" "$TEST_PHONE")
+ORDER_BODY=$(printf '{"items":[{"productId":"%s","name":"Flow Test Kurti %s","size":"M","qty":1,"price":999}],"payment_method":"Razorpay","address":{"full_name":"Flow Test","phone":"%s","line1":"1 Test St","city":"Mumbai","state":"MH","pincode":"400001","country":"India"}}' "$TP_ID" "$ts" "$TEST_PHONE")
+COD_BODY=${ORDER_BODY/\"payment_method\":\"Razorpay\"/\"payment_method\":\"Cash on Delivery\"}
+NO_METHOD_BODY=${ORDER_BODY/\"payment_method\":\"Razorpay\",/}
+check "Cash on Delivery order rejected" 400 "$(status -b $CJ -X POST -H "$ORIGIN" -H 'Content-Type: application/json' -d "$COD_BODY" $BASE/api/checkout/create-order)"
+check "order without a payment method rejected" 400 "$(status -b $CJ -X POST -H "$ORIGIN" -H 'Content-Type: application/json' -d "$NO_METHOD_BODY" $BASE/api/checkout/create-order)"
+check "rejected orders left the stock alone" 1 "$(curl -s $BASE/api/products/$TP_ID | node -e 'const d=JSON.parse(require("fs").readFileSync(0));const p=d.product||d;process.stdout.write(String(p.stock))')"
 ORDER=$(curl -s -b $CJ -w '\n%{http_code}' -X POST -H "$ORIGIN" -H 'Content-Type: application/json' -d "$ORDER_BODY" $BASE/api/checkout/create-order)
-check "create COD order" 200 "$(tail -n1 <<<"$ORDER")"
+check "create online order" 200 "$(tail -n1 <<<"$ORDER")"
+check "online order awaits payment" "Awaiting Payment" "$(node -e 'const d=JSON.parse(process.argv[1]);process.stdout.write((d.order&&d.order.status)||"")' "$(head -n1 <<<"$ORDER")")"
 check "order took the last unit of stock" 0 "$(curl -s $BASE/api/products/$TP_ID | node -e 'const d=JSON.parse(require("fs").readFileSync(0));const p=d.product||d;process.stdout.write(String(p.stock))')"
-check "ordering a sold-out product rejected" 409 "$(status -b $CJ -X POST -H "$ORIGIN" -H 'Content-Type: application/json' -d "$ORDER_BODY" $BASE/api/checkout/create-order)"
+# A second order from the same customer would cancel their unpaid one and free the
+# stock, so the sold-out check uses the customer who signed up above.
+SJ=$(mktemp)
+curl -s -c $SJ -o /dev/null -X POST -H "$ORIGIN" -H 'Content-Type: application/json' \
+  -d "{\"email\":\"$CUST_EMAIL\",\"password\":\"StrongPass123!\"}" $BASE/api/auth/login
+check "ordering a sold-out product rejected" 409 "$(status -b $SJ -X POST -H "$ORIGIN" -H 'Content-Type: application/json' -d "$ORDER_BODY" $BASE/api/checkout/create-order)"
 check "test product deleted" 200 "$(status -b $AJ -X DELETE -H "$ORIGIN" $BASE/api/admin/products/$TP_ID)"
 check "checkout unauthenticated rejected" 401 "$(status -X POST -H "$ORIGIN" -H 'Content-Type: application/json' -d '{"items":[{"productId":"prod-1","name":"x","size":"M","qty":1,"price":1}],"address":{"line1":"a","city":"b"}}' $BASE/api/checkout/create-order)"
 check "checkout empty items rejected" 400 "$(status -b $CJ -X POST -H "$ORIGIN" -H 'Content-Type: application/json' -d '{"items":[],"address":{"line1":"a","city":"b"}}' $BASE/api/checkout/create-order)"
@@ -140,6 +153,6 @@ echo
 echo "==================================="
 echo "RESULTS: PASS=$PASS FAIL=$FAIL"
 echo "==================================="
-rm -f $CJ $AJ
+rm -f $CJ $AJ $SJ
 [ "$FAIL" -eq 0 ] || exit 1
 exit 0

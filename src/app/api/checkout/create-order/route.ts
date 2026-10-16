@@ -1,10 +1,9 @@
-import { NextRequest, NextResponse, after } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createOrder, validateUserSessionToken, getProductById, getProductByName, getOrderByNumber, generateOrderNumber, generateTrackingId, DELIVERY_PARTNER, DELIVERY_ESTIMATE, AWAITING_PAYMENT_STATUS } from "@/lib/db";
 import { cancelAwaitingOrdersForCustomer, sweepExpiredOrders } from "@/lib/payments";
 import { computePaymentExpiry } from "@/lib/payment-utils";
 import { AUTH_RATE_LIMITS } from "@/lib/auth-utils";
 import { checkRateLimit, tooManyRequests } from "@/lib/rate-limiter";
-import { notifyOrderEvent } from "@/lib/notifications";
 
 async function getUserFromRequest(request: Request) {
   // Try Authorization header first
@@ -55,21 +54,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Order requires items" }, { status: 400 });
   }
 
-  const paymentMethod = body.payment_method || "Cash on Delivery";
-  if (paymentMethod === "Razorpay" && !(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)) {
+  // Only online payment is accepted; there is no Cash on Delivery.
+  const paymentMethod = body.payment_method;
+  if (paymentMethod !== "Razorpay") {
+    return NextResponse.json(
+      { error: "We only accept online payment (UPI, cards, net banking or wallets). Please choose Pay online." },
+      { status: 400 }
+    );
+  }
+  if (!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)) {
     return NextResponse.json(
       { error: "Razorpay is not configured for this environment. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to .env.local." },
       { status: 400 }
     );
   }
 
-  const isOnlinePayment = paymentMethod === "Razorpay";
-
   try {
     // Release stock held by expired unpaid orders before checking availability.
     await sweepExpiredOrders();
     // A new checkout replaces the customer's earlier unpaid online attempt
-    // (e.g. they retried, changed the address, or switched to COD), so
+    // (e.g. they retried or changed the address), so
     // abandoned attempts don't pile up as duplicate orders holding stock.
     await cancelAwaitingOrdersForCustomer(user.id);
 
@@ -144,18 +148,17 @@ export async function POST(request: Request) {
 
     const order = await createOrder(user.id, {
       order_number: orderNumber,
-      // Online orders aren't confirmed until payment is verified; until then
+      // Orders aren't confirmed until payment is verified; until then
       // they hold stock for a limited window and are auto-cancelled after it.
-      status: isOnlinePayment ? AWAITING_PAYMENT_STATUS : "Confirmed",
-      payment_expires_at: isOnlinePayment ? computePaymentExpiry() : null,
+      status: AWAITING_PAYMENT_STATUS,
+      payment_expires_at: computePaymentExpiry(),
       subtotal: computedSubtotal,
       shipping: computedShipping,
       discount: computedDiscount,
       total: computedTotal,
-      // Payment is never "Paid" at creation. COD is collected on delivery and
-      // online payments (Razorpay) are only marked Paid after the signature is
-      // verified in the verify route. Trusting the client here would let anyone
-      // create a "Paid" order without paying.
+      // Payment is never "Paid" at creation. It is only marked Paid after the
+      // Razorpay signature is verified in the verify route. Trusting the client
+      // here would let anyone create a "Paid" order without paying.
       payment_status: "Pending",
       payment_method: paymentMethod,
       delivery_partner: DELIVERY_PARTNER,
@@ -165,13 +168,8 @@ export async function POST(request: Request) {
       address: body.address, // FIX P3: Pass address to createOrder
     });
 
-    // Online orders are announced after payment is verified (see the Razorpay
+    // The order is announced after payment is verified (see the Razorpay
     // verify route), so abandoned payments don't trigger a "confirmed" message.
-    // after() keeps the work alive past the response on serverless hosts.
-    if (!isOnlinePayment) {
-      after(() => notifyOrderEvent("order_placed", order.id));
-    }
-
     return NextResponse.json({ success: true, order });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to create order";

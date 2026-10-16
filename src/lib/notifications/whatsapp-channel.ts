@@ -4,7 +4,7 @@ import type { NotificationChannel, OrderNotification } from "@/lib/notifications
  * WhatsApp notifications via Meta's WhatsApp Cloud API.
  *
  * Business-initiated WhatsApp messages must use a template pre-approved in
- * WhatsApp Manager. Both templates take the same three body variables:
+ * WhatsApp Manager. The payment template takes three body variables:
  *   {{1}} customer name, {{2}} order number, {{3}} amount (e.g. "₹2,048")
  * and, when WHATSAPP_SEND_INVOICE is not "false", a DOCUMENT header that
  * carries the PDF invoice.
@@ -32,7 +32,6 @@ function readConfig(): WhatsAppConfig {
     defaultCountryCode: (process.env.WHATSAPP_DEFAULT_COUNTRY_CODE || "91").replace(/\D/g, ""),
     sendInvoice: process.env.WHATSAPP_SEND_INVOICE !== "false",
     templates: {
-      order_placed: process.env.WHATSAPP_TEMPLATE_ORDER_PLACED || "order_confirmation",
       payment_received: process.env.WHATSAPP_TEMPLATE_PAYMENT_RECEIVED || "payment_receipt",
     },
   };
