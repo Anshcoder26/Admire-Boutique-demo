@@ -131,9 +131,7 @@ export function OrderConfirmation() {
   const paymentLabel =
     order.paymentStatus === "Paid"
       ? `${order.paymentMethod || "Online"} \u00B7 Paid`
-      : order.paymentMethod === "Cash on Delivery"
-        ? "Cash on Delivery"
-        : `${order.paymentMethod || "Payment"} \u00B7 Pending`;
+      : `${order.paymentMethod || "Payment"} \u00B7 Pending`;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 md:px-8 lg:px-10">

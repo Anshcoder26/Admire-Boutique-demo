@@ -55,7 +55,6 @@ export function CheckoutPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState("Cash on Delivery");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>("");
   // An online order whose payment didn't complete. Paying again with the same
@@ -207,13 +206,13 @@ export function CheckoutPage() {
     };
 
     const prefill = { name: address.full_name, email: email.trim(), contact: trimmedPhone };
-    // Same cart, address and payment method as the unpaid attempt -> retry it.
-    const attemptKey = JSON.stringify({ cartItems, address, paymentMethod });
+    // Same cart and address as the unpaid attempt -> retry it.
+    const attemptKey = JSON.stringify({ cartItems, address });
 
     try {
       let orderId: string;
 
-      if (paymentMethod === "Razorpay" && pendingOrder && pendingOrder.key === attemptKey) {
+      if (pendingOrder && pendingOrder.key === attemptKey) {
         orderId = pendingOrder.id;
       } else {
         const response = await fetch("/api/checkout/create-order", {
@@ -234,7 +233,7 @@ export function CheckoutPage() {
             shipping,
             discount,
             total,
-            payment_method: paymentMethod,
+            payment_method: "Razorpay",
             address,
           }),
         });
@@ -264,29 +263,23 @@ export function CheckoutPage() {
 
         orderId = data.order.id;
         // Any earlier unpaid attempt was cancelled by the server.
-        setPendingOrder(
-          paymentMethod === "Razorpay"
-            ? {
-                id: data.order.id,
-                orderNumber: data.order.order_number || data.order.id,
-                key: attemptKey,
-                expiresAt: data.order.payment_expires_at || undefined,
-              }
-            : null
-        );
+        setPendingOrder({
+          id: data.order.id,
+          orderNumber: data.order.order_number || data.order.id,
+          key: attemptKey,
+          expiresAt: data.order.payment_expires_at || undefined,
+        });
       }
 
-      // Online orders stay "Awaiting Payment" until the payment is verified.
-      if (paymentMethod === "Razorpay") {
-        const result = await payOrderWithRazorpay(orderId, { prefill, onAttemptFailed: setError });
-        if (result.status !== "paid") {
-          setError(result.message || "Payment not completed.");
-          if (result.status === "expired" || result.status === "refund_due") setPendingOrder(null);
-          setIsSubmitting(false);
-          return;
-        }
-        setPendingOrder(null);
+      // Orders stay "Awaiting Payment" until the payment is verified.
+      const result = await payOrderWithRazorpay(orderId, { prefill, onAttemptFailed: setError });
+      if (result.status !== "paid") {
+        setError(result.message || "Payment not completed.");
+        if (result.status === "expired" || result.status === "refund_due") setPendingOrder(null);
+        setIsSubmitting(false);
+        return;
       }
+      setPendingOrder(null);
 
       // Clear cart
       window.localStorage.removeItem("admire-cart");
@@ -461,15 +454,11 @@ export function CheckoutPage() {
           <div className="rounded-xl border border-[var(--ink)]/10 bg-white p-5">
             <h2 className="mb-4 font-serif text-3xl font-semibold tracking-tight text-[var(--ink)]">Payment</h2>
             <div className="space-y-3 text-sm text-[var(--ink)]/70">
-              {[
-                { value: "Cash on Delivery", label: "Cash on Delivery" },
-                { value: "Razorpay", label: "Pay online (UPI / Cards / Net Banking)" },
-              ].map((method) => (
-                <label key={method.value} className="flex items-center gap-3 rounded-md border border-[var(--ink)]/10 bg-white px-4 py-3 text-[var(--ink)] cursor-pointer transition hover:border-[#7D1D1D]/30">
-                  <input type="radio" name="payment" checked={paymentMethod === method.value} onChange={() => setPaymentMethod(method.value)} />
-                  <span>{method.label}</span>
-                </label>
-              ))}
+              <div className="flex items-center gap-3 rounded-md border border-[#7D1D1D]/30 bg-white px-4 py-3 text-[var(--ink)]">
+                <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-[#7D1D1D]" />
+                <span>Pay online (UPI / Cards / Net Banking / Wallets)</span>
+              </div>
+              <p>Payments are processed securely by Razorpay. We don&apos;t offer Cash on Delivery.</p>
             </div>
           </div>
         </div>
@@ -500,7 +489,7 @@ export function CheckoutPage() {
           >
             {isSubmitting
               ? "Processing order..."
-              : paymentMethod === "Razorpay" && pendingOrder
+              : pendingOrder
                 ? "Retry payment"
                 : "Place order"}
           </button>
