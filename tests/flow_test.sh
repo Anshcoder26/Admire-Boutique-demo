@@ -154,6 +154,8 @@ check "FAQ: no 7-day returns promise" no "$(has 'within 7 days of delivery' "$FA
 check "FAQ: exchange needs unboxing video within 24 hours" yes "$(has 'unboxing video and message us on WhatsApp within 24 hours of delivery' "$FAQ_JSON")"
 check "FAQ: sizing answer says suits are unstitched" yes "$(has 'Our suits are unstitched, so there is no particular size to them.' "$FAQ_JSON")"
 check "FAQ: no size chart reference" no "$(has 'size chart' "$FAQ_JSON")"
+check "FAQ: no Cash on Delivery" no "$(has 'Cash on Delivery' "$FAQ_JSON")"
+check "FAQ: online payments only" yes "$(has 'We accept online payments only' "$FAQ_JSON")"
 
 echo
 echo "==================================="

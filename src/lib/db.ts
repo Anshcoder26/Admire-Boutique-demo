@@ -407,6 +407,14 @@ const FAQ_SIZING_QUESTION = "What is your sizing guide?";
 const FAQ_SIZING_ANSWER =
   "Our suits are unstitched, so there is no particular size to them. You can get them stitched to your own measurements.";
 
+// faq-4's answer from when Cash on Delivery was offered. Databases that still have
+// this exact text are updated at startup; edited answers are left alone.
+const LEGACY_FAQ_PAYMENT_ANSWER =
+  "Cash on Delivery is available on eligible orders in select locations. The COD option appears automatically during checkout when your address qualifies.";
+const FAQ_PAYMENT_QUESTION = "What payment methods do you accept?";
+const FAQ_PAYMENT_ANSWER =
+  "We accept online payments only: UPI, debit/credit cards, net banking and wallets, processed securely by Razorpay.";
+
 const seedFaqs = [
   {
     id: "faq-1",
@@ -428,8 +436,8 @@ const seedFaqs = [
   },
   {
     id: "faq-4",
-    question: "Do you accept COD?",
-    answer: "Cash on Delivery is available on eligible orders in select locations. The COD option appears automatically during checkout when your address qualifies.",
+    question: FAQ_PAYMENT_QUESTION,
+    answer: FAQ_PAYMENT_ANSWER,
     category: "Payment",
   },
   {
@@ -753,6 +761,9 @@ if (!usesPostgres) {
   sqliteDb
     .prepare("UPDATE faq_items SET question = ?, answer = ? WHERE id = 'faq-3' AND answer IN (?, ?)")
     .run(FAQ_SIZING_QUESTION, FAQ_SIZING_ANSWER, ...LEGACY_FAQ_SIZING_ANSWERS);
+  sqliteDb
+    .prepare("UPDATE faq_items SET question = ?, answer = ? WHERE id = 'faq-4' AND answer = ?")
+    .run(FAQ_PAYMENT_QUESTION, FAQ_PAYMENT_ANSWER, LEGACY_FAQ_PAYMENT_ANSWER);
 }
 
 async function ensurePostgresReady() {
@@ -1080,6 +1091,10 @@ async function ensurePostgresReady() {
   await postgresPool.query(
     "UPDATE faq_items SET question = $1, answer = $2 WHERE id = 'faq-3' AND answer IN ($3, $4)",
     [FAQ_SIZING_QUESTION, FAQ_SIZING_ANSWER, ...LEGACY_FAQ_SIZING_ANSWERS]
+  );
+  await postgresPool.query(
+    "UPDATE faq_items SET question = $1, answer = $2 WHERE id = 'faq-4' AND answer = $3",
+    [FAQ_PAYMENT_QUESTION, FAQ_PAYMENT_ANSWER, LEGACY_FAQ_PAYMENT_ANSWER]
   );
 
   postgresReady = true;
