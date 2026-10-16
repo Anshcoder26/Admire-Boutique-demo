@@ -33,18 +33,9 @@ export default function ShippingPolicyPage() {
             <ul>
               <li>Orders are packed and handed to our courier partner within 1–2 business days of confirmation.</li>
               <li>Most orders are delivered within <strong>4–7 business days</strong> of dispatch. Metro cities are often faster; remote areas may take longer.</li>
-              <li>Prepaid orders are processed after the payment is confirmed. Cash on Delivery orders are processed right away.</li>
+              <li>All orders are paid online and are processed after the payment is confirmed.</li>
               <li>Delivery times are estimates and may be affected by courier delays, weather, festivals or other events beyond our control.</li>
             </ul>
-          ),
-        },
-        {
-          heading: "Cash on Delivery",
-          body: (
-            <p>
-              Cash on Delivery is available on eligible orders and locations. If available for your address, the
-              option is shown at checkout. Please keep the exact amount ready at delivery.
-            </p>
           ),
         },
         {

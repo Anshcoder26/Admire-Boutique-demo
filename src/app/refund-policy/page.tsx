@@ -64,8 +64,7 @@ export default function RefundPolicyPage() {
             <ul>
               <li>If your exchange is approved but a replacement is not available, you receive a <strong>full refund</strong>, including any shipping charge.</li>
               <li>Approved refunds are processed within <strong>5–7 working days</strong>.</li>
-              <li>Prepaid orders are refunded to the original payment method (UPI, card, net banking or wallet). Your bank may take a few more days to show the credit.</li>
-              <li>Cash on Delivery orders are refunded by bank transfer or UPI to an account you share with us.</li>
+              <li>Refunds go back to the original payment method (UPI, card, net banking or wallet). Your bank may take a few more days to show the credit.</li>
             </ul>
           ),
         },

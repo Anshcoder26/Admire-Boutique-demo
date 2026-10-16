@@ -55,7 +55,7 @@ export default function TermsPage() {
           heading: "Payments",
           body: (
             <ul>
-              <li>We accept online payments (UPI, debit/credit cards, net banking and wallets) through Razorpay, and Cash on Delivery on eligible orders.</li>
+              <li>We accept online payments only (UPI, debit/credit cards, net banking and wallets), processed securely by Razorpay.</li>
               <li>Online payments are processed securely by Razorpay. We do not store your card or bank details.</li>
               <li>An online order must be paid within 15 minutes of placing it. Unpaid orders are cancelled automatically and the items released.</li>
               <li>If your account is debited but the order is not confirmed, the amount is either applied to your order or refunded automatically.</li>
