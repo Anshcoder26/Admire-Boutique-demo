@@ -61,6 +61,12 @@ export const categories = [
     image:
       "https://images.unsplash.com/photo-1768289222318-fd35f29a8403?auto=format&fit=crop&w=800&q=80",
   },
+  {
+    name: "Gajji Silk",
+    subtitle: "Rich silk sheen",
+    image:
+      "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80",
+  },
 ];
 
 export const products: Product[] = [

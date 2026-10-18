@@ -123,6 +123,7 @@ for p in /privacy-policy /terms /refund-policy /shipping-policy /contact; do
   check "GET $p" 200 "$(status $BASE$p)"
   check "footer links to $p" 1 "$(grep -c "href=\"$p\"" <<<"$HOME_HTML" | tr -d ' ' | sed 's/^[1-9][0-9]*$/1/')"
 done
+check "home has a Gajji Silk category tile" 1 "$(grep -c 'href="/products?category=Gajji%20Silk"' <<<"$HOME_HTML" | tr -d ' ' | sed 's/^[1-9][0-9]*$/1/')"
 check "no dead href=\"#\" links on home page" 0 "$(grep -o 'href="#"' <<<"$HOME_HTML" | wc -l | tr -d ' ')"
 
 has() { grep -qF "$1" <<<"$2" && echo yes || echo no; }

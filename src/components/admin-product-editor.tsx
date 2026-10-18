@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
+import { categories } from "@/data/products";
 
 interface Product {
   id: string;
@@ -17,7 +18,7 @@ interface Product {
   stitchType?: string;
 }
 
-const productCategories = ["Premium Cotton", "Georgette", "Pure Mul", "Silk"];
+const productCategories = categories.map((category) => category.name);
 const STITCH_TYPES = ["Stitched", "Unstitched"];
 
 export function ProductEditor({
@@ -150,7 +151,11 @@ export function ProductEditor({
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
                 className="w-full rounded-md border border-[var(--ink)]/12 bg-white px-4 py-3 text-sm outline-none focus:border-[#7D1D1D]"
               >
-                {productCategories.map((cat) => (
+                {/* Keep a product's existing category selectable even if it's no longer in the list. */}
+                {(form.category && !productCategories.includes(form.category)
+                  ? [form.category, ...productCategories]
+                  : productCategories
+                ).map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>
