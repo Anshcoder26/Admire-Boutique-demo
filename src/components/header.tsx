@@ -121,6 +121,12 @@ export function Header() {
     const singularize = (value: string) => value.replace(/s$/, "");
     const normalizedQuery = singularize(normalize(query));
 
+    // "Suit(s)" means browse the full collection across every category.
+    if (/^(all )?suits?$/.test(normalize(query))) {
+      router.push("/products");
+      return;
+    }
+
     // A search for a category (or its common singular/plural form) opens
     // that category collection. Resolve from the configured categories and
     // live product data so this works for every category, not just cotton.
@@ -138,12 +144,6 @@ export function Header() {
 
     if (categoryMatch) {
       router.push(`/products?category=${encodeURIComponent(categoryMatch)}`);
-      return;
-    }
-
-    // "Suit(s)" means browse the full collection across every category.
-    if (/^(all )?suits?$/.test(normalize(query))) {
-      router.push("/products");
       return;
     }
 
