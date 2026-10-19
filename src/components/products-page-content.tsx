@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ProductsSearch } from "@/components/products-search";
 import { ProductGrid } from "@/components/product-grid";
+import { SectionDivider } from "@/components/ui/section-divider";
 import type { Product } from "@/data/products";
 
 interface ProductsPageContentProps {
@@ -41,18 +42,24 @@ export function ProductsPageContent({ initialProducts, initialCategory }: Produc
     router.push("/products");
   };
 
+  // When a category is selected, keep its products first and show all other
+  // catalog products below the decorative divider.
+  const remainingProducts = selectedCategory
+    ? initialProducts.filter((product) => product.category !== selectedCategory)
+    : [];
+
   return (
     <div className="space-y-8">
       {/* Search and filters */}
-      <ProductsSearch 
-        products={initialProducts} 
+      <ProductsSearch
+        products={initialProducts}
         onFilter={handleFilter}
         initialCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
         onClearAll={handleClearAll}
       />
 
-      {/* Results */}
+      {/* Selected category results */}
       {filteredProducts.length > 0 ? (
         <ProductGrid products={filteredProducts} />
       ) : (
@@ -61,6 +68,22 @@ export function ProductsPageContent({ initialProducts, initialCategory }: Produc
           <div className="mb-1 font-serif text-2xl text-[#201614]">No products found</div>
           <p className="text-sm text-[#6b5f57]">Try adjusting your search or filters</p>
         </div>
+      )}
+
+      {/* Show the rest of the catalog only on a category-specific view. */}
+      {selectedCategory && remainingProducts.length > 0 && (
+        <section aria-label="More suits from the collection" className="pt-2">
+          <SectionDivider spacing="lg" />
+          <div className="mb-6 text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#7D1D1D]">
+              Explore the collection
+            </p>
+            <h2 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-[var(--ink)] md:text-3xl">
+              More Suits to Discover
+            </h2>
+          </div>
+          <ProductGrid products={remainingProducts} />
+        </section>
       )}
     </div>
   );
