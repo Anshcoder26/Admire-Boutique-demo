@@ -115,8 +115,22 @@ export function Header() {
 
   const handleGoToProducts = () => {
     setIsSearchOpen(false);
+    const query = searchQuery.trim().toLocaleLowerCase().replace(/\\s+/g, " ");
+
+    // Broad category searches should open the collection, not an individual product.
+    if (/^(premium )?cottons?$/.test(query)) {
+      router.push(`/products?category=${encodeURIComponent("Premium Cotton")}`);
+      return;
+    }
+
+    // "Suit(s)" means browse the full suit collection across every category.
+    if (/^suits?$/.test(query) || /^(all )?suits$/.test(query)) {
+      router.push("/products");
+      return;
+    }
+
     const firstMatch = matchingProducts[0];
-    if (searchQuery.trim() && firstMatch) {
+    if (query && firstMatch) {
       router.push(`/products/${firstMatch.slug}`);
       return;
     }
