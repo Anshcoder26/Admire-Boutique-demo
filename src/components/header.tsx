@@ -5,7 +5,6 @@ import { Heart, Search, ShoppingBag, User, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AbLogo } from "@/components/ab-logo";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/providers/auth-provider";
 import type { Product } from "@/data/products";
 
@@ -17,6 +16,7 @@ export function Header() {
   const [searchProducts, setSearchProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const [searchRetry, setSearchRetry] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -105,7 +105,7 @@ export function Header() {
       cancelled = true;
       window.clearTimeout(focusTimer);
     };
-  }, [isSearchOpen]);
+  }, [isSearchOpen, searchRetry]);
 
   const handleSearchClick = () => {
     setSearchQuery("");
@@ -114,7 +114,12 @@ export function Header() {
 
   const handleGoToProducts = () => {
     setIsSearchOpen(false);
-    router.push(searchQuery.trim() ? `/products?search=${encodeURIComponent(searchQuery.trim())}` : "/products");
+    const firstMatch = matchingProducts[0];
+    if (searchQuery.trim() && firstMatch) {
+      router.push(`/products/${firstMatch.slug}`);
+      return;
+    }
+    router.push("/products");
   };
 
   const handleLogout = async () => {
@@ -274,7 +279,7 @@ export function Header() {
                 ) : searchError ? (
                   <div className="py-5 text-center">
                     <p role="alert" className="text-sm text-[#7D1D1D]">{searchError}</p>
-                    <button type="button" onClick={() => { setSearchProducts([]); setIsSearchOpen(false); setIsSearchOpen(true); }} className="mt-2 text-sm font-semibold text-[#7D1D1D] underline">
+                    <button type="button" onClick={() => { setSearchProducts([]); setSearchRetry((attempt) => attempt + 1); }} className="mt-2 text-sm font-semibold text-[#7D1D1D] underline">
                       Try again
                     </button>
                   </div>
