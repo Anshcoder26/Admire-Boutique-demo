@@ -40,6 +40,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Keep the production build within the thread/process limits of smaller CI hosts.
+  experimental: {
+    cpus: 2,
+  },
   // Redirect before rendering so it stays a real 307 even with streaming loading screens.
   async redirects() {
     return [{ source: "/orders", destination: "/account/orders", permanent: false }];
