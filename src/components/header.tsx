@@ -7,7 +7,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { AbLogo } from "@/components/ab-logo";
 import { useAuth } from "@/providers/auth-provider";
-import type { Product } from "@/data/products";
+import { categories, type Product } from "@/data/products";
 
 export function Header() {
   const { isAuthenticated, isLoading, userType, logout } = useAuth();
@@ -115,16 +115,34 @@ export function Header() {
 
   const handleGoToProducts = () => {
     setIsSearchOpen(false);
-    const query = searchQuery.trim().toLocaleLowerCase().replace(/\\s+/g, " ");
+    const query = searchQuery.trim().toLocaleLowerCase().replace(/\s+/g, " ");
+    const normalize = (value: string) =>
+      value.toLocaleLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+    const singularize = (value: string) => value.replace(/s$/, "");
+    const normalizedQuery = singularize(normalize(query));
 
-    // Broad category searches should open the collection, not an individual product.
-    if (/^(premium )?cottons?$/.test(query)) {
-      router.push(`/products?category=${encodeURIComponent("Premium Cotton")}`);
+    // A search for a category (or its common singular/plural form) opens
+    // that category collection. Resolve from the configured categories and
+    // live product data so this works for every category, not just cotton.
+    const availableCategories = Array.from(
+      new Set([...categories.map((category) => category.name), ...searchProducts.map((product) => product.category)]),
+    );
+    const categoryMatch = availableCategories.find((category) => {
+      const normalizedCategory = normalize(category);
+      const categoryWords = normalizedCategory.split(" ");
+      return (
+        singularize(normalizedCategory) === normalizedQuery ||
+        categoryWords.some((word) => singularize(word) === normalizedQuery)
+      );
+    });
+
+    if (categoryMatch) {
+      router.push(`/products?category=${encodeURIComponent(categoryMatch)}`);
       return;
     }
 
-    // "Suit(s)" means browse the full suit collection across every category.
-    if (/^suits?$/.test(query) || /^(all )?suits$/.test(query)) {
+    // "Suit(s)" means browse the full collection across every category.
+    if (/^(all )?suits?$/.test(normalize(query))) {
       router.push("/products");
       return;
     }
