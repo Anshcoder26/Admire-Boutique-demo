@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Heart, Search, ShoppingBag, User, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { AbLogo } from "@/components/ab-logo";
 import { useAuth } from "@/providers/auth-provider";
@@ -213,9 +214,9 @@ export function Header() {
         </div>
       </header>
 
-      {isSearchOpen ? (
+      {isSearchOpen ? createPortal(
         <div
-          className="fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto bg-black/40 px-4 pb-8 pt-16 backdrop-blur-sm md:pt-28"
+          className="fixed inset-0 z-[99999] flex items-start justify-center overflow-y-auto bg-black/40 px-4 pb-8 pt-16 backdrop-blur-sm md:pt-28"
           onClick={() => setIsSearchOpen(false)}
         >
           <div
@@ -313,7 +314,8 @@ export function Header() {
               </p>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </>
   );
