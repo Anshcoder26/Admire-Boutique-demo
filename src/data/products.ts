@@ -50,12 +50,6 @@ export const categories = [
       "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80",
   },
   {
-    name: "Parsi Work",
-    subtitle: "Intricate craftsmanship",
-    image:
-      "https://images.unsplash.com/photo-1512676052261-98bab4919138?auto=format&fit=crop&w=800&q=80",
-  },
-  {
     name: "Muslins",
     subtitle: "Pure elegance",
     image:
@@ -74,7 +68,7 @@ export const products: Product[] = [
     id: "prod-1",
     slug: "saffron-silk-kurti",
     name: "Saffron Silk Kurti",
-    category: "Parsi Work",
+    category: "Gajji Silk",
     price: 1899,
     originalPrice: 2599,
     discount: 27,
