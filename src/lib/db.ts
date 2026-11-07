@@ -677,6 +677,9 @@ if (!usesPostgres) {
     sqliteDb.exec("ALTER TABLE orders ADD COLUMN payment_expires_at TEXT;");
   }
 
+  // Keep existing catalog records in sync with the renamed storefront category.
+  sqliteDb.prepare("UPDATE products SET category = ? WHERE category = ?").run("Silk", "Gajji Silk");
+
   const productsCount = sqliteDb.prepare("SELECT COUNT(*) as count FROM products").get() as { count: number };
   if (SEED_DEMO_DATA && productsCount.count === 0) {
     const insertProduct = sqliteDb.prepare(`
@@ -958,6 +961,9 @@ async function ensurePostgresReady() {
       ALTER TABLE orders
       ADD COLUMN IF NOT EXISTS payment_expires_at TEXT
     `);
+
+  // Keep existing catalog records in sync with the renamed storefront category.
+  await postgresPool.query("UPDATE products SET category = $1 WHERE category = $2", ["Silk", "Gajji Silk"]);
 
   const productCount = await postgresPool.query("SELECT COUNT(*) as count FROM products");
   if (SEED_DEMO_DATA && Number(productCount.rows[0]?.count ?? 0) === 0) {
