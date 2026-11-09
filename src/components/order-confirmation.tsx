@@ -112,7 +112,9 @@ export function OrderConfirmation() {
             {order.status === "awaiting_cod_advance" ? "COD order awaiting advance" : order.status === "awaiting_payment" ? "Payment not completed" : "This order is not active"}
           </h1>
           <p className="mt-3 text-[var(--ink)]/70">
-            {order.status === "awaiting_payment"
+            {order.status === "awaiting_cod_advance"
+              ? `Order ${order.orderNumber} has been received. A ₹${Number(order.codAdvanceAmount || 500).toLocaleString("en-IN")} advance is required; UPI payment instructions will be shared shortly. The remaining balance is payable on delivery. Your order will be confirmed after the advance is verified.`
+              : order.status === "awaiting_payment"
               ? `Order ${order.orderNumber} is waiting for payment. Complete the payment to confirm it.`
               : order.paymentStatus === "Refund Due"
                 ? `Order ${order.orderNumber} was cancelled and your payment will be refunded.`
