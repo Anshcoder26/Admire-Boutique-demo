@@ -91,6 +91,8 @@ async function toOrderDetail(row: Record<string, unknown>) {
     status: normalizeStatus(String(row.status ?? "")),
     paymentStatus: row.payment_status || "Pending",
     paymentMethod: row.payment_method || "",
+    codAdvanceAmount: Number(row.cod_advance_amount ?? 0),
+    codAdvanceStatus: row.cod_advance_status || "Not Required",
     paymentExpiresAt: row.payment_expires_at || null,
     subtotal: Number(row.sub_total ?? 0),
     shipping: Number(row.shipping ?? 0),
