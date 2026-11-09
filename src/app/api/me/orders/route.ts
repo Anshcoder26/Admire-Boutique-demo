@@ -32,6 +32,7 @@ function normalizeStatus(status: string): string {
   const s = (status || "").toLowerCase();
   if (s === "confirmed") return "processing";
   if (s === "awaiting payment") return "awaiting_payment";
+  if (s === "awaiting cod advance") return "awaiting_cod_advance";
   if (["pending", "processing", "shipped", "delivered", "cancelled"].includes(s)) {
     return s;
   }
