@@ -676,6 +676,19 @@ if (!usesPostgres) {
   if (!sqliteOrderColumns.some((column) => column.name === "payment_expires_at")) {
     sqliteDb.exec("ALTER TABLE orders ADD COLUMN payment_expires_at TEXT;");
   }
+  const refreshedSqliteOrderColumns = sqliteDb.prepare("PRAGMA table_info(orders)").all() as Array<{ name: string }>;
+  if (!refreshedSqliteOrderColumns.some((column) => column.name === "cod_advance_amount")) {
+    sqliteDb.exec("ALTER TABLE orders ADD COLUMN cod_advance_amount REAL NOT NULL DEFAULT 0;");
+  }
+  if (!refreshedSqliteOrderColumns.some((column) => column.name === "cod_advance_status")) {
+    sqliteDb.exec("ALTER TABLE orders ADD COLUMN cod_advance_status TEXT NOT NULL DEFAULT 'Not Required';");
+  }
+  if (!refreshedSqliteOrderColumns.some((column) => column.name === "cod_advance_utr")) {
+    sqliteDb.exec("ALTER TABLE orders ADD COLUMN cod_advance_utr TEXT;");
+  }
+  if (!refreshedSqliteOrderColumns.some((column) => column.name === "cod_advance_verified_at")) {
+    sqliteDb.exec("ALTER TABLE orders ADD COLUMN cod_advance_verified_at TEXT;");
+  }
 
   // Keep existing catalog records in sync with the renamed storefront category.
   sqliteDb.prepare("UPDATE products SET category = ? WHERE category = ?").run("Silk", "Gajji Silk");
@@ -961,6 +974,10 @@ async function ensurePostgresReady() {
       ALTER TABLE orders
       ADD COLUMN IF NOT EXISTS payment_expires_at TEXT
     `);
+    await postgresPool.query("ALTER TABLE orders ADD COLUMN IF NOT EXISTS cod_advance_amount DOUBLE PRECISION NOT NULL DEFAULT 0");
+    await postgresPool.query("ALTER TABLE orders ADD COLUMN IF NOT EXISTS cod_advance_status TEXT NOT NULL DEFAULT 'Not Required'");
+    await postgresPool.query("ALTER TABLE orders ADD COLUMN IF NOT EXISTS cod_advance_utr TEXT");
+    await postgresPool.query("ALTER TABLE orders ADD COLUMN IF NOT EXISTS cod_advance_verified_at TIMESTAMPTZ");
 
   // Keep existing catalog records in sync with the renamed storefront category.
   await postgresPool.query("UPDATE products SET category = $1 WHERE category = $2", ["Silk", "Gajji Silk"]);
@@ -2055,6 +2072,9 @@ export async function createOrder(customerId: string, input: {
   address?: { id?: string; label?: string; full_name?: string; phone?: string; line1?: string; line2?: string; city?: string; state?: string; pincode?: string; country?: string };
   /** ISO time after which an unpaid online order is auto-cancelled. */
   payment_expires_at?: string | null;
+  /** COD confirmation advance; zero for all existing online orders. */
+  cod_advance_amount?: number;
+  cod_advance_status?: string;
 }) {
   const id = `ord-${randomBytes(8).toString("hex")}`;
   const order = {
@@ -2074,6 +2094,8 @@ export async function createOrder(customerId: string, input: {
     items_json: JSON.stringify(input.items),
     address_json: input.address ? JSON.stringify(input.address) : JSON.stringify({}),
     payment_expires_at: input.payment_expires_at ?? null,
+    cod_advance_amount: input.cod_advance_amount ?? 0,
+    cod_advance_status: input.cod_advance_status ?? "Not Required",
   };
 
   if (usesPostgres) {
@@ -2089,7 +2111,8 @@ export async function createOrder(customerId: string, input: {
       // Insert order
       await client.query(
         `INSERT INTO orders (id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method, delivery_partner, tracking_id, estimated_delivery, items_json, address_json, payment_expires_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+         cod_advance_amount, cod_advance_status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
         [
           order.id,
           order.customer_id,
@@ -2107,6 +2130,8 @@ export async function createOrder(customerId: string, input: {
           order.items_json,
           order.address_json,
           order.payment_expires_at,
+          order.cod_advance_amount,
+          order.cod_advance_status,
         ]
       );
       
@@ -2150,10 +2175,10 @@ export async function createOrder(customerId: string, input: {
     sqliteDb.prepare(`
       INSERT INTO orders (
         id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method,
-        delivery_partner, tracking_id, estimated_delivery, items_json, address_json, payment_expires_at
+        delivery_partner, tracking_id, estimated_delivery, items_json, address_json, payment_expires_at, cod_advance_amount, cod_advance_status
       ) VALUES (
         @id, @customer_id, @order_number, @status, @sub_total, @shipping, @discount, @total, @payment_status,
-        @payment_method, @delivery_partner, @tracking_id, @estimated_delivery, @items_json, @address_json, @payment_expires_at
+        @payment_method, @delivery_partner, @tracking_id, @estimated_delivery, @items_json, @address_json, @payment_expires_at, @cod_advance_amount, @cod_advance_status
       )
     `).run(order);
     
@@ -2472,7 +2497,7 @@ export async function listRecentAdminOrders() {
   if (usesPostgres) {
     await ensurePostgresReady();
     const result = await postgresPool!.query(
-      `SELECT o.id, o.order_number, o.status, o.total, o.payment_status, o.payment_method, o.created_at, c.name AS customer_name
+      `SELECT o.id, o.order_number, o.status, o.total, o.payment_status, o.payment_method, o.cod_advance_amount, o.cod_advance_status, o.cod_advance_utr, o.cod_advance_verified_at, o.created_at, c.name AS customer_name
        FROM orders o
        JOIN customers c ON c.id = o.customer_id
        ORDER BY o.created_at DESC
@@ -2482,7 +2507,7 @@ export async function listRecentAdminOrders() {
   }
 
   const rows = sqliteDb.prepare(`
-    SELECT o.id, o.order_number, o.status, o.total, o.payment_status, o.payment_method, o.created_at, c.name AS customer_name
+    SELECT o.id, o.order_number, o.status, o.total, o.payment_status, o.payment_method, o.cod_advance_amount, o.cod_advance_status, o.cod_advance_utr, o.cod_advance_verified_at, o.created_at, c.name AS customer_name
     FROM orders o
     JOIN customers c ON c.id = o.customer_id
     ORDER BY o.created_at DESC
@@ -2490,6 +2515,35 @@ export async function listRecentAdminOrders() {
   `).all() as Array<{ id: string; order_number: string; status: string; total: number; payment_status: string; payment_method: string; created_at: string; customer_name: string }>;
 
   return rows.map((row) => ({ ...row, total: Number(row.total) }));
+}
+
+/** Mark the COD advance as received only after the owner has checked the actual UPI credit. */
+export async function markCodAdvanceReceived(orderId: string, utr: string): Promise<boolean> {
+  const verifiedAt = new Date().toISOString();
+  const cleanUtr = utr.trim().slice(0, 80);
+  if (!cleanUtr) return false;
+
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query(
+      `UPDATE orders
+       SET cod_advance_status = 'Received', cod_advance_utr = $1, cod_advance_verified_at = $2,
+           payment_status = 'Partially Paid', status = 'Confirmed'
+       WHERE id = $3 AND payment_method = 'Cash on Delivery'
+         AND cod_advance_status = 'Pending' AND status = 'Awaiting COD Advance'`,
+      [cleanUtr, verifiedAt, orderId]
+    );
+    return Boolean(result.rowCount);
+  }
+
+  const result = sqliteDb.prepare(
+    `UPDATE orders
+     SET cod_advance_status = 'Received', cod_advance_utr = ?, cod_advance_verified_at = ?,
+         payment_status = 'Partially Paid', status = 'Confirmed'
+     WHERE id = ? AND payment_method = 'Cash on Delivery'
+       AND cod_advance_status = 'Pending' AND status = 'Awaiting COD Advance'`
+  ).run(cleanUtr, verifiedAt, orderId);
+  return result.changes > 0;
 }
 
 export async function listAdminCustomers() {
