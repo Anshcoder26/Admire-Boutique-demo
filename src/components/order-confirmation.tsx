@@ -99,6 +99,7 @@ export function OrderConfirmation() {
   // An online order that isn't paid (or was cancelled) is not a confirmed
   // order; send the customer to its details to retry or see what happened.
   const notConfirmed =
+    order.status === "awaiting_cod_advance" ||
     order.status === "awaiting_payment" ||
     order.status === "cancelled" ||
     (order.paymentMethod === "Razorpay" && order.paymentStatus !== "Paid");
