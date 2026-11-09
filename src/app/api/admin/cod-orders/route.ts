@@ -1,7 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { authenticateAdmin } from "@/lib/admin-auth";
 import { codBalanceDue, codHoldDeadline, isCodHoldOver } from "@/lib/cod";
-import { cancelPendingCodOrder, listPendingCodOrders, markCodAdvanceReceived } from "@/lib/db";
+import { cancelPendingCodOrder, isCodReferenceUsed, listPendingCodOrders, markCodAdvanceReceived } from "@/lib/db";
 import { notifyCodAdvanceVerified } from "@/lib/notifications/cod-order";
 
 export async function GET(request: Request) {
@@ -47,6 +47,9 @@ export async function POST(request: Request) {
     const utr = typeof body.utr === "string" ? body.utr.trim() : "";
     if (!utr) {
       return NextResponse.json({ error: "Enter the UPI reference number from the screenshot" }, { status: 400 });
+    }
+    if (await isCodReferenceUsed(utr)) {
+      return NextResponse.json({ error: "This UPI reference is already used on another order. Check the payment in your bank app." }, { status: 409 });
     }
     if (!(await markCodAdvanceReceived(orderId, utr))) {
       return NextResponse.json({ error: "This order is no longer waiting for its advance" }, { status: 409 });

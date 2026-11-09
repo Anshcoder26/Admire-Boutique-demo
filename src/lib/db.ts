@@ -2334,6 +2334,17 @@ export async function listAwaitingPaymentOrderIds(customerId: string): Promise<s
 export type PaymentRecordOutcome = "paid" | "late_paid" | "refund_due" | "already_processed" | "not_found";
 
 /**
+ * A payment can only count once. Without this, re-sending a valid receipt
+ * after the owner refunds an order would mark it paid again.
+ */
+function isPaymentAlreadyHandled(
+  order: { payment_status: string; razorpay_payment_id?: string | null },
+  razorpayPaymentId: string
+): boolean {
+  return ["Paid", "Refund Due", "Refunded"].includes(order.payment_status) || order.razorpay_payment_id === razorpayPaymentId;
+}
+
+/**
  * Atomically record a verified payment. Exactly one concurrent caller gets a
  * "paid"/"late_paid"/"refund_due" outcome, so notifications are sent once.
  */
@@ -2350,7 +2361,7 @@ export async function recordOrderPayment(
       await client.query("BEGIN");
       await client.query(`SET LOCAL statement_timeout = ${PG_STATEMENT_TIMEOUT_MS}`);
       const found = await client.query(
-        "SELECT status, payment_status, items_json FROM orders WHERE id = $1 FOR UPDATE",
+        "SELECT status, payment_status, items_json, razorpay_payment_id FROM orders WHERE id = $1 FOR UPDATE",
         [orderId]
       );
       const order = found.rows[0];
@@ -2358,7 +2369,7 @@ export async function recordOrderPayment(
         await client.query("ROLLBACK");
         return "not_found";
       }
-      if (order.payment_status === "Paid" || order.payment_status === "Refund Due") {
+      if (isPaymentAlreadyHandled(order, payment.razorpayPaymentId)) {
         await client.query("ROLLBACK");
         return "already_processed";
       }
@@ -2404,10 +2415,10 @@ export async function recordOrderPayment(
 
   return sqliteDb.transaction((): PaymentRecordOutcome => {
     const order = sqliteDb
-      .prepare("SELECT status, payment_status, items_json FROM orders WHERE id = ?")
-      .get(orderId) as { status: string; payment_status: string; items_json: string } | undefined;
+      .prepare("SELECT status, payment_status, items_json, razorpay_payment_id FROM orders WHERE id = ?")
+      .get(orderId) as { status: string; payment_status: string; items_json: string; razorpay_payment_id: string | null } | undefined;
     if (!order) return "not_found";
-    if (order.payment_status === "Paid" || order.payment_status === "Refund Due") return "already_processed";
+    if (isPaymentAlreadyHandled(order, payment.razorpayPaymentId)) return "already_processed";
 
     let outcome: PaymentRecordOutcome = "paid";
     let newStatus = order.status === AWAITING_PAYMENT_STATUS ? "Confirmed" : order.status;
@@ -2562,6 +2573,27 @@ export async function markCodAdvanceReceived(orderId: string, utr: string): Prom
 }
 
 const PENDING_COD_WHERE = "payment_method = 'Cash on Delivery' AND status = 'Awaiting COD Advance'";
+
+export async function countPendingCodOrders(customerId: string): Promise<number> {
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query(`SELECT COUNT(*) AS count FROM orders WHERE customer_id = $1 AND ${PENDING_COD_WHERE}`, [customerId]);
+    return Number(result.rows[0]?.count ?? 0);
+  }
+  const row = sqliteDb.prepare(`SELECT COUNT(*) AS count FROM orders WHERE customer_id = ? AND ${PENDING_COD_WHERE}`).get(customerId) as { count: number };
+  return Number(row.count);
+}
+
+/** True if this UPI reference already confirmed an order, so one payment can't confirm two. */
+export async function isCodReferenceUsed(reference: string): Promise<boolean> {
+  const clean = reference.trim().slice(0, 80).toUpperCase();
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query("SELECT 1 FROM orders WHERE UPPER(cod_advance_utr) = $1 LIMIT 1", [clean]);
+    return result.rows.length > 0;
+  }
+  return Boolean(sqliteDb.prepare("SELECT 1 FROM orders WHERE UPPER(cod_advance_utr) = ? LIMIT 1").get(clean));
+}
 
 /** COD orders still waiting for their advance, oldest first, with what to ship and where. */
 export async function listPendingCodOrders(): Promise<Array<Record<string, any>>> {

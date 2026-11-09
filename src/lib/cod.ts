@@ -9,6 +9,9 @@ const ORDER_WHATSAPP_DISPLAY = "+91 92593 14348";
 /** How long stock is held for an unpaid COD advance before the owner should follow up and cancel. */
 export const COD_HOLD_HOURS = 48;
 
+/** Unconfirmed COD orders one account can hold at once, so nobody can tie up all the stock. */
+export const MAX_PENDING_COD_ORDERS = 2;
+
 export type CodPaymentDetails = {
   /** Empty until COD_UPI_ID is configured. */
   upiId: string;

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse, after } from "next/server";
-import { createOrder, validateUserSessionToken, getProductById, getProductByName, getOrderByNumber, generateOrderNumber, generateTrackingId, DELIVERY_PARTNER, DELIVERY_ESTIMATE, AWAITING_PAYMENT_STATUS } from "@/lib/db";
+import { countPendingCodOrders, createOrder, validateUserSessionToken, getProductById, getProductByName, getOrderByNumber, generateOrderNumber, generateTrackingId, DELIVERY_PARTNER, DELIVERY_ESTIMATE, AWAITING_PAYMENT_STATUS } from "@/lib/db";
 import { cancelAwaitingOrdersForCustomer, sweepExpiredOrders } from "@/lib/payments";
 import { computePaymentExpiry } from "@/lib/payment-utils";
 import { notifyCodOrderPlaced } from "@/lib/notifications/cod-order";
 import { normalizeIndianMobile } from "@/lib/phone";
 import { AUTH_RATE_LIMITS } from "@/lib/auth-utils";
-import { checkRateLimit, tooManyRequests } from "@/lib/rate-limiter";
+import { checkRateLimit, getClientIp, tooManyRequests } from "@/lib/rate-limiter";
+import { MAX_PENDING_COD_ORDERS } from "@/lib/cod";
 
 async function getUserFromRequest(request: Request) {
   // Try Authorization header first
@@ -154,6 +155,25 @@ export async function POST(request: Request) {
     const isCod = paymentMethod === "Cash on Delivery";
     if (isCod && computedTotal <= 500) {
       return NextResponse.json({ error: "COD orders require a minimum order total above ₹500 because a ₹500 advance is required." }, { status: 400 });
+    }
+    if (isCod) {
+      // Unconfirmed COD orders hold stock and send WhatsApp messages, so cap them.
+      if ((await countPendingCodOrders(user.id)) >= MAX_PENDING_COD_ORDERS) {
+        return NextResponse.json({ error: "You already have COD orders waiting for the ₹500 advance. Please pay for those first, or contact us." }, { status: 409 });
+      }
+      const codPhoneRate = await checkRateLimit(
+        `cod-phone:${normalizeIndianMobile(body.address.phone)}`,
+        AUTH_RATE_LIMITS.codPhone.maxAttempts,
+        AUTH_RATE_LIMITS.codPhone.windowMs
+      );
+      const codIpRate = await checkRateLimit(
+        `cod-ip:${getClientIp(request)}`,
+        AUTH_RATE_LIMITS.codIp.maxAttempts,
+        AUTH_RATE_LIMITS.codIp.windowMs
+      );
+      if (!codPhoneRate.allowed || !codIpRate.allowed) {
+        return NextResponse.json({ error: "Too many Cash on Delivery orders for now. Please try again later, choose Pay online, or contact us." }, { status: 429 });
+      }
     }
 
     const order = await createOrder(user.id, {

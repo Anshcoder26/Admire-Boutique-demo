@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AlertCircle, ArrowRight, Eye, EyeOff, LockKeyhole, Mail, Loader } from "lucide-react";
 import { useState, useCallback } from "react";
 import { STORAGE_KEYS, readJSON } from "@/lib/storage";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 
 interface FormErrors {
   email?: string;
@@ -132,7 +133,7 @@ export default function LoginPage() {
 
         // Check if there's a redirect param or if we came from checkout
         const params = new URLSearchParams(window.location.search);
-        let redirectPath = params.get("redirect") || (data.userType === "admin" ? "/admin" : "/account");
+        let redirectPath = safeRedirectPath(params.get("redirect")) || (data.userType === "admin" ? "/admin" : "/account");
 
         // If user has cart items and no specific redirect, go to checkout
         if (redirectPath === "/account" && !params.get("redirect")) {

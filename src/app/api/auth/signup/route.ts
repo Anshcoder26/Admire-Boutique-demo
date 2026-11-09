@@ -26,8 +26,17 @@ export async function POST(request: Request) {
     const phone = String(body.phone || "").trim();
     const password = String(body.password || "").trim();
 
-    // Rate-limit on IP + email so an attacker can't register unlimited accounts
-    // from one IP by varying the email (e.g. user+1@, user+2@ ...).
+    // Limit by IP alone so an attacker can't register unlimited accounts from
+    // one IP by varying the email (e.g. user+1@, user+2@ ...).
+    const signupIpRate = await checkRateLimit(
+      `signup-ip:${getClientIp(request)}`,
+      AUTH_RATE_LIMITS.signupIp.maxAttempts,
+      AUTH_RATE_LIMITS.signupIp.windowMs
+    );
+    if (!signupIpRate.allowed) {
+      return tooManyRequests(signupIpRate.retryAfter);
+    }
+
     const ipRate = await checkRateLimit(
       `signup:${getClientIp(request)}:${email}`,
       AUTH_RATE_LIMITS.signup.maxAttempts,

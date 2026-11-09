@@ -19,11 +19,20 @@ export async function POST(request: NextRequest) {
     const email = String(body.email || "").trim().toLowerCase();
 
     const rateKey = `login:${email}:${getClientIp(request)}`;
-    const { allowed, retryAfter } = await checkRateLimit(
+    const ipRate = await checkRateLimit(
       rateKey,
       AUTH_RATE_LIMITS.login.maxAttempts,
       AUTH_RATE_LIMITS.login.windowMs
     );
+    // Also limit each account across all IPs, so guesses can't be spread out.
+    const accountKey = `login-account:${email}`;
+    const accountRate = await checkRateLimit(
+      accountKey,
+      AUTH_RATE_LIMITS.loginAccount.maxAttempts,
+      AUTH_RATE_LIMITS.loginAccount.windowMs
+    );
+    const allowed = ipRate.allowed && accountRate.allowed;
+    const retryAfter = Math.max(ipRate.retryAfter, accountRate.retryAfter);
 
     if (!allowed) {
       return NextResponse.json(
@@ -66,6 +75,7 @@ export async function POST(request: NextRequest) {
     const adminUser = await verifyAdminCredentials(email, password);
     if (adminUser) {
       await resetRateLimit(rateKey);
+      await resetRateLimit(accountKey);
       
       const sessionToken = generateSessionToken();
       const refreshToken = generateRefreshToken();
@@ -119,6 +129,7 @@ export async function POST(request: NextRequest) {
     }
 
     await resetRateLimit(rateKey);
+    await resetRateLimit(accountKey);
 
     const sessionToken = generateSessionToken();
     const refreshToken = generateRefreshToken();

@@ -156,6 +156,13 @@ check "order.paid duplicate" "$(webhook order.paid order_e2e_${RUN}_5 pay_${RUN}
 check "browser callback after webhook" "$(verify $C1 $O5 order_e2e_${RUN}_5 pay_${RUN}_5 | code)" "200"
 check "state" "$(state $O5)" "Confirmed/Paid"
 sleep 6; check "exactly one receipt" "$(( $(notes) - N0 ))" "4"
+printf '{"orderId":"%s","paymentStatus":"Refunded"}' "$O5" > $T/p.json
+curl -s -o /dev/null -b $CA -H "$O" -H "$J" -X PUT --data @$T/p.json $BASE/api/admin/orders
+N0=$(notes); verify $C1 $O5 order_e2e_${RUN}_5 pay_${RUN}_5 >/dev/null
+check "re-sent receipt can't undo a refund" "$(state $O5)" "Confirmed/Refunded"
+webhook payment.captured order_e2e_${RUN}_5 pay_${RUN}_5 >/dev/null
+check "re-sent webhook can't undo a refund" "$(state $O5)" "Confirmed/Refunded"
+sleep 3; check "no new receipt after a refund" "$(notes)" "$N0"
 q "UPDATE orders SET razorpay_order_id='order_e2e_${RUN}_6' WHERE id='$O5'" >/dev/null 2>&1
 check "webhook spoof without header" "$(curl -s -o /dev/null -w '%{http_code}' -H "$J" --data-binary @$T/w.json $BASE/api/webhooks/razorpay)" "401"
 
@@ -185,12 +192,22 @@ check "cancelled" "$(state $O6)" "Cancelled/Failed"
 check "stock returned" "$(stock)" "$S6"
 check "can't cancel twice" "$(cod $CA $O6 cancel)" "409"
 O7=$(mk_order $C1 "Cash on Delivery"); sleep 6; N0=$(notes)
-check "owner confirms the advance" "$(cod $CA $O7 advance_received UTR123456)" "200"
+check "owner confirms the advance" "$(cod $CA $O7 advance_received UTR$RUN)" "200"
 check "confirmed" "$(state $O7)" "Confirmed/Partially Paid"
-check "reference saved" "$(q "SELECT cod_advance_utr FROM orders WHERE id='$O7'")" "UTR123456"
+check "reference saved" "$(q "SELECT cod_advance_utr FROM orders WHERE id='$O7'")" "UTR$RUN"
 check "stock stays sold" "$(stock)" "$((S6-1))"
-check "can't confirm twice" "$(cod $CA $O7 advance_received UTR123456)" "409"
+check "can't confirm twice" "$(cod $CA $O7 advance_received UTR2$RUN)" "409"
 sleep 6; check "customer told (email+WhatsApp)" "$(( $(notes) - N0 ))" "2"
+cod_to() { # cookie, phone -> prints http status
+  printf '{"items":[{"productId":"%s","name":"x","size":"M","qty":1,"price":1}],"payment_method":"Cash on Delivery","address":{"full_name":"T","phone":"%s","line1":"1 Test St","city":"Agra","state":"UP","pincode":"282001"}}' "$PROD" "$2" > $T/o.json
+  curl -s -o /dev/null -w '%{http_code}' -b "$1" -H "$O" -H "$J" --data @$T/o.json $BASE/api/checkout/create-order; }
+check "3rd COD message to one number allowed" "$(cod_to $C1 $TEST_PHONE)" "200"
+check "4th COD message to one number refused" "$(cod_to $C2 $TEST_PHONE)" "429"
+check "first pending COD order" "$(cod_to $C2 9000000001)" "200"
+check "second pending COD order" "$(cod_to $C2 9000000002)" "200"
+check "third pending COD order refused" "$(cod_to $C2 9000000003)" "409"
+O9=$(q "SELECT id FROM orders WHERE customer_id=(SELECT customer_id FROM orders WHERE id='$O7') AND status='Awaiting COD Advance' LIMIT 1")
+check "one UPI reference can't confirm two orders" "$(cod $CA $O9 advance_received utr$RUN)" "409"
 
 echo; echo "== 10. Admin stats ignore unpaid/cancelled orders =="
 O8=$(mk_order $C2 Razorpay)

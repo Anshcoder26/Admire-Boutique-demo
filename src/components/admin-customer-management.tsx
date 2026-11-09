@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ChevronDown, Copy, Mail } from "lucide-react";
+import { toCsvCell } from "@/lib/csv";
 
 interface Customer {
   id: string;
@@ -58,7 +59,7 @@ export function CustomerManagement({ token }: { token: string }) {
   const exportAsCSV = (data: object[], filename: string) => {
     const csv = [
       Object.keys(data[0]).join(","),
-      ...data.map((row) => Object.values(row).map((v) => `"${v}"`).join(",")),
+      ...data.map((row) => Object.values(row).map(toCsvCell).join(",")),
     ].join("\n");
 
     const blob = new Blob([csv], { type: "text/csv" });

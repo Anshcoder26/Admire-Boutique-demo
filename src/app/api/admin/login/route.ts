@@ -24,6 +24,16 @@ export async function POST(request: Request) {
   if (!rate.allowed) {
     return tooManyRequests(rate.retryAfter);
   }
+  // Also limit each account across all IPs, so guesses can't be spread out.
+  const accountKey = `login-account:${email}`;
+  const accountRate = await checkRateLimit(
+    accountKey,
+    AUTH_RATE_LIMITS.loginAccount.maxAttempts,
+    AUTH_RATE_LIMITS.loginAccount.windowMs
+  );
+  if (!accountRate.allowed) {
+    return tooManyRequests(accountRate.retryAfter);
+  }
 
   const user = await verifyAdminCredentials(email, password);
   if (!user) {
@@ -31,6 +41,7 @@ export async function POST(request: Request) {
   }
 
   await resetRateLimit(rateKey);
+  await resetRateLimit(accountKey);
 
   const token = crypto.randomBytes(24).toString("hex");
   await storeSessionToken(token, email);
