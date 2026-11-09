@@ -55,7 +55,8 @@ export default function TermsPage() {
           heading: "Payments",
           body: (
             <ul>
-              <li>We accept online payments only (UPI, debit/credit cards, net banking and wallets), processed securely by Razorpay.</li>
+              <li>We accept online payments (UPI, debit/credit cards, net banking and wallets), processed securely by Razorpay, and Cash on Delivery.</li>
+              <li>Cash on Delivery orders need a ₹500 advance by UPI to confirm the order. The advance is adjusted against your total, and you pay the balance on delivery. A Cash on Delivery order whose advance is not received within 48 hours may be cancelled.</li>
               <li>Online payments are processed securely by Razorpay. We do not store your card or bank details.</li>
               <li>An online order must be paid within 15 minutes of placing it. Unpaid orders are cancelled automatically and the items released.</li>
               <li>If your account is debited but the order is not confirmed, the amount is either applied to your order or refunded automatically.</li>

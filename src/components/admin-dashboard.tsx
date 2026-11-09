@@ -5,6 +5,8 @@ import { ArrowRight, CheckCircle2, LogOut, Package, Plus, Search, ShieldCheck, S
 import { LotusOrnament } from "@/components/lotus-ornament";
 import { ProductEditor } from "@/components/admin-product-editor";
 import { OrderManagement } from "@/components/admin-order-management";
+import { CodOrdersPanel } from "@/components/admin-cod-orders";
+import { AdminOrderAlerts } from "@/components/admin-order-alerts";
 import { CustomerManagement } from "@/components/admin-customer-management";
 import { categories } from "@/data/products";
 import { useToast } from "@/components/ui/toast";
@@ -436,6 +438,7 @@ export function AdminDashboard() {
 
   return (
     <main className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:px-8 lg:px-10">
+      <AdminOrderAlerts onViewOrders={() => setActiveTab("orders")} />
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
           <LotusOrnament className="h-11 w-11 rounded-md border border-[#7D1D1D]/25 bg-[#fff5f0] p-2" />
@@ -907,6 +910,7 @@ export function AdminDashboard() {
       {activeTab === "orders" && adminToken && (
         <div className="rounded-lg border border-[var(--ink)]/10 bg-white p-5 shadow-[var(--shadow-sm)] md:p-6">
           <h2 className="font-serif text-3xl text-[var(--ink)] mb-6">Orders Management</h2>
+          <CodOrdersPanel />
           <OrderManagement token={adminToken} />
         </div>
       )}

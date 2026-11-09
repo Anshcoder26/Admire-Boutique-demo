@@ -130,13 +130,19 @@ export function OrderManagement({ token }: { token: string }) {
                       title={
                         order.status === "Awaiting Payment"
                           ? "Online payment not completed yet. Do not pack or ship; it is cancelled automatically if unpaid."
-                          : "Cancelled (stock already returned)."
+                          : order.status === "Awaiting COD Advance"
+                            ? "Waiting for the ₹500 advance. Do not pack or ship; confirm or cancel it above."
+                            : "Cancelled (stock already returned)."
                       }
                       className={`inline-block rounded-md px-3 py-1.5 text-xs font-semibold ${
-                        order.status === "Awaiting Payment" ? "bg-[#fff4e5] text-[#8a4b00]" : "bg-[#ffe6e6] text-[#8a1f1f]"
+                        order.status === "Cancelled" ? "bg-[#ffe6e6] text-[#8a1f1f]" : "bg-[#fff4e5] text-[#8a4b00]"
                       }`}
                     >
-                      {order.status === "Awaiting Payment" ? "Awaiting payment · don't ship" : order.status}
+                      {order.status === "Awaiting Payment"
+                        ? "Awaiting payment · don't ship"
+                        : order.status === "Awaiting COD Advance"
+                          ? "Awaiting advance · don't ship"
+                          : order.status}
                     </span>
                   ) : (
                   <div className="relative inline-block">

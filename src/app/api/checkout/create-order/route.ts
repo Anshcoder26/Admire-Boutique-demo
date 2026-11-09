@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { createOrder, validateUserSessionToken, getProductById, getProductByName, getOrderByNumber, generateOrderNumber, generateTrackingId, DELIVERY_PARTNER, DELIVERY_ESTIMATE, AWAITING_PAYMENT_STATUS } from "@/lib/db";
 import { cancelAwaitingOrdersForCustomer, sweepExpiredOrders } from "@/lib/payments";
 import { computePaymentExpiry } from "@/lib/payment-utils";
+import { notifyCodOrderPlaced } from "@/lib/notifications/cod-order";
 import { AUTH_RATE_LIMITS } from "@/lib/auth-utils";
 import { checkRateLimit, tooManyRequests } from "@/lib/rate-limiter";
 
@@ -170,8 +171,11 @@ export async function POST(request: Request) {
       address: body.address,
     });
 
-    // The order is announced after payment is verified (see the Razorpay
+    // Online orders are announced after payment is verified (see the Razorpay
     // verify route), so abandoned payments don't trigger a "confirmed" message.
+    // COD orders ask for the advance straight away.
+    if (isCod) after(() => notifyCodOrderPlaced(order.id));
+
     return NextResponse.json({ success: true, order });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to create order";

@@ -7,6 +7,7 @@
 #   RAZORPAY_WEBHOOK_SECRET=whsec_test SMTP_HOST=127.0.0.1 SMTP_PORT=2525 SMTP_SECURE=false \
 #   SMTP_USER=test SMTP_PASS=test SMTP_FROM=shop@test.local ADMIN_EMAIL=owner@test.local \
 #   WHATSAPP_ACCESS_TOKEN=fake WHATSAPP_PHONE_NUMBER_ID=123 WHATSAPP_API_BASE_URL=http://127.0.0.1:4010 \
+#   COD_UPI_ID=test@upi \
 #   npx next dev
 # Then:
 #   CUSTOMER_PASSWORD=... ADMIN_PASSWORD=... bash tests/payment_e2e.sh
@@ -97,7 +98,7 @@ check "status" "$(state $O1)" "Confirmed/Paid"
 check "verify again is idempotent" "$(verify $C1 $O1 order_e2e_${RUN}_1 pay_${RUN}_1 | code)" "200"
 check "retry on a paid order" "$(retry $C1 $O1 | code)" "409"
 sleep 6
-check "receipt sent once (customer email+WhatsApp+owner email)" "$(( $(notes) - N0 ))" "3"
+check "receipt sent once (customer email+WhatsApp, owner email+WhatsApp)" "$(( $(notes) - N0 ))" "4"
 check "no duplicate orders" "$(q "SELECT COUNT(*) FROM orders")" "$COUNT0"
 check "stock (1 sold)" "$(stock)" "$((S0-1))"
 
@@ -122,7 +123,7 @@ N0=$(notes)
 check "late verify" "$(verify $C1 $O3 order_e2e_${RUN}_3 pay_${RUN}_3 | code)" "200"
 check "revived" "$(state $O3)" "Confirmed/Paid"
 check "stock re-reserved" "$(stock)" "$((S1-1))"
-sleep 6; check "receipt sent" "$(( $(notes) - N0 ))" "3"
+sleep 6; check "receipt sent" "$(( $(notes) - N0 ))" "4"
 
 echo; echo "== 7. Payment arrives after cancellation, sold out -> Refund Due (webhook path) =="
 O4=$(mk_order $C1 Razorpay)
@@ -154,17 +155,36 @@ check "webhook marks paid" "$(webhook payment.captured order_e2e_${RUN}_5 pay_${
 check "order.paid duplicate" "$(webhook order.paid order_e2e_${RUN}_5 pay_${RUN}_5 | head -n1 | json d.outcome)" "already_processed"
 check "browser callback after webhook" "$(verify $C1 $O5 order_e2e_${RUN}_5 pay_${RUN}_5 | code)" "200"
 check "state" "$(state $O5)" "Confirmed/Paid"
-sleep 6; check "exactly one receipt" "$(( $(notes) - N0 ))" "3"
+sleep 6; check "exactly one receipt" "$(( $(notes) - N0 ))" "4"
 q "UPDATE orders SET razorpay_order_id='order_e2e_${RUN}_6' WHERE id='$O5'" >/dev/null 2>&1
 check "webhook spoof without header" "$(curl -s -o /dev/null -w '%{http_code}' -H "$J" --data-binary @$T/w.json $BASE/api/webhooks/razorpay)" "401"
 
-echo; echo "== 9. Cash on Delivery is not accepted and leaves the unpaid attempt alone =="
-O6=$(mk_order $C1 Razorpay); S6=$(stock); N0=$(notes)
-printf '{"items":[{"productId":"%s","name":"x","size":"M","qty":1,"price":1}],"payment_method":"Cash on Delivery","address":%s}' "$PROD" "$ADDR" > $T/o.json
-check "COD order rejected" "$(curl -s -o /dev/null -w '%{http_code}' -b $C1 -H "$O" -H "$J" --data @$T/o.json $BASE/api/checkout/create-order)" "400"
-check "unpaid attempt still awaiting" "$(state $O6)" "Awaiting Payment/Pending"
-check "stock unchanged" "$(stock)" "$S6"
-sleep 3; check "no notification sent" "$(notes)" "$N0"
+echo; echo "== 9. Cash on Delivery waits for the advance; the owner confirms or cancels =="
+cod() { # cookie, order id, action, [utr] -> prints http status
+  printf '{"orderId":"%s","action":"%s","utr":"%s"}' "$2" "$3" "${4:-}" > $T/c.json
+  curl -s -o /dev/null -w '%{http_code}' -b "$1" -H "$O" -H "$J" --data @$T/c.json $BASE/api/admin/cod-orders; }
+S6=$(stock); N0=$(notes)
+O6=$(mk_order $C1 "Cash on Delivery")
+check "status" "$(state $O6)" "Awaiting COD Advance/Pending"
+check "stock held" "$(stock)" "$((S6-1))"
+check "customer sees the UPI details" "$(curl -s -b $C1 "$BASE/api/me/orders?id=$O6" | json d.order.codPayment.upiId)" "test@upi"
+sleep 6; check "customer and owner told (email+WhatsApp each)" "$(( $(notes) - N0 ))" "4"
+check "listed for the owner" "$(curl -s -b $CA $BASE/api/admin/cod-orders | json "d.orders.some(o=>o.id==='$O6'&&o.balance===o.total-500&&!o.holdOver)")" "true"
+check "customer can't use the owner route" "$(cod $C1 $O6 cancel)" "401"
+check "reference number required" "$(cod $CA $O6 advance_received)" "400"
+wait_expiry 17; sweep
+check "not auto-cancelled" "$(state $O6)" "Awaiting COD Advance/Pending"
+check "owner cancels" "$(cod $CA $O6 cancel)" "200"
+check "cancelled" "$(state $O6)" "Cancelled/Failed"
+check "stock returned" "$(stock)" "$S6"
+check "can't cancel twice" "$(cod $CA $O6 cancel)" "409"
+O7=$(mk_order $C1 "Cash on Delivery"); sleep 6; N0=$(notes)
+check "owner confirms the advance" "$(cod $CA $O7 advance_received UTR123456)" "200"
+check "confirmed" "$(state $O7)" "Confirmed/Partially Paid"
+check "reference saved" "$(q "SELECT cod_advance_utr FROM orders WHERE id='$O7'")" "UTR123456"
+check "stock stays sold" "$(stock)" "$((S6-1))"
+check "can't confirm twice" "$(cod $CA $O7 advance_received UTR123456)" "409"
+sleep 6; check "customer told (email+WhatsApp)" "$(( $(notes) - N0 ))" "2"
 
 echo; echo "== 10. Admin stats ignore unpaid/cancelled orders =="
 O8=$(mk_order $C2 Razorpay)

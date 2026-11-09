@@ -8,6 +8,7 @@ import {
 } from "@/lib/db";
 import { sweepExpiredOrders } from "@/lib/payments";
 import { toPublicImages } from "@/lib/product-images";
+import { readCodPaymentDetails } from "@/lib/cod";
 
 async function getUserFromRequest(request: Request) {
   // Try Authorization header first
@@ -93,6 +94,7 @@ async function toOrderDetail(row: Record<string, unknown>) {
     paymentMethod: row.payment_method || "",
     codAdvanceAmount: Number(row.cod_advance_amount ?? 0),
     codAdvanceStatus: row.cod_advance_status || "Not Required",
+    codPayment: row.cod_advance_status === "Pending" ? readCodPaymentDetails() : undefined,
     paymentExpiresAt: row.payment_expires_at || null,
     subtotal: Number(row.sub_total ?? 0),
     shipping: Number(row.shipping ?? 0),

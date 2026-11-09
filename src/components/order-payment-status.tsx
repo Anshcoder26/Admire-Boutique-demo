@@ -12,6 +12,7 @@ export function describeOrderStatus(status: string, paymentStatus?: string) {
 
   if (p === "refund due") return { label: "Refund in progress", className: "bg-[#fff4e5] text-[#8a4b00]" };
   if (s === "awaiting payment") return { label: "Awaiting payment", className: "bg-[#fff4e5] text-[#8a4b00]" };
+  if (s === "awaiting cod advance") return { label: "Awaiting ₹500 advance", className: "bg-[#fff4e5] text-[#8a4b00]" };
   if (s === "cancelled" && p === "failed") {
     return { label: "Cancelled · payment not completed", className: "bg-[#fff0f0] text-[#b3261e]" };
   }

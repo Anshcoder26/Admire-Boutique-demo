@@ -98,6 +98,24 @@ Webhook setup (Razorpay Dashboard → Account & Settings → Webhooks → Add):
 - Secret: any strong random string; put the same value in `RAZORPAY_WEBHOOK_SECRET`
 - Events: `payment.captured` and `order.paid`
 
+## Cash on Delivery
+
+1. **Place order** → the order is **Awaiting COD Advance** and its stock is held. The customer
+   gets the UPI details by WhatsApp and email, and they also show on the order page.
+2. **Customer pays ₹500** and sends a screenshot to `COD_SCREENSHOT_WHATSAPP`.
+3. **Owner confirms** in the dashboard (Orders tab) by entering the UPI reference → **Confirmed**
+   (`Partially Paid`), and the customer is told. The balance is collected on delivery.
+4. **No advance after 48 hours** → the dashboard flags the order. The owner calls the customer and
+   cancels it by hand, which returns the stock. Nothing is cancelled automatically.
+
+Set `COD_UPI_ID`, and have three **Utility** templates approved in WhatsApp Manager:
+
+| Template | Body variables |
+| --- | --- |
+| `cod_advance_request` | {{1}} UPI ID, {{2}} order number, {{3}} screenshot number, {{4}} contact number |
+| `cod_advance_verified` | {{1}} order number |
+| `owner_new_order` | {{1}} order number, {{2}} customer, {{3}} amount, {{4}} payment method |
+
 ## Order notifications
 
 `src/lib/notifications/` sends order updates through two independent channels:
@@ -109,8 +127,10 @@ Webhook setup (Razorpay Dashboard → Account & Settings → Webhooks → Add):
 
 When they fire:
 
-- Only after the Razorpay payment signature is verified (`payment_received`), so abandoned
-  payments send nothing. The store accepts online payment only (no Cash on Delivery).
+- Online orders: only after the Razorpay payment signature is verified (`payment_received`), so
+  abandoned payments send nothing. The owner also gets a WhatsApp alert (`owner_new_order`).
+- Cash on Delivery orders: as soon as they are placed, the customer is asked for the ₹500 advance
+  and the owner is alerted. See "Cash on Delivery" below.
 
 Each channel is skipped if unconfigured, and one failing never blocks the other or the
 order. Results are logged with a `[NOTIFY]` prefix.

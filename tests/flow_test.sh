@@ -55,7 +55,7 @@ check "GET /api/me/addresses" 200 "$(status -b $CJ $BASE/api/me/addresses)"
 
 echo "== Checkout =="
 # Orders need RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET set on the server (fake test keys are fine;
-# create-order only checks they exist). Cash on Delivery is not offered.
+# create-order only checks they exist). Cash on Delivery is covered in payment_e2e.sh.
 # Admin session (used here and in the admin section below).
 curl -s -c $AJ -o /dev/null -X POST -H "$ORIGIN" -H 'Content-Type: application/json' \
   -d '{"email":"owner@admireboutique.in","password":"'"${ADMIN_PASSWORD:?set ADMIN_PASSWORD}"'"}' $BASE/api/admin/login
@@ -66,9 +66,7 @@ TEST_PRODUCT=$(curl -s -b $AJ -X POST -H "$ORIGIN" -H 'Content-Type: application
 TP_ID=$(node -e 'const d=JSON.parse(process.argv[1]);process.stdout.write((d.product&&d.product.id)||d.id||"")' "$TEST_PRODUCT")
 check "test product created" yes "$([ -n "$TP_ID" ] && echo yes || echo no)"
 ORDER_BODY=$(printf '{"items":[{"productId":"%s","name":"Flow Test Kurti %s","size":"M","qty":1,"price":999}],"payment_method":"Razorpay","address":{"full_name":"Flow Test","phone":"%s","line1":"1 Test St","city":"Mumbai","state":"MH","pincode":"400001","country":"India"}}' "$TP_ID" "$ts" "$TEST_PHONE")
-COD_BODY=${ORDER_BODY/\"payment_method\":\"Razorpay\"/\"payment_method\":\"Cash on Delivery\"}
 NO_METHOD_BODY=${ORDER_BODY/\"payment_method\":\"Razorpay\",/}
-check "Cash on Delivery order rejected" 400 "$(status -b $CJ -X POST -H "$ORIGIN" -H 'Content-Type: application/json' -d "$COD_BODY" $BASE/api/checkout/create-order)"
 check "order without a payment method rejected" 400 "$(status -b $CJ -X POST -H "$ORIGIN" -H 'Content-Type: application/json' -d "$NO_METHOD_BODY" $BASE/api/checkout/create-order)"
 check "rejected orders left the stock alone" 1 "$(curl -s $BASE/api/products/$TP_ID | node -e 'const d=JSON.parse(require("fs").readFileSync(0));const p=d.product||d;process.stdout.write(String(p.stock))')"
 ORDER=$(curl -s -b $CJ -w '\n%{http_code}' -X POST -H "$ORIGIN" -H 'Content-Type: application/json' -d "$ORDER_BODY" $BASE/api/checkout/create-order)
@@ -127,11 +125,8 @@ check "home has a Silk category tile" 1 "$(grep -c 'href="/products?category=Sil
 check "no dead href=\"#\" links on home page" 0 "$(grep -o 'href="#"' <<<"$HOME_HTML" | wc -l | tr -d ' ')"
 
 has() { grep -qF "$1" <<<"$2" && echo yes || echo no; }
-echo "== No Cash on Delivery on policy pages =="
-for p in /shipping-policy /refund-policy /terms; do
-  check "$p: no Cash on Delivery" no "$(has 'Cash on Delivery' "$(curl -s $BASE$p)")"
-done
-check "/terms: online payments only" yes "$(has 'We accept online payments only' "$(curl -s $BASE/terms)")"
+echo "== Cash on Delivery on policy pages =="
+check "/terms: explains the COD advance" yes "$(has 'need a ₹500 advance by UPI' "$(curl -s $BASE/terms)")"
 
 echo "== Refund policy (no cancellations, exchange on issues only) =="
 REFUND_HTML=$(curl -s $BASE/refund-policy)
@@ -155,8 +150,7 @@ check "FAQ: no 7-day returns promise" no "$(has 'within 7 days of delivery' "$FA
 check "FAQ: exchange needs unboxing video within 24 hours" yes "$(has 'unboxing video and message us on WhatsApp within 24 hours of delivery' "$FAQ_JSON")"
 check "FAQ: sizing answer says suits are unstitched" yes "$(has 'Our suits are unstitched, so there is no particular size to them.' "$FAQ_JSON")"
 check "FAQ: no size chart reference" no "$(has 'size chart' "$FAQ_JSON")"
-check "FAQ: no Cash on Delivery" no "$(has 'Cash on Delivery' "$FAQ_JSON")"
-check "FAQ: online payments only" yes "$(has 'We accept online payments only' "$FAQ_JSON")"
+check "FAQ: explains the COD advance" yes "$(has 'need a ₹500 advance by UPI' "$FAQ_JSON")"
 
 echo
 echo "==================================="

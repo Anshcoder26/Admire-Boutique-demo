@@ -1,9 +1,10 @@
 import { captureException } from "@/lib/error-tracking";
 import { emailChannel } from "@/lib/notifications/email-channel";
 import type { NotificationChannel, OrderNotification } from "@/lib/notifications/types";
+import { ownerWhatsappChannel } from "@/lib/notifications/owner-whatsapp-channel";
 import { whatsappChannel } from "@/lib/notifications/whatsapp-channel";
 
-const defaultChannels: NotificationChannel[] = [emailChannel, whatsappChannel];
+const defaultChannels: NotificationChannel[] = [emailChannel, whatsappChannel, ownerWhatsappChannel];
 
 export type ChannelResult = { channel: string; status: "sent" | "skipped" | "failed"; error?: string };
 

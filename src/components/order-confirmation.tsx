@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AlertCircle, CheckCircle2, Loader, PackageCheck, Sparkles } from "lucide-react";
+import { CodAdvanceNotice } from "@/components/cod-advance-notice";
+import type { CodPaymentDetails } from "@/lib/cod";
 
 type OrderItem = { name: string; quantity: number; price: number };
 
@@ -15,6 +17,7 @@ type OrderDetail = {
   paymentStatus: string;
   paymentMethod: string;
   codAdvanceAmount?: number;
+  codPayment?: CodPaymentDetails;
   items: OrderItem[];
 };
 
@@ -113,13 +116,18 @@ export function OrderConfirmation() {
           </h1>
           <p className="mt-3 text-[var(--ink)]/70">
             {order.status === "awaiting_cod_advance"
-              ? `Order ${order.orderNumber} has been received. A ₹${Number(order.codAdvanceAmount || 500).toLocaleString("en-IN")} advance is required; UPI payment instructions will be shared shortly. The remaining balance is payable on delivery. Your order will be confirmed after the advance is verified.`
+              ? `Order ${order.orderNumber} has been received. Your order will be confirmed after the advance is verified.`
               : order.status === "awaiting_payment"
               ? `Order ${order.orderNumber} is waiting for payment. Complete the payment to confirm it.`
               : order.paymentStatus === "Refund Due"
                 ? `Order ${order.orderNumber} was cancelled and your payment will be refunded.`
                 : `Order ${order.orderNumber} was cancelled because the payment wasn't completed.`}
           </p>
+          {order.status === "awaiting_cod_advance" ? (
+            <div className="mt-5">
+              <CodAdvanceNotice orderNumber={order.orderNumber} total={order.total} advance={Number(order.codAdvanceAmount || 500)} payment={order.codPayment} />
+            </div>
+          ) : null}
           <Link
             href={`/orders/${order.id}`}
             className="mt-6 inline-flex rounded-md bg-[#7D1D1D] px-5 py-3 text-sm font-medium text-white"

@@ -412,8 +412,11 @@ const FAQ_SIZING_ANSWER =
 const LEGACY_FAQ_PAYMENT_ANSWER =
   "Cash on Delivery is available on eligible orders in select locations. The COD option appears automatically during checkout when your address qualifies.";
 const FAQ_PAYMENT_QUESTION = "What payment methods do you accept?";
-const FAQ_PAYMENT_ANSWER =
+// faq-4's answer from when only online payment was accepted.
+const ONLINE_ONLY_FAQ_PAYMENT_ANSWER =
   "We accept online payments only: UPI, debit/credit cards, net banking and wallets, processed securely by Razorpay.";
+const FAQ_PAYMENT_ANSWER =
+  "We accept online payments (UPI, debit/credit cards, net banking and wallets, processed securely by Razorpay) and Cash on Delivery. Cash on Delivery orders need a ₹500 advance by UPI to confirm the order. The advance is adjusted against your total, and you pay the balance on delivery.";
 
 const seedFaqs = [
   {
@@ -780,6 +783,9 @@ if (!usesPostgres) {
   sqliteDb
     .prepare("UPDATE faq_items SET question = ?, answer = ? WHERE id = 'faq-4' AND answer = ?")
     .run(FAQ_PAYMENT_QUESTION, FAQ_PAYMENT_ANSWER, LEGACY_FAQ_PAYMENT_ANSWER);
+  sqliteDb
+    .prepare("UPDATE faq_items SET answer = ? WHERE id = 'faq-4' AND answer = ?")
+    .run(FAQ_PAYMENT_ANSWER, ONLINE_ONLY_FAQ_PAYMENT_ANSWER);
 }
 
 async function ensurePostgresReady() {
@@ -1118,6 +1124,10 @@ async function ensurePostgresReady() {
   await postgresPool.query(
     "UPDATE faq_items SET question = $1, answer = $2 WHERE id = 'faq-4' AND answer = $3",
     [FAQ_PAYMENT_QUESTION, FAQ_PAYMENT_ANSWER, LEGACY_FAQ_PAYMENT_ANSWER]
+  );
+  await postgresPool.query(
+    "UPDATE faq_items SET answer = $1 WHERE id = 'faq-4' AND answer = $2",
+    [FAQ_PAYMENT_ANSWER, ONLINE_ONLY_FAQ_PAYMENT_ANSWER]
   );
 
   postgresReady = true;
@@ -2462,10 +2472,11 @@ export async function validateUserSessionToken(token: string): Promise<CustomerR
 export async function getAdminStats(): Promise<{ revenue: number; orders: number; customers: number }> {
   // Only real orders count: online orders still awaiting payment, and ones
   // auto-cancelled because payment never arrived, are excluded. Revenue also
-  // excludes cancelled, refunded and refund-due orders.
+  // excludes cancelled, refunded and refund-due orders, and COD orders until
+  // their advance is verified and they are confirmed.
   const ordersSql = `SELECT
       COUNT(*) AS orders,
-      COALESCE(SUM(CASE WHEN status = 'Cancelled' OR payment_status IN ('Refunded', 'Refund Due') THEN 0 ELSE total END), 0) AS revenue
+      COALESCE(SUM(CASE WHEN status IN ('Cancelled', 'Awaiting COD Advance') OR payment_status IN ('Refunded', 'Refund Due') THEN 0 ELSE total END), 0) AS revenue
     FROM orders
     WHERE status <> '${AWAITING_PAYMENT_STATUS}' AND payment_status <> 'Failed'`;
   const customersSql = "SELECT COUNT(*) AS customers FROM customers";
@@ -2543,6 +2554,77 @@ export async function markCodAdvanceReceived(orderId: string, utr: string): Prom
        AND cod_advance_status = 'Pending' AND status = 'Awaiting COD Advance'`
   ).run(cleanUtr, verifiedAt, orderId);
   return result.changes > 0;
+}
+
+const PENDING_COD_WHERE = "payment_method = 'Cash on Delivery' AND status = 'Awaiting COD Advance'";
+
+/** COD orders still waiting for their advance, oldest first, with what to ship and where. */
+export async function listPendingCodOrders(): Promise<Array<Record<string, any>>> {
+  const sql = `SELECT o.*, c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone
+    FROM orders o
+    JOIN customers c ON c.id = o.customer_id
+    WHERE o.payment_method = 'Cash on Delivery' AND o.status = 'Awaiting COD Advance'
+    ORDER BY o.created_at ASC
+    LIMIT 200`;
+
+  let rows: Record<string, any>[];
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    rows = (await postgresPool!.query(sql)).rows;
+  } else {
+    rows = sqliteDb.prepare(sql).all() as Record<string, any>[];
+  }
+
+  return rows.map((row) => ({
+    ...row,
+    items: parseJsonArray(row.items_json),
+    address: parseJsonObject(row.address_json),
+  }));
+}
+
+/**
+ * The owner cancels a COD order whose advance never arrived, returning its
+ * stock. Only acts on orders still waiting for the advance.
+ */
+export async function cancelPendingCodOrder(orderId: string): Promise<boolean> {
+  const cancelled = "status = 'Cancelled', payment_status = 'Failed', cod_advance_status = 'Not Received'";
+
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const client = await postgresPool!.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query(`SET LOCAL statement_timeout = ${PG_STATEMENT_TIMEOUT_MS}`);
+      const result = await client.query(
+        `UPDATE orders SET ${cancelled} WHERE id = $1 AND ${PENDING_COD_WHERE} RETURNING items_json`,
+        [orderId]
+      );
+      if (!result.rowCount) {
+        await client.query("ROLLBACK");
+        return false;
+      }
+      for (const item of stockItemsFromJson(result.rows[0].items_json)) {
+        await client.query("UPDATE products SET stock = stock + $1 WHERE id = $2", [item.qty, item.productId]);
+      }
+      await client.query("COMMIT");
+      return true;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  return sqliteDb.transaction(() => {
+    const row = sqliteDb.prepare(`SELECT items_json FROM orders WHERE id = ? AND ${PENDING_COD_WHERE}`).get(orderId) as { items_json: string } | undefined;
+    if (!row) return false;
+    sqliteDb.prepare(`UPDATE orders SET ${cancelled} WHERE id = ? AND ${PENDING_COD_WHERE}`).run(orderId);
+    for (const item of stockItemsFromJson(row.items_json)) {
+      sqliteDb.prepare("UPDATE products SET stock = stock + ? WHERE id = ?").run(item.qty, item.productId);
+    }
+    return true;
+  })();
 }
 
 export async function listAdminCustomers() {

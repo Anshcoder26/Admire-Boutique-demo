@@ -7,15 +7,19 @@ import { LotusOrnament } from "@/components/lotus-ornament";
 import { ArrowLeft, Truck, CheckCircle, Clock } from "lucide-react";
 import { useParams } from "next/navigation";
 import { OrderStatusBadge, RetryPaymentButton, isAwaitingPayment } from "@/components/order-payment-status";
+import { CodAdvanceNotice } from "@/components/cod-advance-notice";
+import type { CodPaymentDetails } from "@/lib/cod";
 
 type OrderDetail = {
   id: string;
   orderNumber?: string;
   date: string;
   total: number;
-  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled" | "awaiting_payment";
+  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled" | "awaiting_payment" | "awaiting_cod_advance";
   paymentStatus?: string;
   paymentMethod?: string;
+  codAdvanceAmount?: number;
+  codPayment?: CodPaymentDetails;
   paymentExpiresAt?: string | null;
   shippingAddress?: {
     name: string;
@@ -130,6 +134,11 @@ export default function OrderDetailPage() {
               Payment for this order wasn&apos;t completed. Pay now to confirm it — unpaid orders are cancelled automatically and the items released.
             </p>
             <RetryPaymentButton orderId={order.id} expiresAt={order.paymentExpiresAt} onChange={loadOrder} />
+          </div>
+        ) : null}
+        {order.status === "awaiting_cod_advance" ? (
+          <div className="mb-8">
+            <CodAdvanceNotice orderNumber={order.orderNumber || order.id} total={order.total} advance={Number(order.codAdvanceAmount || 500)} payment={order.codPayment} />
           </div>
         ) : null}
         {order.paymentStatus === "Refund Due" ? (

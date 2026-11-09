@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, Loader } from "lucide-react";
 import { payOrderWithRazorpay } from "@/lib/razorpay-client";
+import { COD_ADVANCE_AMOUNT, codBalanceDue } from "@/lib/cod";
 
 // Safely read + parse a JSON array from localStorage; never throws on corrupt data.
 function readCart<T>(key: string): T[] {
@@ -471,7 +472,7 @@ export function CheckoutPage() {
                 <input type="radio" name="paymentMethod" checked={paymentMethod === "Cash on Delivery"} onChange={() => setPaymentMethod("Cash on Delivery")} className="mt-1 accent-[#7D1D1D]" />
                 <span><strong className="block text-[var(--ink)]">Cash on Delivery</strong>Pay ₹500 in advance; remaining balance is payable on delivery.</span>
               </label>
-              {paymentMethod === "Razorpay" ? <p>Payments are processed securely by Razorpay.</p> : <p className="rounded-md bg-[#fff8ee] p-3 text-[#80521c]">Your order will be placed awaiting the ₹500 advance. UPI payment instructions will be added shortly; the order is not confirmed until the advance is received and verified.</p>}
+              {paymentMethod === "Razorpay" ? <p>Payments are processed securely by Razorpay.</p> : <p className="rounded-md bg-[#fff8ee] p-3 text-[#80521c]">₹{COD_ADVANCE_AMOUNT} is charged in advance by UPI and adjusted against your bill. You pay the rest on delivery. We&apos;ll send the UPI payment details to your WhatsApp and email, and your order is confirmed once the advance is verified.</p>}
             </div>
           </div>
         </div>
@@ -494,6 +495,13 @@ export function CheckoutPage() {
             <span className="text-lg font-medium text-[var(--ink)]">Total</span>
             <span className="font-serif text-3xl font-semibold text-[#7D1D1D]">₹{total}</span>
           </div>
+
+          {paymentMethod === "Cash on Delivery" ? (
+            <div className="mt-4 space-y-2 rounded-md bg-[#fff8ee] p-3 text-sm text-[#80521c]">
+              <div className="flex items-center justify-between gap-3"><span>Advance to pay now by UPI</span><span className="font-semibold">−₹{COD_ADVANCE_AMOUNT}</span></div>
+              <div className="flex items-center justify-between gap-3 font-semibold"><span>Final amount to pay on delivery</span><span>₹{codBalanceDue(total)}</span></div>
+            </div>
+          ) : null}
 
           <button
             onClick={handlePlaceOrder}

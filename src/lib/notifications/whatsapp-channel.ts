@@ -23,7 +23,7 @@ interface WhatsAppConfig {
   templates: Record<OrderNotification["event"], string>;
 }
 
-function readConfig(): WhatsAppConfig {
+export function readConfig(): WhatsAppConfig {
   return {
     accessToken: process.env.WHATSAPP_ACCESS_TOKEN || "",
     phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || "",
@@ -96,7 +96,7 @@ export function buildTemplateMessage(
   };
 }
 
-async function graphRequest(config: WhatsAppConfig, path: string, init: RequestInit): Promise<Record<string, unknown>> {
+export async function graphRequest(config: WhatsAppConfig, path: string, init: RequestInit): Promise<Record<string, unknown>> {
   const response = await fetch(`${GRAPH_BASE}/${config.apiVersion}/${config.phoneNumberId}/${path}`, {
     ...init,
     headers: { Authorization: `Bearer ${config.accessToken}`, ...(init.headers || {}) },
