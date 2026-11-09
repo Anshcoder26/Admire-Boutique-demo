@@ -2110,8 +2110,7 @@ export async function createOrder(customerId: string, input: {
       
       // Insert order
       await client.query(
-        `INSERT INTO orders (id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method, delivery_partner, tracking_id, estimated_delivery, items_json, address_json, payment_expires_at)
-         cod_advance_amount, cod_advance_status)
+        `INSERT INTO orders (id, customer_id, order_number, status, sub_total, shipping, discount, total, payment_status, payment_method, delivery_partner, tracking_id, estimated_delivery, items_json, address_json, payment_expires_at, cod_advance_amount, cod_advance_status)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
         [
           order.id,
