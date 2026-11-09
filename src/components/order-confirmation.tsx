@@ -109,7 +109,7 @@ export function OrderConfirmation() {
         <div className="rounded-xl border border-[#f0d9b5] bg-[#fff8ee] p-6 text-center md:p-10">
           <AlertCircle className="mx-auto mb-4 h-12 w-12 text-[#8a4b00]" />
           <h1 className="font-serif text-3xl font-semibold tracking-tight text-[var(--ink)]">
-            {order.status === "awaiting_payment" ? "Payment not completed" : "This order is not active"}
+            {order.status === "awaiting_cod_advance" ? "COD order awaiting advance" : order.status === "awaiting_payment" ? "Payment not completed" : "This order is not active"}
           </h1>
           <p className="mt-3 text-[var(--ink)]/70">
             {order.status === "awaiting_payment"
