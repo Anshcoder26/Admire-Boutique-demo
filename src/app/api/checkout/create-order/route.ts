@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { createOrder, validateUserSessionToken, getProductById, getProductByName, getOrderByNumber, generateOrderNumber, generateTrackingId, DELIVERY_PARTNER, DELIVERY_ESTIMATE, AWAITING_PAYMENT_STATUS } from "@/lib/db";
 import { cancelAwaitingOrdersForCustomer, sweepExpiredOrders } from "@/lib/payments";
 import { computePaymentExpiry } from "@/lib/payment-utils";
 import { AUTH_RATE_LIMITS } from "@/lib/auth-utils";
 import { checkRateLimit, tooManyRequests } from "@/lib/rate-limiter";
+import { sendCodOrderNotifications } from "@/lib/cod-notifications";
 
 async function getUserFromRequest(request: Request) {
   // Try Authorization header first
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
     discount?: number;
     total?: number;
     payment_method?: string;
+    whatsapp_opt_in?: boolean;
     address?: { id?: string; label?: string; full_name?: string; phone?: string; line1?: string; line2?: string; city?: string; state?: string; pincode?: string; country?: string };
   };
 
@@ -54,15 +56,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Order requires items" }, { status: 400 });
   }
 
-  // Only online payment is accepted; there is no Cash on Delivery.
   const paymentMethod = body.payment_method;
-  if (paymentMethod !== "Razorpay") {
-    return NextResponse.json(
-      { error: "We only accept online payment (UPI, cards, net banking or wallets). Please choose Pay online." },
-      { status: 400 }
-    );
+  const isCod = paymentMethod === "Cash on Delivery";
+  if (paymentMethod !== "Razorpay" && !isCod) {
+    return NextResponse.json({ error: "Please select a valid payment method." }, { status: 400 });
   }
-  if (!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)) {
+  if (isCod && process.env.COD_ENABLED !== "true") {
+    return NextResponse.json({ error: "Cash on Delivery is temporarily unavailable. Please choose Pay online." }, { status: 400 });
+  }
+  if (isCod && (!process.env.COD_UPI_ID || !process.env.COD_SUPPORT_PHONE)) {
+    return NextResponse.json({ error: "COD payment details are not configured yet." }, { status: 503 });
+  }
+  if (isCod && body.whatsapp_opt_in !== true) {
+    return NextResponse.json({ error: "Please consent to WhatsApp order updates to use Cash on Delivery." }, { status: 400 });
+  }
+  if (isCod && !Number.isFinite(Number(body.total))) {
+    return NextResponse.json({ error: "Invalid order total." }, { status: 400 });
+  }
+  if (!isCod && !(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)) {
     return NextResponse.json(
       { error: "Razorpay is not configured for this environment. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to .env.local." },
       { status: 400 }
@@ -75,7 +86,7 @@ export async function POST(request: Request) {
     // A new checkout replaces the customer's earlier unpaid online attempt
     // (e.g. they retried or changed the address), so
     // abandoned attempts don't pile up as duplicate orders holding stock.
-    await cancelAwaitingOrdersForCustomer(user.id);
+    if (!isCod) await cancelAwaitingOrdersForCustomer(user.id);
 
     // FIX P1 + P2: Validate items and enrich with database data
     const validatedItems = await Promise.all(
@@ -145,13 +156,17 @@ export async function POST(request: Request) {
     const computedShipping = computedSubtotal > 2499 ? 0 : 149;
     const computedDiscount = 0; // No coupon system yet; discounts stay server-controlled.
     const computedTotal = computedSubtotal + computedShipping - computedDiscount;
+    if (isCod && computedTotal < 500) {
+      return NextResponse.json({ error: "COD requires a minimum order total of ₹500 to cover the confirmation advance." }, { status: 400 });
+    }
 
     const order = await createOrder(user.id, {
       order_number: orderNumber,
-      // Orders aren't confirmed until payment is verified; until then
-      // they hold stock for a limited window and are auto-cancelled after it.
-      status: AWAITING_PAYMENT_STATUS,
-      payment_expires_at: computePaymentExpiry(),
+      // COD and online orders have separate pending states and payment handling.
+      status: isCod ? "Awaiting COD Advance" : AWAITING_PAYMENT_STATUS,
+      payment_expires_at: isCod ? null : computePaymentExpiry(),
+      cod_advance_amount: isCod ? 500 : 0,
+      cod_advance_status: isCod ? "Pending" : "Not Required",
       subtotal: computedSubtotal,
       shipping: computedShipping,
       discount: computedDiscount,
@@ -168,8 +183,17 @@ export async function POST(request: Request) {
       address: body.address, // FIX P3: Pass address to createOrder
     });
 
-    // The order is announced after payment is verified (see the Razorpay
-    // verify route), so abandoned payments don't trigger a "confirmed" message.
+    if (isCod) {
+      // Notification delivery is best-effort and never blocks order creation.
+      after(() => sendCodOrderNotifications(order.id));
+      return NextResponse.json({
+        success: true,
+        order,
+        cod: { advanceAmount: 500, balanceDue: computedTotal - 500 },
+      });
+    }
+
+    // Existing online orders are announced only after Razorpay verification.
     return NextResponse.json({ success: true, order });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to create order";
