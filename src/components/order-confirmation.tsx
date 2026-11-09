@@ -14,6 +14,7 @@ type OrderDetail = {
   status: string;
   paymentStatus: string;
   paymentMethod: string;
+  codAdvanceAmount?: number;
   items: OrderItem[];
 };
 
