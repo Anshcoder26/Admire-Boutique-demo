@@ -62,9 +62,9 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
-  if (!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)) {
+  if (paymentMethod === "Razorpay" && !(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)) {
     return NextResponse.json(
-      { error: "Razorpay is not configured for this environment. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to .env.local." },
+      { error: "Razorpay is not configured for this environment. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to the deployment environment." },
       { status: 400 }
     );
   }
@@ -145,27 +145,29 @@ export async function POST(request: Request) {
     const computedShipping = computedSubtotal > 2499 ? 0 : 149;
     const computedDiscount = 0; // No coupon system yet; discounts stay server-controlled.
     const computedTotal = computedSubtotal + computedShipping - computedDiscount;
+    const isCod = paymentMethod === "Cash on Delivery";
+    if (isCod && computedTotal <= 500) {
+      return NextResponse.json({ error: "COD orders require a minimum order total above ₹500 because a ₹500 advance is required." }, { status: 400 });
+    }
 
     const order = await createOrder(user.id, {
       order_number: orderNumber,
-      // Orders aren't confirmed until payment is verified; until then
-      // they hold stock for a limited window and are auto-cancelled after it.
-      status: AWAITING_PAYMENT_STATUS,
-      payment_expires_at: computePaymentExpiry(),
+      // COD orders remain unconfirmed until the ₹500 advance is received and verified.
+      status: isCod ? "Awaiting COD Advance" : AWAITING_PAYMENT_STATUS,
+      payment_expires_at: isCod ? null : computePaymentExpiry(),
       subtotal: computedSubtotal,
       shipping: computedShipping,
       discount: computedDiscount,
       total: computedTotal,
-      // Payment is never "Paid" at creation. It is only marked Paid after the
-      // Razorpay signature is verified in the verify route. Trusting the client
-      // here would let anyone create a "Paid" order without paying.
       payment_status: "Pending",
       payment_method: paymentMethod,
+      cod_advance_amount: isCod ? 500 : 0,
+      cod_advance_status: isCod ? "Pending" : "Not Required",
       delivery_partner: DELIVERY_PARTNER,
       tracking_id: generateTrackingId(),
       estimated_delivery: DELIVERY_ESTIMATE,
       items: validatedItems,
-      address: body.address, // FIX P3: Pass address to createOrder
+      address: body.address,
     });
 
     // The order is announced after payment is verified (see the Razorpay
