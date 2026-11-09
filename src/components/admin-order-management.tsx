@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import { ORDER_STATUSES, PAYMENT_STATUSES, SYSTEM_STATUSES } from "@/lib/order-status";
 
@@ -12,6 +12,13 @@ interface Order {
   payment_status: string;
   total: number;
   created_at: string;
+  payment_method: string;
+  cod_advance_utr?: string | null;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  items: Array<{ name: string; size?: string; qty?: number }>;
+  address: { full_name?: string; phone?: string; line1?: string; line2?: string; city?: string; state?: string; pincode?: string };
 }
 
 // Keep the order's current value selectable even if it isn't a standard option.
@@ -20,18 +27,20 @@ const withCurrent = (options: string[], current: string) =>
 
 export function OrderManagement({ token }: { token: string }) {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [truncated, setTruncated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await fetch("/api/admin/orders", {
+        const res = await fetch("/api/admin/orders/all", {
           credentials: "include",
         });
         if (res.ok) {
           const data = await res.json();
           setOrders(data.orders || []);
+          setTruncated(Boolean(data.truncated));
         }
       } catch (error) {
         console.error("Failed to load orders:", error);
@@ -103,6 +112,7 @@ export function OrderManagement({ token }: { token: string }) {
 
   return (
     <div className="space-y-4 rounded-lg border border-[var(--ink)]/10 bg-white overflow-x-auto">
+      {truncated ? <p className="px-6 pt-4 text-sm text-[var(--ink)]/60">Showing the latest {orders.length} orders.</p> : null}
       <div className="inline-block min-w-full">
         <table className="w-full text-sm">
           <thead className="bg-[var(--panel-alt)] border-b border-[var(--ink)]/10">
@@ -116,7 +126,8 @@ export function OrderManagement({ token }: { token: string }) {
           </thead>
           <tbody>
             {orders.map((order) => (
-              <tr key={order.id} className="border-b border-[var(--ink)]/10 hover:bg-white">
+              <Fragment key={order.id}>
+              <tr className="hover:bg-white">
                 <td className="px-6 py-4 font-medium text-[var(--ink)]">{order.order_number}</td>
                 <td className="px-6 py-4 text-[var(--ink)]/60">
                   {new Date(order.created_at).toLocaleDateString()}
@@ -180,6 +191,33 @@ export function OrderManagement({ token }: { token: string }) {
                   </div>
                 </td>
               </tr>
+              <tr className="border-b border-[var(--ink)]/10">
+                <td colSpan={5} className="px-6 pb-4">
+                  <div className="grid gap-3 rounded-md bg-[var(--panel-alt)] p-3 text-[var(--ink)]/80 sm:grid-cols-3">
+                    <div>
+                      <p className="font-medium text-[var(--ink)]">{order.customer_name}</p>
+                      <p>{order.customer_phone}</p>
+                      <p className="break-all">{order.customer_email}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-[var(--ink)]">Ship to{order.address.full_name ? `: ${order.address.full_name}` : ""}</p>
+                      <p>{[order.address.line1, order.address.line2].filter(Boolean).join(", ")}</p>
+                      <p>{[order.address.city, order.address.state, order.address.pincode].filter(Boolean).join(", ")}</p>
+                      {order.address.phone ? <p>Phone: {order.address.phone}</p> : null}
+                    </div>
+                    <div>
+                      <p className="font-medium text-[var(--ink)]">{order.payment_method}</p>
+                      {order.items.map((item, index) => (
+                        <p key={`${order.id}-${index}`}>
+                          {item.name}{item.size ? ` (${item.size})` : ""} × {item.qty ?? 1}
+                        </p>
+                      ))}
+                      {order.cod_advance_utr ? <p>UPI reference: {order.cod_advance_utr}</p> : null}
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              </Fragment>
             ))}
           </tbody>
         </table>

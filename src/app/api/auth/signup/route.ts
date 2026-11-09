@@ -10,6 +10,7 @@ import {
   AUTH_RATE_LIMITS,
 } from "@/lib/auth-utils";
 import { checkRateLimit, getClientIp, tooManyRequests } from "@/lib/rate-limiter";
+import { normalizeIndianMobile } from "@/lib/phone";
 
 export async function POST(request: Request) {
   try {
@@ -43,6 +44,11 @@ export async function POST(request: Request) {
       );
     }
 
+    const mobile = normalizeIndianMobile(phone);
+    if (!mobile) {
+      return NextResponse.json({ error: "Enter a valid 10-digit Indian mobile number" }, { status: 400 });
+    }
+
     const strength = validatePasswordStrength(password);
     if (!strength.valid) {
       return NextResponse.json(
@@ -51,7 +57,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = await createCustomer({ name, email, phone, password });
+    const user = await createCustomer({ name, email, phone: mobile, password });
     if (!user) {
       return NextResponse.json(
         { error: "Account already exists with this email" },

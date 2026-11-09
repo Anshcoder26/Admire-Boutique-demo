@@ -71,9 +71,8 @@ export async function buildOrderNotification(
     customer: {
       name: customer.name,
       email: customer.email,
-      // The account phone is the customer's own number; the shipping phone may
-      // belong to a gift recipient, so it's only a fallback.
-      phone: customer.phone || address.phone || undefined,
+      // The number the customer entered for this order at checkout.
+      phone: (typeof address.phone === "string" && address.phone) || customer.phone || undefined,
     },
     items: parseJson<RawItem[]>(order.items, []).map((item) => ({
       name: item.name ?? "",

@@ -125,6 +125,10 @@ check "home has a Silk category tile" 1 "$(grep -c 'href="/products?category=Sil
 check "no dead href=\"#\" links on home page" 0 "$(grep -o 'href="#"' <<<"$HOME_HTML" | wc -l | tr -d ' ')"
 
 has() { grep -qF "$1" <<<"$2" && echo yes || echo no; }
+echo "== Phone validation at signup =="
+BAD_PHONE_BODY=$(printf '{"name":"Bad Phone","email":"badphone+%s@example.com","phone":"123","password":"StrongPass123!"}' "$ts")
+check "signup with an invalid phone rejected" 400 "$(status -X POST -H "$ORIGIN" -H 'Content-Type: application/json' -d "$BAD_PHONE_BODY" $BASE/api/auth/signup)"
+
 echo "== Cash on Delivery on policy pages =="
 check "/terms: explains the COD advance" yes "$(has 'need a ₹500 advance by UPI' "$(curl -s $BASE/terms)")"
 

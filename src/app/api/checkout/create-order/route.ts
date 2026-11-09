@@ -3,6 +3,7 @@ import { createOrder, validateUserSessionToken, getProductById, getProductByName
 import { cancelAwaitingOrdersForCustomer, sweepExpiredOrders } from "@/lib/payments";
 import { computePaymentExpiry } from "@/lib/payment-utils";
 import { notifyCodOrderPlaced } from "@/lib/notifications/cod-order";
+import { normalizeIndianMobile } from "@/lib/phone";
 import { AUTH_RATE_LIMITS } from "@/lib/auth-utils";
 import { checkRateLimit, tooManyRequests } from "@/lib/rate-limiter";
 
@@ -62,6 +63,10 @@ export async function POST(request: Request) {
       { error: "Please choose Razorpay or Cash on Delivery." },
       { status: 400 }
     );
+  }
+  // The advance request goes to this number on WhatsApp.
+  if (paymentMethod === "Cash on Delivery" && !normalizeIndianMobile(body.address?.phone)) {
+    return NextResponse.json({ error: "Please enter a valid 10-digit mobile number for Cash on Delivery." }, { status: 400 });
   }
   if (paymentMethod === "Razorpay" && !(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)) {
     return NextResponse.json(

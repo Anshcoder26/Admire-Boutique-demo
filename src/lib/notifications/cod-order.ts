@@ -25,8 +25,8 @@ async function loadOrderContext(orderId: string) {
     order,
     customer,
     address,
-    // Same rule as payment receipts: the account phone is the customer's own number.
-    phone: customer.phone || address.phone || "",
+    // The number the customer entered for this order at checkout.
+    phone: address.phone || customer.phone || "",
     advance: Number(order.cod_advance_amount),
     total: Number(order.total),
   };

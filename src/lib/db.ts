@@ -229,6 +229,11 @@ function parseJsonObject(value: unknown): Record<string, any> {
   }
 }
 
+/** Addresses come from the browser; anything but plain text would crash the owner's order screens. */
+function textFieldsOnly(value: Record<string, any>): Record<string, string> {
+  return Object.fromEntries(Object.entries(value).filter(([, field]) => typeof field === "string"));
+}
+
 export function normalizeProductRow(row: Record<string, any>): Product {
   const soldOutValue = row.is_sold_out ?? row.isSoldOut ?? false;
   return {
@@ -2578,7 +2583,7 @@ export async function listPendingCodOrders(): Promise<Array<Record<string, any>>
   return rows.map((row) => ({
     ...row,
     items: parseJsonArray(row.items_json),
-    address: parseJsonObject(row.address_json),
+    address: textFieldsOnly(parseJsonObject(row.address_json)),
   }));
 }
 
@@ -2625,6 +2630,34 @@ export async function cancelPendingCodOrder(orderId: string): Promise<boolean> {
     }
     return true;
   })();
+}
+
+export const ADMIN_ORDER_LIST_LIMIT = 500;
+
+/** Orders for the owner's Orders tab, newest first, with the customer, items and shipping address. */
+export async function listAllAdminOrders(): Promise<Array<Record<string, any>>> {
+  const sql = `SELECT o.id, o.order_number, o.customer_id, o.status, o.total, o.payment_status, o.payment_method,
+      o.cod_advance_utr, o.items_json, o.address_json, o.created_at,
+      c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone
+    FROM orders o
+    JOIN customers c ON c.id = o.customer_id
+    ORDER BY o.created_at DESC
+    LIMIT ${ADMIN_ORDER_LIST_LIMIT}`;
+
+  let rows: Record<string, any>[];
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    rows = (await postgresPool!.query(sql)).rows;
+  } else {
+    rows = sqliteDb.prepare(sql).all() as Record<string, any>[];
+  }
+
+  return rows.map(({ items_json, address_json, ...row }) => ({
+    ...row,
+    total: Number(row.total),
+    items: parseJsonArray(items_json),
+    address: textFieldsOnly(parseJsonObject(address_json)),
+  }));
 }
 
 export async function listAdminCustomers() {

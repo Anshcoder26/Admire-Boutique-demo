@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertCircle, ArrowRight, Eye, EyeOff, LockKeyhole, Mail, Phone, UserRound, Loader, CheckCircle } from "lucide-react";
 import { useState, useCallback } from "react";
+import { normalizeIndianMobile } from "@/lib/phone";
 
 interface FormState {
   name: string;
@@ -52,11 +53,6 @@ export default function SignupPage() {
     return emailRegex.test(email) && email.length <= 254;
   };
 
-  const validatePhone = (phone: string): boolean => {
-    const phoneRegex = /^[0-9+\-\s()]{10,15}$/;
-    return phoneRegex.test(phone.replace(/\s/g, ""));
-  };
-
   const validatePasswordStrength = (
     password: string
   ): { valid: boolean; errors: string[] } => {
@@ -101,8 +97,8 @@ export default function SignupPage() {
     }
 
     // Phone validation (optional but if provided, must be valid)
-    if (form.phone && !validatePhone(form.phone)) {
-      newErrors.phone = "Please enter a valid phone number";
+    if (form.phone && !normalizeIndianMobile(form.phone)) {
+      newErrors.phone = "Please enter a valid 10-digit mobile number";
     }
 
     // Password validation
