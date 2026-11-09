@@ -6,7 +6,7 @@
 export const ORDER_STATUSES = ["Confirmed", "Packed", "Shipped", "Delivered"];
 export const PAYMENT_STATUSES = ["Pending", "Paid", "Failed", "Refund Due", "Refunded"];
 // Set automatically by the payment flow; not something to move orders into or out of by hand.
-export const SYSTEM_STATUSES = ["Awaiting Payment", "Cancelled"];
+export const SYSTEM_STATUSES = ["Awaiting Payment", "Awaiting COD Advance", "Cancelled"];
 
 export type AdminOrderUpdateError = { status: 400 | 409; error: string };
 
