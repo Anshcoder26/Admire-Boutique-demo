@@ -54,11 +54,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Order requires items" }, { status: 400 });
   }
 
-  // Only online payment is accepted; there is no Cash on Delivery.
+  // Accept the two supported payment method values.
   const paymentMethod = body.payment_method;
-  if (paymentMethod !== "Razorpay") {
+  if (paymentMethod !== "Razorpay" && paymentMethod !== "Cash on Delivery") {
     return NextResponse.json(
-      { error: "We only accept online payment (UPI, cards, net banking or wallets). Please choose Pay online." },
+      { error: "Please choose Razorpay or Cash on Delivery." },
       { status: 400 }
     );
   }
