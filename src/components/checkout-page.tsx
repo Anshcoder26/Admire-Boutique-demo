@@ -469,15 +469,15 @@ export function CheckoutPage() {
           <div className="rounded-xl border border-[var(--ink)]/10 bg-white p-5">
             <h2 className="mb-4 font-serif text-3xl font-semibold tracking-tight text-[var(--ink)]">Payment</h2>
             <div className="space-y-3 text-sm text-[var(--ink)]/70">
-              <label className="flex cursor-pointer items-start gap-3 rounded-md border border-[var(--ink)]/10 px-4 py-3">
+              <label className={`flex cursor-pointer items-start gap-3 rounded-md border px-4 py-3 transition ${paymentMethod === "Razorpay" ? "border-[#7D1D1D] bg-[#7D1D1D]/5 ring-1 ring-[#7D1D1D]" : "border-[var(--ink)]/10"}`}>
                 <input type="radio" name="paymentMethod" checked={paymentMethod === "Razorpay"} onChange={() => setPaymentMethod("Razorpay")} className="mt-1 accent-[#7D1D1D]" />
                 <span><strong className="block text-[var(--ink)]">Pay online</strong>UPI / Cards / Net Banking / Wallets via Razorpay</span>
               </label>
-              <label className="flex cursor-pointer items-start gap-3 rounded-md border border-[var(--ink)]/10 px-4 py-3">
+              <label className={`flex cursor-pointer items-start gap-3 rounded-md border px-4 py-3 transition ${paymentMethod === "Cash on Delivery" ? "border-[#7D1D1D] bg-[#7D1D1D]/5 ring-1 ring-[#7D1D1D]" : "border-[var(--ink)]/10"}`}>
                 <input type="radio" name="paymentMethod" checked={paymentMethod === "Cash on Delivery"} onChange={() => setPaymentMethod("Cash on Delivery")} className="mt-1 accent-[#7D1D1D]" />
-                <span><strong className="block text-[var(--ink)]">Cash on Delivery</strong>Pay ₹500 in advance; remaining balance is payable on delivery.</span>
+                <span><strong className="block text-[var(--ink)]">Cash on Delivery</strong>Pay ₹{COD_ADVANCE_AMOUNT} in advance by UPI. It is adjusted against your bill.</span>
               </label>
-              {paymentMethod === "Razorpay" ? <p>Payments are processed securely by Razorpay.</p> : <p className="rounded-md bg-[#fff8ee] p-3 text-[#80521c]">₹{COD_ADVANCE_AMOUNT} is charged in advance by UPI and adjusted against your bill. You pay the rest on delivery. We&apos;ll send the UPI payment details to the WhatsApp number you entered above and to your email, and your order is confirmed once the advance is verified.</p>}
+              {paymentMethod === "Razorpay" ? <p>Payments are processed securely by Razorpay.</p> : <p className="rounded-md bg-[#fff8ee] p-3 text-[#80521c]">We&apos;ll send the UPI details to the WhatsApp number above and to your email. Your order is confirmed once the advance is verified.</p>}
             </div>
           </div>
         </div>

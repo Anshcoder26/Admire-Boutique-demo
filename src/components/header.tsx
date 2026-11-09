@@ -163,13 +163,13 @@ export function Header() {
   return (
     <>
       <header className="site-chrome sticky top-0 z-50 border-b border-[var(--ink)]/10 bg-white/90 backdrop-blur-sm">
-        <div className="relative overflow-hidden bg-[#7D1D1D] px-4 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.28em] text-white md:text-xs">
+        <div className="relative overflow-hidden bg-[#7D1D1D] px-4 py-1.5 text-center text-[10px] font-semibold uppercase tracking-[0.14em] text-white md:py-2 md:text-xs md:tracking-[0.28em]">
           <span className="relative z-10">
-            Free shipping on orders above ₹2,499 &middot; exchange on damaged or wrong items
+            Free shipping on orders above ₹2,499<span className="hidden md:inline"> &middot; exchange on damaged or wrong items</span>
           </span>
         </div>
 
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 md:px-8 lg:px-10">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-2 md:px-8 md:py-3 lg:px-10">
           <Link href="/" className="flex items-center gap-2.5 flex-1 md:flex-initial">
             <AbLogo className="h-10 w-10 md:h-11 md:w-11 rounded-full border border-[#7D1D1D]/25 bg-[#fff5f0] p-1.5 text-[#7D1D1D]" />
             <div className="block">
@@ -179,10 +179,10 @@ export function Header() {
           </Link>
 
           <nav className="hidden items-center gap-7 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--ink)] lg:flex">
-            <Link href="/products" className="hover:text-[#7D1D1D] transition">New In</Link>
-            <Link href="/products" className="hover:text-[#7D1D1D] transition">Suits</Link>
-            <Link href="/products" className="hover:text-[#7D1D1D] transition">Festive</Link>
-            <Link href="/products" className="hover:text-[#7D1D1D] transition">Sale</Link>
+            <Link href="/products" className="hover:text-[#7D1D1D] transition">All Suits</Link>
+            <Link href="/products?category=Premium%20Cotton" className="hover:text-[#7D1D1D] transition">Cotton</Link>
+            <Link href="/products?category=Georgette" className="hover:text-[#7D1D1D] transition">Georgette</Link>
+            <Link href="/products?category=Silk" className="hover:text-[#7D1D1D] transition">Silk</Link>
             <Link href="/faq" className="hover:text-[#7D1D1D] transition">FAQ</Link>
             {isAuthenticated ? (
               <button
@@ -216,14 +216,14 @@ export function Header() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex h-10 w-10 md:h-11 md:w-11 items-center justify-center rounded-md border border-[var(--ink)]/15 bg-white text-[var(--ink)] hover:bg-[#faf7f2] transition"
+                className="hidden h-10 w-10 md:flex md:h-11 md:w-11 items-center justify-center rounded-md border border-[var(--ink)]/15 bg-white text-[var(--ink)] hover:bg-[#faf7f2] transition"
                 aria-label="Sign out"
                 title="Sign out"
               >
                 <User className="h-5 w-5" />
               </button>
             ) : (
-              <Link href={accountHref} className="flex h-10 w-10 md:h-11 md:w-11 items-center justify-center rounded-md border border-[var(--ink)]/15 bg-white text-[var(--ink)] hover:bg-[#faf7f2] transition" aria-label="Account">
+              <Link href={accountHref} className="hidden h-10 w-10 md:flex md:h-11 md:w-11 items-center justify-center rounded-md border border-[var(--ink)]/15 bg-white text-[var(--ink)] hover:bg-[#faf7f2] transition" aria-label="Account">
                 <User className="h-5 w-5" />
               </Link>
             )}
@@ -241,8 +241,8 @@ export function Header() {
         <div className="mx-auto hidden max-w-7xl items-center justify-center gap-4 border-t border-[var(--ink)]/8 px-4 py-2.5 md:flex md:px-8 lg:px-10">
           <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#7D1D1D]">Trending</span>
           <span className="h-3 w-px bg-[var(--ink)]/15" />
-          <span className="text-xs uppercase tracking-[0.14em] text-[var(--ink)]/70">Cotton suits</span>
-          <span className="text-xs uppercase tracking-[0.14em] text-[var(--ink)]/70">Festive edit</span>
+          <Link href="/products?category=Premium%20Cotton" className="text-xs uppercase tracking-[0.14em] text-[var(--ink)]/70 transition hover:text-[#7D1D1D]">Cotton suits</Link>
+          <Link href="/products?category=Silk" className="text-xs uppercase tracking-[0.14em] text-[var(--ink)]/70 transition hover:text-[#7D1D1D]">Silk suits</Link>
         </div>
       </header>
 
@@ -255,20 +255,19 @@ export function Header() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="global-search-title"
-            className="w-full max-w-xl overflow-hidden rounded-[var(--radius-xl)] border border-[#D4AF37]/30 bg-white shadow-[var(--shadow-lg)] animate-[fade-in-up_0.2s_ease-out]"
+            className="w-full max-w-xl overflow-hidden rounded-xl border border-[var(--ink)]/10 bg-white shadow-[var(--shadow-lg)] animate-[fade-in-up_0.2s_ease-out]"
             onClick={(e) => e.stopPropagation()}
           >
-            <span aria-hidden className="block h-1 w-full bg-[var(--gradient-gold)]" />
             <div className="p-5 sm:p-6">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <p className="eyebrow mb-1">Explore the atelier</p>
-                  <h2 id="global-search-title" className="font-serif text-2xl text-[#201614]">Search Suits</h2>
+                  <h2 id="global-search-title" className="font-serif text-2xl text-[var(--ink)]">Search Suits</h2>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsSearchOpen(false)}
-                  className="flex h-10 w-10 items-center justify-center rounded-full text-[#8a6f5f] transition-colors hover:bg-[#7D1D1D]/8 hover:text-[#7D1D1D]"
+                  className="flex h-10 w-10 items-center justify-center rounded-md text-[var(--ink)]/60 transition-colors hover:bg-[#7D1D1D]/8 hover:text-[#7D1D1D]"
                   aria-label="Close search"
                 >
                   <X size={20} />
@@ -277,7 +276,7 @@ export function Header() {
 
               <form onSubmit={(event) => { event.preventDefault(); handleGoToProducts(); }}>
                 <label htmlFor="global-product-search" className="sr-only">Search products, fabrics, or categories</label>
-                <div className="flex items-center gap-3 rounded-lg border border-[#7D1D1D]/25 bg-[#fffaf7] px-4 focus-within:border-[#7D1D1D] focus-within:ring-2 focus-within:ring-[#7D1D1D]/10">
+                <div className="flex items-center gap-3 rounded-lg border border-[var(--ink)]/10 bg-white px-4 focus-within:border-[#7D1D1D] focus-within:ring-2 focus-within:ring-[#7D1D1D]/10">
                   <Search className="h-5 w-5 shrink-0 text-[#7D1D1D]" />
                   <input
                     ref={searchInputRef}
@@ -286,7 +285,7 @@ export function Header() {
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
                     placeholder="Search suits, fabrics, categories..."
-                    className="h-12 min-w-0 flex-1 bg-transparent text-sm text-[#201614] outline-none placeholder:text-[#8a6f5f]"
+                    className="h-12 min-w-0 flex-1 bg-transparent text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/60"
                     autoComplete="off"
                   />
                   {searchQuery && (
@@ -299,7 +298,7 @@ export function Header() {
 
               <div className="mt-4">
                 <div className="mb-2 flex items-center justify-between">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8a6f5f]">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ink)]/60">
                     {searchQuery.trim() ? "Search results" : "Popular products"}
                   </p>
                   <Link href="/products" onClick={() => setIsSearchOpen(false)} className="text-xs font-semibold text-[#7D1D1D] hover:underline">
@@ -308,7 +307,7 @@ export function Header() {
                 </div>
 
                 {isLoadingProducts ? (
-                  <p className="py-6 text-center text-sm text-[#8a6f5f]">Loading products...</p>
+                  <p className="py-6 text-center text-sm text-[var(--ink)]/60">Loading products...</p>
                 ) : searchError ? (
                   <div className="py-5 text-center">
                     <p role="alert" className="text-sm text-[#7D1D1D]">{searchError}</p>
@@ -323,11 +322,11 @@ export function Header() {
                         <Link
                           href={`/products/${product.slug}`}
                           onClick={() => setIsSearchOpen(false)}
-                          className="flex items-center justify-between gap-3 rounded-md px-3 py-3 transition-colors hover:bg-[#faf4ef]"
+                          className="flex items-center justify-between gap-3 rounded-md px-3 py-3 transition-colors hover:bg-[var(--background)]"
                         >
                           <span className="min-w-0">
-                            <span className="block truncate text-sm font-semibold text-[#201614]">{product.name}</span>
-                            <span className="mt-0.5 block truncate text-xs text-[#8a6f5f]">{product.category} · {product.fabric}</span>
+                            <span className="block truncate text-sm font-semibold text-[var(--ink)]">{product.name}</span>
+                            <span className="mt-0.5 block truncate text-xs text-[var(--ink)]/60">{product.category} · {product.fabric}</span>
                           </span>
                           <span className="shrink-0 text-sm font-semibold text-[#7D1D1D]">₹{Number(product.price).toLocaleString("en-IN")}</span>
                         </Link>
@@ -335,14 +334,14 @@ export function Header() {
                     ))}
                   </ul>
                 ) : (
-                  <p className="py-6 text-center text-sm text-[#8a6f5f]">
+                  <p className="py-6 text-center text-sm text-[var(--ink)]/60">
                     No products found for “{searchQuery.trim()}”. Try a fabric or category name.
                   </p>
                 )}
               </div>
 
-              <p className="mt-4 text-center text-xs text-[#8a6f5f]">
-                Press <kbd className="rounded bg-[#f3e7db] px-1.5 py-0.5 font-semibold">Ctrl</kbd> + <kbd className="rounded bg-[#f3e7db] px-1.5 py-0.5 font-semibold">K</kbd> to search anywhere · <kbd className="rounded bg-[#f3e7db] px-1.5 py-0.5 font-semibold">Esc</kbd> to close
+              <p className="mt-4 text-center text-xs text-[var(--ink)]/60">
+                Press <kbd className="rounded bg-[var(--panel-alt)] px-1.5 py-0.5 font-semibold">Ctrl</kbd> + <kbd className="rounded bg-[var(--panel-alt)] px-1.5 py-0.5 font-semibold">K</kbd> to search anywhere · <kbd className="rounded bg-[var(--panel-alt)] px-1.5 py-0.5 font-semibold">Esc</kbd> to close
               </p>
             </div>
           </div>

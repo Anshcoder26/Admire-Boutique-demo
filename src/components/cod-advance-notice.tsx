@@ -15,31 +15,31 @@ export function CodAdvanceNotice({
   payment?: CodPaymentDetails;
 }) {
   return (
-    <div className="rounded-2xl border border-[#f0d9b5] bg-[#fff8ee] p-5 text-left text-sm text-[#584942]">
-      <p className="font-semibold text-[#241915]">Pay {inr(advance)} by UPI to confirm this order</p>
-      <p className="mt-1">
-        This is adjusted against your total of {inr(total)}. You pay the remaining {inr(codBalanceDue(total, advance))} on delivery.
+    <div className="rounded-lg border border-[#7D1D1D]/25 bg-white p-5 text-left text-sm text-[var(--ink)]/70">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#7D1D1D]">UPI payment details</p>
+      <p className="mt-3 text-xs text-[var(--ink)]/60">UPI ID</p>
+      <p className="break-all text-2xl font-bold text-[var(--ink)]">
+        {payment?.upiId || "We will share this with you on WhatsApp shortly"}
       </p>
-      <dl className="mt-3 space-y-1">
-        <div className="flex flex-wrap gap-x-2">
-          <dt className="font-medium text-[#241915]">UPI ID:</dt>
-          <dd>{payment?.upiId || "We will share this with you on WhatsApp shortly"}</dd>
+      <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+        <div>
+          <dt className="text-xs text-[var(--ink)]/60">Amount</dt>
+          <dd className="text-lg font-semibold text-[var(--ink)]">{inr(advance)}</dd>
         </div>
-        <div className="flex flex-wrap gap-x-2">
-          <dt className="font-medium text-[#241915]">Amount:</dt>
-          <dd>{inr(advance)}</dd>
-        </div>
-        <div className="flex flex-wrap gap-x-2">
-          <dt className="font-medium text-[#241915]">Order ID:</dt>
-          <dd>{orderNumber}</dd>
+        <div>
+          <dt className="text-xs text-[var(--ink)]/60">Order ID</dt>
+          <dd className="break-all text-lg font-semibold text-[var(--ink)]">{orderNumber}</dd>
         </div>
       </dl>
       {payment ? (
-        <p className="mt-3">
-          After paying, share a screenshot on WhatsApp at <strong>{payment.screenshotWhatsapp}</strong> so we can verify it. For questions, contact{" "}
-          <strong>{payment.supportPhone}</strong>.
+        <p className="mt-4 border-t border-[var(--ink)]/10 pt-3">
+          After paying, share a screenshot on WhatsApp at <strong className="text-[var(--ink)]">{payment.screenshotWhatsapp}</strong>. For questions, contact{" "}
+          <strong className="text-[var(--ink)]">{payment.supportPhone}</strong>.
         </p>
       ) : null}
+      <p className="mt-2">
+        This is adjusted against your total of {inr(total)}. You pay the remaining {inr(codBalanceDue(total, advance))} on delivery.
+      </p>
     </div>
   );
 }

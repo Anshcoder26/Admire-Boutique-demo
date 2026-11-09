@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, CheckCircle2, MapPin, PackageCheck, Truck } from "lucide-react";
 import { ArtMotif } from "@/components/motifs/art-motif";
 import { OrderStatusBadge } from "@/components/order-payment-status";
+import { useAuth } from "@/providers/auth-provider";
 
 type Customer = {
   id: string;
@@ -50,6 +51,7 @@ type Order = {
 
 export function AccountDashboard() {
   const router = useRouter();
+  const { logout } = useAuth();
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -120,6 +122,17 @@ export function AccountDashboard() {
         <Link href="/products" className="inline-flex min-h-[44px] items-center gap-2 rounded-md bg-[#7D1D1D] px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.08em] text-white hover:bg-[#641414]">
           Continue shopping <ArrowRight className="h-4 w-4" />
         </Link>
+        {/* Phones have no sign-out in the header. */}
+        <button
+          type="button"
+          onClick={async () => {
+            await logout();
+            router.push("/");
+          }}
+          className="self-start text-sm font-medium text-[#7D1D1D] underline md:hidden"
+        >
+          Sign out
+        </button>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">

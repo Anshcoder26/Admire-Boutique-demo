@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Mail, MapPin, MessageCircleMore } from "lucide-react";
 import { useState } from "react";
 import { AbLogo } from "@/components/ab-logo";
@@ -13,6 +14,23 @@ import { FACEBOOK_URL, INSTAGRAM_URL, STORE_ADDRESS_LINES, STORE_MAPS_URL, WHATS
 
 export function Footer() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Keep checkout free of distractions: just the policy links.
+  if (pathname === "/checkout") {
+    return (
+      <footer className="border-t border-[var(--ink)]/10 bg-white px-4 pb-24 pt-5 md:pb-5">
+        <nav aria-label="Store policies" className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-[var(--ink)]/60">
+          <Link href="/terms" className="hover:text-[#7D1D1D]">Terms</Link>
+          <Link href="/refund-policy" className="hover:text-[#7D1D1D]">Refunds</Link>
+          <Link href="/shipping-policy" className="hover:text-[#7D1D1D]">Shipping</Link>
+          <Link href="/privacy-policy" className="hover:text-[#7D1D1D]">Privacy</Link>
+          <Link href="/contact" className="hover:text-[#7D1D1D]">Contact</Link>
+        </nav>
+      </footer>
+    );
+  }
+
   return (
     <footer className="relative isolate mt-0 overflow-hidden border-t border-[var(--ink)]/10 bg-white">
       {/* Designer lotus, tiled as a subtle suit-fabric texture */}
@@ -66,10 +84,10 @@ export function Footer() {
           <div>
             <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ink)]">Shop</h3>
             <ul className="space-y-3 text-sm text-[var(--ink)]/70">
-              <li><Link href="/products" className="hover:text-[#7D1D1D] transition-colors">Suits</Link></li>
-              <li><Link href="/products" className="hover:text-[#7D1D1D] transition-colors">Festive wear</Link></li>
-              <li><Link href="/products" className="hover:text-[#7D1D1D] transition-colors">Office wear</Link></li>
-              <li><Link href="/products" className="hover:text-[#7D1D1D] transition-colors">Sale</Link></li>
+              <li><Link href="/products" className="hover:text-[#7D1D1D] transition-colors">All suits</Link></li>
+              <li><Link href="/products?category=Premium%20Cotton" className="hover:text-[#7D1D1D] transition-colors">Premium Cotton</Link></li>
+              <li><Link href="/products?category=Georgette" className="hover:text-[#7D1D1D] transition-colors">Georgette</Link></li>
+              <li><Link href="/products?category=Silk" className="hover:text-[#7D1D1D] transition-colors">Silk</Link></li>
             </ul>
           </div>
 

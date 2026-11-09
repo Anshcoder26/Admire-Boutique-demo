@@ -63,15 +63,15 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
           width: "100%",
           padding: "12px",
           marginBottom: "16px",
-          borderRadius: "22px",
-          border: "1px solid #eadcd3",
+          borderRadius: "var(--radius-md)",
+          border: "1px solid color-mix(in srgb, var(--ink) 10%, transparent)",
           backgroundColor: "white",
           display: "flex",
           alignItems: "center",
           gap: "8px",
           cursor: "pointer",
           fontSize: "14px",
-          color: "#8a6f5f",
+          color: "var(--ink-soft)",
           fontFamily: "inherit",
           boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
         }}
@@ -88,11 +88,11 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
               display: "inline-flex",
               alignItems: "center",
               gap: "6px",
-              backgroundColor: "#f5e9e4",
-              borderRadius: "20px",
+              backgroundColor: "var(--panel-alt)",
+              borderRadius: "var(--radius-md)",
               padding: "4px 12px",
               fontSize: "12px",
-              color: "#5a403a",
+              color: "var(--ink)",
             }}>
               {searchTerm}
               <button onClick={() => setSearchTerm("")} style={{ background: "none", border: "none", cursor: "pointer", color: "inherit" }}>
@@ -105,11 +105,11 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
               display: "inline-flex",
               alignItems: "center",
               gap: "6px",
-              backgroundColor: "#f5e9e4",
-              borderRadius: "20px",
+              backgroundColor: "var(--panel-alt)",
+              borderRadius: "var(--radius-md)",
               padding: "4px 12px",
               fontSize: "12px",
-              color: "#5a403a",
+              color: "var(--ink)",
             }}>
               {selectedCategory}
               <button onClick={() => setSelectedCategory(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "inherit" }}>
@@ -122,11 +122,11 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
               display: "inline-flex",
               alignItems: "center",
               gap: "6px",
-              backgroundColor: "#f5e9e4",
-              borderRadius: "20px",
+              backgroundColor: "var(--panel-alt)",
+              borderRadius: "var(--radius-md)",
               padding: "4px 12px",
               fontSize: "12px",
-              color: "#5a403a",
+              color: "var(--ink)",
             }}>
               {sortBy}
               <button onClick={() => setSortBy("featured")} style={{ background: "none", border: "none", cursor: "pointer", color: "inherit" }}>
@@ -173,7 +173,7 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
         }}>
           <div style={{
             backgroundColor: "white",
-            borderRadius: "32px",
+            borderRadius: "var(--radius-xl)",
             padding: "24px",
             maxWidth: "600px",
             width: "calc(100% - 32px)",
@@ -191,9 +191,9 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
               <h2 style={{
                 fontSize: "24px",
                 fontWeight: "bold",
-                color: "#201614",
+                color: "var(--ink)",
                 margin: 0,
-                fontFamily: "Georgia, serif",
+                fontFamily: "var(--font-display)",
               }}>
                 Search & Filter
               </h2>
@@ -204,7 +204,7 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
                   border: "none",
                   fontSize: "24px",
                   cursor: "pointer",
-                  color: "#8a6f5f",
+                  color: "var(--ink-soft)",
                   padding: "8px",
                 }}
               >
@@ -220,7 +220,7 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
                   display: "block",
                   fontSize: "12px",
                   fontWeight: "600",
-                  color: "#5a403a",
+                  color: "var(--ink)",
                   marginBottom: "8px",
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
@@ -236,8 +236,8 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
                   style={{
                     width: "100%",
                     padding: "12px",
-                    borderRadius: "12px",
-                    border: "1px solid #eadcd3",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid color-mix(in srgb, var(--ink) 10%, transparent)",
                     backgroundColor: "white",
                     fontSize: "16px",
                     fontFamily: "inherit",
@@ -252,7 +252,7 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
                   display: "block",
                   fontSize: "12px",
                   fontWeight: "600",
-                  color: "#5a403a",
+                  color: "var(--ink)",
                   marginBottom: "8px",
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
@@ -265,13 +265,13 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
                   style={{
                     width: "100%",
                     padding: "12px",
-                    borderRadius: "12px",
-                    border: "1px solid #eadcd3",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid color-mix(in srgb, var(--ink) 10%, transparent)",
                     backgroundColor: "white",
                     fontSize: "16px",
                     fontFamily: "inherit",
                     boxSizing: "border-box",
-                    color: "#5a403a",
+                    color: "var(--ink)",
                   }}
                 >
                   <option value="">All Categories</option>
@@ -287,7 +287,7 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
                   display: "block",
                   fontSize: "12px",
                   fontWeight: "600",
-                  color: "#5a403a",
+                  color: "var(--ink)",
                   marginBottom: "8px",
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
@@ -300,13 +300,13 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
                   style={{
                     width: "100%",
                     padding: "12px",
-                    borderRadius: "12px",
-                    border: "1px solid #eadcd3",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid color-mix(in srgb, var(--ink) 10%, transparent)",
                     backgroundColor: "white",
                     fontSize: "16px",
                     fontFamily: "inherit",
                     boxSizing: "border-box",
-                    color: "#5a403a",
+                    color: "var(--ink)",
                   }}
                 >
                   <option value="featured">Featured</option>
@@ -318,12 +318,12 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
 
               {/* Results */}
               <div style={{
-                backgroundColor: "#fffaf6",
-                borderRadius: "12px",
+                backgroundColor: "var(--panel-alt)",
+                borderRadius: "var(--radius-md)",
                 padding: "12px",
-                border: "1px solid #eadcd3",
+                border: "1px solid color-mix(in srgb, var(--ink) 10%, transparent)",
                 fontSize: "14px",
-                color: "#5a403a",
+                color: "var(--ink)",
               }}>
                 Found <strong>{filtered.length}</strong> product{filtered.length !== 1 ? 's' : ''}
               </div>
@@ -335,8 +335,8 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
                   style={{
                     flex: 1,
                     padding: "12px 20px",
-                    borderRadius: "50px",
-                    backgroundColor: "#4b1f1d",
+                    borderRadius: "var(--radius-md)",
+                    backgroundColor: "#7D1D1D",
                     color: "white",
                     border: "none",
                     fontSize: "14px",
@@ -356,10 +356,10 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
                   style={{
                     flex: 1,
                     padding: "12px 20px",
-                    borderRadius: "50px",
+                    borderRadius: "var(--radius-md)",
                     backgroundColor: "white",
-                    color: "#5a403a",
-                    border: "1px solid #eadcd3",
+                    color: "var(--ink)",
+                    border: "1px solid color-mix(in srgb, var(--ink) 10%, transparent)",
                     fontSize: "14px",
                     fontWeight: "600",
                     cursor: "pointer",
