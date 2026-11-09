@@ -56,6 +56,7 @@ export function CheckoutPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"Razorpay" | "Cash on Delivery">("Razorpay");
   const [error, setError] = useState<string>("");
   // An online order whose payment didn't complete. Paying again with the same
   // cart, address and method retries this order instead of creating a new one.
@@ -207,7 +208,7 @@ export function CheckoutPage() {
 
     const prefill = { name: address.full_name, email: email.trim(), contact: trimmedPhone };
     // Same cart and address as the unpaid attempt -> retry it.
-    const attemptKey = JSON.stringify({ cartItems, address });
+    const attemptKey = JSON.stringify({ cartItems, address, paymentMethod });
 
     try {
       let orderId: string;
@@ -233,7 +234,7 @@ export function CheckoutPage() {
             shipping,
             discount,
             total,
-            payment_method: "Razorpay",
+            payment_method: paymentMethod,
             address,
           }),
         });
@@ -271,7 +272,15 @@ export function CheckoutPage() {
         });
       }
 
-      // Orders stay "Awaiting Payment" until the payment is verified.
+      if (paymentMethod === "Cash on Delivery") {
+        window.localStorage.removeItem("admire-cart");
+        window.dispatchEvent(new Event("admire-cart-updated"));
+        setPendingOrder(null);
+        router.push(`/order-confirmation?orderId=${orderId}`);
+        return;
+      }
+
+      // Online orders stay awaiting payment until Razorpay verification succeeds.
       const result = await payOrderWithRazorpay(orderId, { prefill, onAttemptFailed: setError });
       if (result.status !== "paid") {
         setError(result.message || "Payment not completed.");
@@ -454,11 +463,15 @@ export function CheckoutPage() {
           <div className="rounded-xl border border-[var(--ink)]/10 bg-white p-5">
             <h2 className="mb-4 font-serif text-3xl font-semibold tracking-tight text-[var(--ink)]">Payment</h2>
             <div className="space-y-3 text-sm text-[var(--ink)]/70">
-              <div className="flex items-center gap-3 rounded-md border border-[#7D1D1D]/30 bg-white px-4 py-3 text-[var(--ink)]">
-                <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-[#7D1D1D]" />
-                <span>Pay online (UPI / Cards / Net Banking / Wallets)</span>
-              </div>
-              <p>Payments are processed securely by Razorpay. We don&apos;t offer Cash on Delivery.</p>
+              <label className="flex cursor-pointer items-start gap-3 rounded-md border border-[var(--ink)]/10 px-4 py-3">
+                <input type="radio" name="paymentMethod" checked={paymentMethod === "Razorpay"} onChange={() => setPaymentMethod("Razorpay")} className="mt-1 accent-[#7D1D1D]" />
+                <span><strong className="block text-[var(--ink)]">Pay online</strong>UPI / Cards / Net Banking / Wallets via Razorpay</span>
+              </label>
+              <label className="flex cursor-pointer items-start gap-3 rounded-md border border-[var(--ink)]/10 px-4 py-3">
+                <input type="radio" name="paymentMethod" checked={paymentMethod === "Cash on Delivery"} onChange={() => setPaymentMethod("Cash on Delivery")} className="mt-1 accent-[#7D1D1D]" />
+                <span><strong className="block text-[var(--ink)]">Cash on Delivery</strong>Pay ₹500 in advance; remaining balance is payable on delivery.</span>
+              </label>
+              {paymentMethod === "Razorpay" ? <p>Payments are processed securely by Razorpay.</p> : <p className="rounded-md bg-[#fff8ee] p-3 text-[#80521c]">Your order will be placed awaiting the ₹500 advance. UPI payment instructions will be added shortly; the order is not confirmed until the advance is received and verified.</p>}
             </div>
           </div>
         </div>
