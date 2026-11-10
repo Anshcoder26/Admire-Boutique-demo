@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, CheckCircle2, MapPin, PackageCheck, Truck } from "lucide-react";
 import { ArtMotif } from "@/components/motifs/art-motif";
 import { OrderStatusBadge } from "@/components/order-payment-status";
+import { WhatsAppChannelCard } from "@/components/whatsapp-channel-card";
 import { useAuth } from "@/providers/auth-provider";
 
 type Customer = {
@@ -229,6 +230,9 @@ export function AccountDashboard() {
                 </div>
                 <div className="text-sm text-[var(--ink)]/70">Order tracking, SMS updates and fast issue resolution for every shipment.</div>
               </div>
+            </div>
+            <div className="mt-4">
+              <WhatsAppChannelCard />
             </div>
           </div>
         </div>

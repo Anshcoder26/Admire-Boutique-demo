@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AlertCircle, CheckCircle2, Loader, PackageCheck, Sparkles } from "lucide-react";
 import { CodAdvanceNotice } from "@/components/cod-advance-notice";
+import { WhatsAppChannelCard } from "@/components/whatsapp-channel-card";
 import type { CodPaymentDetails } from "@/lib/cod";
 
 type OrderItem = { name: string; quantity: number; price: number };
@@ -143,6 +144,11 @@ export function OrderConfirmation() {
           >
             View order
           </Link>
+          {isCodPending ? (
+            <div className="mt-6">
+              <WhatsAppChannelCard />
+            </div>
+          ) : null}
         </div>
       </div>
     );
@@ -184,6 +190,9 @@ export function OrderConfirmation() {
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link href="/products" className="inline-flex min-h-[44px] items-center justify-center rounded-md bg-[#7D1D1D] px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.08em] text-white hover:bg-[#641414]">Continue shopping</Link>
           <Link href={`/orders/${order.id}`} className="inline-flex min-h-[44px] items-center justify-center rounded-md border border-[#7D1D1D]/40 bg-white px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.08em] text-[#7D1D1D] hover:bg-[#7D1D1D]/5">Track order</Link>
+        </div>
+        <div className="mt-6">
+          <WhatsAppChannelCard />
         </div>
       </div>
     </div>

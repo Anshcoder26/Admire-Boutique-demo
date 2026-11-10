@@ -10,7 +10,8 @@ import { NewsletterSignup } from "@/components/newsletter-signup";
 import { MotifTile } from "@/components/motifs/motif-tile";
 import { ArtMotif } from "@/components/motifs/art-motif";
 import { FacebookIcon, InstagramIcon } from "@/components/social-icons";
-import { FACEBOOK_URL, INSTAGRAM_URL, STORE_ADDRESS_LINES, STORE_MAPS_URL, WHATSAPP_DISPLAY, WHATSAPP_URL } from "@/lib/site-contact";
+import { WhatsAppChannelCard } from "@/components/whatsapp-channel-card";
+import { FACEBOOK_URL, INSTAGRAM_URL, STORE_ADDRESS_LINES, STORE_MAPS_URL, WHATSAPP_CHANNEL_URL, WHATSAPP_DISPLAY, WHATSAPP_URL } from "@/lib/site-contact";
 
 export function Footer() {
   const [open, setOpen] = useState(false);
@@ -119,6 +120,11 @@ export function Footer() {
                   <MessageCircleMore className="h-4 w-4 text-[#7D1D1D]" /> WhatsApp {WHATSAPP_DISPLAY}
                 </a>
               </li>
+              {WHATSAPP_CHANNEL_URL ? (
+                <li>
+                  <WhatsAppChannelCard compact />
+                </li>
+              ) : null}
               <li>
                 <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-[#7D1D1D] transition-colors">
                   <InstagramIcon className="h-4 w-4 text-[#7D1D1D]" /> @admire_boutique.ab
