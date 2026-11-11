@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingBag, Star } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
 import { WishlistHeart } from "@/components/wishlist-heart";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/toast";
@@ -82,10 +82,6 @@ export function ProductCard({ product }: { product: Product }) {
        <div className="space-y-4 p-5 flex-1 flex flex-col relative">
          <div className="flex items-center justify-between gap-2">
            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--ink)]/50">{product.category}</p>
-           <div className="flex items-center gap-1 text-[#7D1D1D]">
-             <Star className="h-3.5 w-3.5 fill-[#D4AF37] text-[#D4AF37]" />
-             <span className="text-xs font-bold">{product.rating}</span>
-           </div>
          </div>
 
          <div className="block group/link flex-1">

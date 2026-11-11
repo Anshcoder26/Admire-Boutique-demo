@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { Heart, Shield, Truck, Check } from "lucide-react";
 import { ProductGallery } from "@/components/product-gallery";
+import { ProductReviews } from "@/components/reviews/product-reviews";
+import { useApprovedReviews } from "@/components/reviews/review-list";
 import { BootiPattern } from "@/components/motifs/booti-pattern";
 import { motifOpacity } from "@/components/motifs/motif-utils";
 import { useToast } from "@/components/ui/toast";
@@ -20,6 +22,7 @@ export function ProductDetail({ product }: { product: Product }) {
   const [selectedSize, setSelectedSize] = useState(product.sizes[2] || product.sizes[0]);
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const reviewState = useApprovedReviews(product.id);
 
   useEffect(() => {
     const wishlist = readJSON<string[]>(STORAGE_KEYS.wishlist, []);
@@ -132,20 +135,30 @@ export function ProductDetail({ product }: { product: Product }) {
             )}
           </div>
 
-          {/* Rating & Reviews */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5">
-              <div className="flex gap-0.5">
-                {[...Array(5)].map((_, i) => (
-                  <svg key={i} className="w-4 h-4 fill-[#D4AF37]" viewBox="0 0 20 20">
-                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                  </svg>
-                ))}
-              </div>
-              <span className="text-sm font-semibold text-[#1a1612]">{product.rating}</span>
-            </div>
-            <span className="text-sm text-[#584942]">{product.reviews} verified reviews</span>
-          </div>
+          {/* Rating & Reviews (real, approved customer reviews only) */}
+          <a href="#reviews" className="flex items-center gap-4 hover:opacity-80">
+            {reviewState.summary.count > 0 ? (
+              <>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex gap-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <svg key={i} className={`w-4 h-4 ${i < Math.round(reviewState.summary.average) ? "fill-[#D4AF37]" : "fill-[#1a1612]/15"}`} viewBox="0 0 20 20">
+                        <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                      </svg>
+                    ))}
+                  </div>
+                  <span className="text-sm font-semibold text-[#1a1612]">{reviewState.summary.average.toFixed(1)}</span>
+                </div>
+                <span className="text-sm text-[#584942]">
+                  {reviewState.summary.count} review{reviewState.summary.count === 1 ? "" : "s"}
+                </span>
+              </>
+            ) : reviewState.loading ? (
+              <span className="text-sm text-transparent">.</span>
+            ) : (
+              <span className="text-sm text-[#584942] underline underline-offset-4">No reviews yet. Be the first to review</span>
+            )}
+          </a>
 
           {/* Pricing */}
           <div className="space-y-4 border-y border-[#7D1D1D]/10 py-6">
@@ -334,6 +347,8 @@ export function ProductDetail({ product }: { product: Product }) {
           ))}
         </div>
       </div>
+
+      <ProductReviews productId={product.id} productName={product.name} state={reviewState} />
     </div>
   );
 }

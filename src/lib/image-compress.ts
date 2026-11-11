@@ -3,11 +3,11 @@
 const MAX_SIDE = 1600;
 const JPEG_QUALITY = 0.82;
 
-export async function compressImageFile(file: File): Promise<string> {
+export async function compressImageFile(file: File, maxSide = MAX_SIDE): Promise<string> {
   // createImageBitmap applies the photo's EXIF orientation, so sideways phone shots come out upright.
   const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
   try {
-    const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+    const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
     const width = Math.max(1, Math.round(bitmap.width * scale));
     const height = Math.max(1, Math.round(bitmap.height * scale));
 

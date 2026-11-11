@@ -96,6 +96,7 @@ export const AUTH_RATE_LIMITS = {
   passwordReset: { maxAttempts: 3, windowMs: 60 * 60 * 1000 }, // 3 attempts per hour
   checkout: { maxAttempts: 20, windowMs: 10 * 60 * 1000 }, // 20 orders per 10 minutes
   newsletter: { maxAttempts: 5, windowMs: 60 * 60 * 1000 }, // 5 signups per hour
+  review: { maxAttempts: 10, windowMs: 24 * 60 * 60 * 1000 }, // 10 review attempts per day per customer (refused ones count too)
 };
 
 /**

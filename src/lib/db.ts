@@ -91,6 +91,27 @@ function resolvePostgresSsl(): false | { rejectUnauthorized: boolean } {
 }
 
 const sqliteDb = usesPostgres ? (null as unknown as Database.Database) : new Database(sqlitePath);
+
+// One live review per customer per product, plus one of the boutique (product_id NULL),
+// enforced by the database so concurrent posts or a restore can't create a second one.
+// The same SQL works in SQLite and PostgreSQL.
+const ONE_LIVE_REVIEW_INDEX_SQL =
+  "CREATE UNIQUE INDEX IF NOT EXISTS idx_reviews_one_live ON reviews (customer_id, COALESCE(product_id, '')) WHERE status <> 'removed'";
+// Before that index existed, duplicates were possible; keep the newest live one of each.
+const DEDUPE_LIVE_REVIEWS_SQL = `UPDATE reviews SET status = 'removed', removed_reason = 'Duplicate review (removed automatically)'
+  WHERE status <> 'removed' AND EXISTS (
+    SELECT 1 FROM reviews newer
+    WHERE newer.customer_id = reviews.customer_id
+      AND COALESCE(newer.product_id, '') = COALESCE(reviews.product_id, '')
+      AND newer.status <> 'removed'
+      AND (newer.created_at > reviews.created_at OR (newer.created_at = reviews.created_at AND newer.id > reviews.id))
+  )`;
+
+/** True for a unique-constraint violation in either database. */
+function isUniqueViolation(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null)?.code;
+  return code === "23505" || (typeof code === "string" && code.startsWith("SQLITE_CONSTRAINT"));
+}
 const postgresPool = usesPostgres ? new Pool({
   connectionString: databaseUrl,
   ssl: resolvePostgresSsl(),
@@ -652,6 +673,27 @@ if (!usesPostgres) {
       reset_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS reviews (
+      id TEXT PRIMARY KEY,
+      customer_id TEXT NOT NULL,
+      customer_name TEXT NOT NULL,
+      product_id TEXT,
+      product_name TEXT,
+      rating INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      body TEXT NOT NULL,
+      photos_json TEXT NOT NULL DEFAULT '[]',
+      photo_count INTEGER NOT NULL DEFAULT 0,
+      verified_buyer INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'approved',
+      removed_reason TEXT,
+      reply TEXT,
+      reply_at TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_reviews_status ON reviews(status, created_at);
+    CREATE INDEX IF NOT EXISTS idx_reviews_product ON reviews(product_id, status);
     CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id);
     CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
     CREATE INDEX IF NOT EXISTS idx_password_resets_expires_at ON password_resets(expires_at);
@@ -659,6 +701,17 @@ if (!usesPostgres) {
     CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
     CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
   `);
+
+  // Reviews used to wait for approval; they are now published straight away.
+  const sqliteReviewColumns = sqliteDb.prepare("PRAGMA table_info(reviews)").all() as Array<{ name: string }>;
+  for (const column of ["removed_reason", "reply", "reply_at"]) {
+    if (!sqliteReviewColumns.some((existing) => existing.name === column)) {
+      sqliteDb.exec(`ALTER TABLE reviews ADD COLUMN ${column} TEXT;`);
+    }
+  }
+  sqliteDb.exec("UPDATE reviews SET status = 'approved' WHERE status = 'pending';");
+  sqliteDb.exec(`${DEDUPE_LIVE_REVIEWS_SQL};`);
+  sqliteDb.exec(`${ONE_LIVE_REVIEW_INDEX_SQL};`);
 
   const sqliteProductColumns = sqliteDb.prepare("PRAGMA table_info(products)").all() as Array<{ name: string }>;
   if (!sqliteProductColumns.some((column) => column.name === "is_sold_out")) {
@@ -940,6 +993,37 @@ async function ensurePostgresReady() {
         reset_at TIMESTAMPTZ NOT NULL
       )
     `);
+
+    await postgresPool.query(`
+      CREATE TABLE IF NOT EXISTS reviews (
+        id TEXT PRIMARY KEY,
+        customer_id TEXT NOT NULL,
+        customer_name TEXT NOT NULL,
+        product_id TEXT,
+        product_name TEXT,
+        rating INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        body TEXT NOT NULL,
+        photos_json TEXT NOT NULL DEFAULT '[]',
+        photo_count INTEGER NOT NULL DEFAULT 0,
+        verified_buyer BOOLEAN NOT NULL DEFAULT FALSE,
+        status TEXT NOT NULL DEFAULT 'approved',
+        removed_reason TEXT,
+        reply TEXT,
+        reply_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+    // Reviews used to wait for approval; they are now published straight away.
+    await postgresPool.query("ALTER TABLE reviews ADD COLUMN IF NOT EXISTS removed_reason TEXT");
+    await postgresPool.query("ALTER TABLE reviews ADD COLUMN IF NOT EXISTS reply TEXT");
+    await postgresPool.query("ALTER TABLE reviews ADD COLUMN IF NOT EXISTS reply_at TIMESTAMPTZ");
+    await postgresPool.query("ALTER TABLE reviews ALTER COLUMN status SET DEFAULT 'approved'");
+    await postgresPool.query("UPDATE reviews SET status = 'approved' WHERE status = 'pending'");
+    await postgresPool.query(DEDUPE_LIVE_REVIEWS_SQL);
+    await postgresPool.query(ONE_LIVE_REVIEW_INDEX_SQL);
+    await postgresPool.query("CREATE INDEX IF NOT EXISTS idx_reviews_status ON reviews(status, created_at)");
+    await postgresPool.query("CREATE INDEX IF NOT EXISTS idx_reviews_product ON reviews(product_id, status)");
 
     // Indexes for frequent lookups and expired-row cleanup (each as a separate
     // statement — pg does not allow multiple statements in one query() call).
@@ -2995,4 +3079,249 @@ export async function updateOrder(
 
     sqliteDb.prepare(`UPDATE orders SET ${setClauses.join(", ")} WHERE id = ?`).run(...values, orderId);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Customer reviews. Reviews from buyers go live at once ("approved"); the owner
+// can only remove one for a stated reason ("removed", restorable) and reply in
+// public. Photos are base64 data URLs served by /api/reviews/[id]/photos/[index].
+// ---------------------------------------------------------------------------
+
+export type ReviewStatus = "approved" | "removed";
+
+export type ReviewRecord = {
+  id: string;
+  customerName: string;
+  productId: string | null;
+  productName: string | null;
+  rating: number;
+  title: string;
+  body: string;
+  photoCount: number;
+  verifiedBuyer: boolean;
+  status: ReviewStatus;
+  removedReason: string | null;
+  reply: string | null;
+  replyAt: string | null;
+  createdAt: string;
+};
+
+const REVIEW_LIST_COLUMNS =
+  "id, customer_name, product_id, product_name, rating, title, body, photo_count, verified_buyer, status, removed_reason, reply, reply_at, created_at";
+
+const toIsoString = (value: unknown) => (value instanceof Date ? value.toISOString() : String(value));
+
+function toReviewRecord(row: Record<string, any>): ReviewRecord {
+  return {
+    id: String(row.id),
+    customerName: String(row.customer_name),
+    productId: row.product_id ? String(row.product_id) : null,
+    productName: row.product_name ? String(row.product_name) : null,
+    rating: Number(row.rating),
+    title: String(row.title),
+    body: String(row.body),
+    photoCount: Number(row.photo_count) || 0,
+    verifiedBuyer: Boolean(row.verified_buyer),
+    status: row.status === "removed" ? "removed" : "approved",
+    removedReason: row.removed_reason ? String(row.removed_reason) : null,
+    reply: row.reply ? String(row.reply) : null,
+    replyAt: row.reply_at ? toIsoString(row.reply_at) : null,
+    createdAt: toIsoString(row.created_at),
+  };
+}
+
+/** Orders that don't count as a real purchase for reviews: unpaid, unconfirmed COD, cancelled. */
+const NON_PURCHASE_STATUSES = [AWAITING_PAYMENT_STATUS, "Awaiting COD Advance", "Cancelled"];
+
+/** Whether the customer has a real order, and which products they bought. */
+export async function getCustomerPurchases(customerId: string): Promise<{ hasOrder: boolean; productIds: string[] }> {
+  let rows: Array<Record<string, any>>;
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query(
+      "SELECT items_json FROM orders WHERE customer_id = $1 AND status <> ALL($2::text[]) AND payment_status <> 'Failed'",
+      [customerId, NON_PURCHASE_STATUSES]
+    );
+    rows = result.rows;
+  } else {
+    rows = sqliteDb
+      .prepare(
+        `SELECT items_json FROM orders WHERE customer_id = ? AND status NOT IN (${NON_PURCHASE_STATUSES.map(() => "?").join(", ")}) AND payment_status <> 'Failed'`
+      )
+      .all(customerId, ...NON_PURCHASE_STATUSES) as Array<Record<string, any>>;
+  }
+  const productIds = new Set<string>();
+  for (const row of rows) {
+    for (const item of parseJsonArray(row.items_json)) {
+      if (item && typeof item.productId === "string") productIds.add(item.productId);
+    }
+  }
+  return { hasOrder: rows.length > 0, productIds: [...productIds] };
+}
+
+/** True if this customer already has a live review of this product (or, with no product, of the boutique). */
+export async function hasExistingReview(customerId: string, productId: string | null): Promise<boolean> {
+  const sql = productId
+    ? "SELECT 1 FROM reviews WHERE customer_id = $1 AND product_id = $2 AND status <> 'removed' LIMIT 1"
+    : "SELECT 1 FROM reviews WHERE customer_id = $1 AND product_id IS NULL AND status <> 'removed' LIMIT 1";
+  const params = productId ? [customerId, productId] : [customerId];
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    return (await postgresPool!.query(sql, params)).rows.length > 0;
+  }
+  return Boolean(sqliteDb.prepare(sql.replace(/\$\d+/g, "?")).get(...params));
+}
+
+export async function createReview(input: {
+  customerId: string;
+  customerName: string;
+  productId: string | null;
+  productName: string | null;
+  rating: number;
+  title: string;
+  body: string;
+  photos: string[];
+  verifiedBuyer: boolean;
+}): Promise<string | null> {
+  const id = `rev-${randomBytes(8).toString("hex")}`;
+  const values = [
+    id,
+    input.customerId,
+    input.customerName,
+    input.productId,
+    input.productName,
+    input.rating,
+    input.title,
+    input.body,
+    JSON.stringify(input.photos),
+    input.photos.length,
+  ];
+  try {
+    if (usesPostgres) {
+      await ensurePostgresReady();
+      await postgresPool!.query(
+        `INSERT INTO reviews (id, customer_id, customer_name, product_id, product_name, rating, title, body, photos_json, photo_count, verified_buyer, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'approved')`,
+        [...values, input.verifiedBuyer]
+      );
+    } else {
+      sqliteDb
+        .prepare(
+          `INSERT INTO reviews (id, customer_id, customer_name, product_id, product_name, rating, title, body, photos_json, photo_count, verified_buyer, status)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved')`
+        )
+        .run(...values, input.verifiedBuyer ? 1 : 0);
+    }
+  } catch (error) {
+    // Lost a race with another post of the same review (idx_reviews_one_live).
+    if (isUniqueViolation(error)) return null;
+    throw error;
+  }
+  return id;
+}
+
+/** Reviews newest first. `productId` filters to one product; `status` defaults to approved only. */
+export async function listReviews(options: { status?: ReviewStatus; productId?: string; limit?: number } = {}): Promise<ReviewRecord[]> {
+  const status = options.status ?? "approved";
+  const limit = Math.min(Math.max(Math.trunc(options.limit ?? 50), 1), 200);
+  const where = ["status = $1"];
+  const params: unknown[] = [status];
+  if (options.productId) {
+    params.push(options.productId);
+    where.push(`product_id = $${params.length}`);
+  }
+  params.push(limit);
+  const sql = `SELECT ${REVIEW_LIST_COLUMNS} FROM reviews WHERE ${where.join(" AND ")} ORDER BY created_at DESC LIMIT $${params.length}`;
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    return (await postgresPool!.query(sql, params)).rows.map(toReviewRecord);
+  }
+  return (sqliteDb.prepare(sql.replace(/\$\d+/g, "?")).all(...params) as Array<Record<string, any>>).map(toReviewRecord);
+}
+
+/** Count and average rating of approved reviews, optionally for one product. */
+export async function getReviewSummary(productId?: string): Promise<{ count: number; average: number }> {
+  const sql = productId
+    ? "SELECT COUNT(*) AS count, AVG(rating) AS average FROM reviews WHERE status = 'approved' AND product_id = $1"
+    : "SELECT COUNT(*) AS count, AVG(rating) AS average FROM reviews WHERE status = 'approved'";
+  const params = productId ? [productId] : [];
+  let row: Record<string, any> | undefined;
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    row = (await postgresPool!.query(sql, params)).rows[0];
+  } else {
+    row = sqliteDb.prepare(sql.replace(/\$\d+/g, "?")).get(...params) as Record<string, any> | undefined;
+  }
+  const count = Number(row?.count ?? 0);
+  return { count, average: count ? Math.round(Number(row?.average) * 10) / 10 : 0 };
+}
+
+/**
+ * One stored photo of a review, with the review's status (photos of removed reviews are owner-only).
+ * Only that one array element is read, not every photo of the review.
+ */
+export async function getReviewPhoto(id: string, index: number): Promise<{ photo: string; status: ReviewStatus } | null> {
+  let row: Record<string, any> | undefined;
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    row = (await postgresPool!.query("SELECT (photos_json::jsonb) ->> $2::int AS photo, status FROM reviews WHERE id = $1", [id, index])).rows[0];
+  } else {
+    // Build the path in JS: better-sqlite3 binds numbers as REAL, which would make "$[0.0]".
+    if (!Number.isInteger(index) || index < 0) return null;
+    row = sqliteDb
+      .prepare("SELECT json_extract(photos_json, ?) AS photo, status FROM reviews WHERE id = ?")
+      .get(`$[${index}]`, id) as Record<string, any> | undefined;
+  }
+  if (!row || typeof row.photo !== "string") return null;
+  return { photo: row.photo, status: row.status === "removed" ? "removed" : "approved" };
+}
+
+/** Average rating and count of live reviews for every product that has any. */
+export async function getProductReviewSummaries(): Promise<Record<string, { count: number; average: number }>> {
+  const sql =
+    "SELECT product_id, COUNT(*) AS count, AVG(rating) AS average FROM reviews WHERE status = 'approved' AND product_id IS NOT NULL GROUP BY product_id";
+  let rows: Array<Record<string, any>>;
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    rows = (await postgresPool!.query(sql)).rows;
+  } else {
+    rows = sqliteDb.prepare(sql).all() as Array<Record<string, any>>;
+  }
+  const summaries: Record<string, { count: number; average: number }> = {};
+  for (const row of rows) {
+    summaries[String(row.product_id)] = { count: Number(row.count), average: Math.round(Number(row.average) * 10) / 10 };
+  }
+  return summaries;
+}
+
+/**
+ * Take a review off the site for a stated reason, or put it back (`reason` null). Kept for the record either way.
+ * Restoring fails with "conflict" if the customer has since posted another live review of the same thing.
+ */
+export async function setReviewRemoved(id: string, reason: string | null): Promise<"ok" | "not_found" | "conflict"> {
+  const status = reason ? "removed" : "approved";
+  try {
+    if (usesPostgres) {
+      await ensurePostgresReady();
+      const result = await postgresPool!.query("UPDATE reviews SET status = $1, removed_reason = $2 WHERE id = $3", [status, reason, id]);
+      return (result.rowCount ?? 0) > 0 ? "ok" : "not_found";
+    }
+    return sqliteDb.prepare("UPDATE reviews SET status = ?, removed_reason = ? WHERE id = ?").run(status, reason, id).changes > 0
+      ? "ok"
+      : "not_found";
+  } catch (error) {
+    if (isUniqueViolation(error)) return "conflict";
+    throw error;
+  }
+}
+
+/** Set the boutique's public reply to a review; `reply` null removes it. */
+export async function setReviewReply(id: string, reply: string | null): Promise<boolean> {
+  const replyAt = reply ? new Date().toISOString() : null;
+  if (usesPostgres) {
+    await ensurePostgresReady();
+    const result = await postgresPool!.query("UPDATE reviews SET reply = $1, reply_at = $2 WHERE id = $3", [reply, replyAt, id]);
+    return (result.rowCount ?? 0) > 0;
+  }
+  return sqliteDb.prepare("UPDATE reviews SET reply = ?, reply_at = ? WHERE id = ?").run(reply, replyAt, id).changes > 0;
 }

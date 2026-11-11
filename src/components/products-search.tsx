@@ -17,6 +17,18 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"featured" | "price-low" | "price-high" | "rating">("featured");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory || null);
+  // Real ratings from customer reviews, loaded the first time "Highest Rated" is picked.
+  const [ratings, setRatings] = useState<Record<string, { count: number; average: number }> | null>(null);
+
+  const changeSort = (value: typeof sortBy) => {
+    setSortBy(value);
+    if (value === "rating" && !ratings) {
+      fetch("/api/reviews/summary")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data: { summaries?: Record<string, { count: number; average: number }> } | null) => setRatings(data?.summaries ?? {}))
+        .catch(() => setRatings({}));
+    }
+  };
 
   const categories = Array.from(new Set(products.map(p => p.category)));
 
@@ -39,12 +51,14 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
       result = [...result].sort((a, b) => a.price - b.price);
     } else if (sortBy === "price-high") {
       result = [...result].sort((a, b) => b.price - a.price);
-    } else if (sortBy === "rating") {
-      result = [...result].sort((a, b) => b.rating - a.rating);
+    } else if (sortBy === "rating" && ratings) {
+      // Best real average first (more reviews breaks ties); unreviewed products keep their order at the end.
+      const score = (p: Product) => ratings[p.id] ?? { count: 0, average: 0 };
+      result = [...result].sort((a, b) => score(b).average - score(a).average || score(b).count - score(a).count);
     }
 
     return result;
-  }, [products, searchTerm, selectedCategory, sortBy]);
+  }, [products, searchTerm, selectedCategory, sortBy, ratings]);
 
   useEffect(() => {
     onFilter(filtered);
@@ -296,7 +310,7 @@ export function ProductsSearch({ products, onFilter, initialCategory, onCategory
                 </label>
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                  onChange={(e) => changeSort(e.target.value as typeof sortBy)}
                   style={{
                     width: "100%",
                     padding: "12px",

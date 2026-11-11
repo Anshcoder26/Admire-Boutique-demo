@@ -8,6 +8,7 @@ import { OrderManagement } from "@/components/admin-order-management";
 import { CodOrdersPanel } from "@/components/admin-cod-orders";
 import { AdminOrderAlerts } from "@/components/admin-order-alerts";
 import { CustomerManagement } from "@/components/admin-customer-management";
+import { AdminReviews } from "@/components/admin-reviews";
 import { categories } from "@/data/products";
 import { useToast } from "@/components/ui/toast";
 import { compressImageFile } from "@/lib/image-compress";
@@ -61,7 +62,7 @@ export function AdminDashboard() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [adminToken, setAdminToken] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"publish" | "products" | "orders" | "customers">("publish");
+  const [activeTab, setActiveTab] = useState<"publish" | "products" | "orders" | "customers" | "reviews">("publish");
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -471,6 +472,7 @@ export function AdminDashboard() {
           { key: "products", label: "Edit Products" },
           { key: "orders", label: "Orders" },
           { key: "customers", label: "Customers" },
+          { key: "reviews", label: "Reviews" },
         ] as const).map((tab) => (
           <button
             key={tab.key}
@@ -920,6 +922,14 @@ export function AdminDashboard() {
         <div className="rounded-lg border border-[var(--ink)]/10 bg-white p-5 shadow-[var(--shadow-sm)] md:p-6">
           <h2 className="font-serif text-3xl text-[var(--ink)] mb-6">Customer Management</h2>
           <CustomerManagement token={adminToken} />
+        </div>
+      )}
+
+      {/* Reviews Tab */}
+      {activeTab === "reviews" && adminToken && (
+        <div className="rounded-lg border border-[var(--ink)]/10 bg-white p-5 shadow-[var(--shadow-sm)] md:p-6">
+          <h2 className="font-serif text-3xl text-[var(--ink)] mb-6">Customer Reviews</h2>
+          <AdminReviews />
         </div>
       )}
 
