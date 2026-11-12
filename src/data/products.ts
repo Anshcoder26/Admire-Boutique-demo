@@ -61,6 +61,12 @@ export const categories = [
     image:
       "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80",
   },
+  {
+    name: "Khadi",
+    subtitle: "Handspun heritage",
+    // The boutique's own Designer Khadi Suit photo.
+    image: "/categories/khadi.jpg",
+  },
 ];
 
 export const products: Product[] = [

@@ -40,7 +40,7 @@ export default async function HomePage() {
         />
       </div>
 
-      <CategorySection />
+      <CategorySection products={products} />
 
       <Section spacing="md" className="relative overflow-hidden">
         <ArtMotif motif="peacock" size={340} mobileSize={150} opacity={0.4} className="absolute right-[-40px] top-4 z-0 md:top-10 xl:right-0" />

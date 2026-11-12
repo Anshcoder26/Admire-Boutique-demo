@@ -1,13 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { categories } from "@/data/products";
+import { categories, type Product } from "@/data/products";
+import { pickCategoryImages } from "@/lib/category-images";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { ButtonLink } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 import { ArtMotif } from "@/components/motifs/art-motif";
 
-export function CategorySection() {
+/** `products` newest first; each tile shows a real product photo (see pickCategoryImages). */
+export function CategorySection({ products }: { products: Product[] }) {
+  const images = pickCategoryImages(categories, products);
   return (
     <Section spacing="md" className="relative overflow-hidden">
       {/* Designer peacock guarding the category grid */}
@@ -36,7 +39,7 @@ export function CategorySection() {
           <Link href={`/products?category=${encodeURIComponent(category.name)}`} className="group block h-full overflow-hidden rounded-lg border border-[var(--ink)]/10 bg-white transition duration-300 hover:-translate-y-1 hover:border-[#7D1D1D]/30 hover:shadow-[var(--shadow-lg)]">
             <div className="relative overflow-hidden">
               <Image
-                src={category.image}
+                src={images[category.name]}
                 alt={category.name}
                 width={800}
                 height={1040}

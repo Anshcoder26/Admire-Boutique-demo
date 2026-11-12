@@ -37,7 +37,7 @@ End-to-end scripts hit a running server: `CUSTOMER_PASSWORD=â€¦ ADMIN_PASSWORD=â
 - Customers use the `admire-session` cookie; resolve it with `validateUserSessionToken`.
 - The owner uses a separate admin session; admin API routes start with `authenticateAdmin(request)` from `src/lib/admin-auth.ts`.
 - Sessions and rate limits live in the DB. Use `checkRateLimit(key, â€¦)` with limits from `AUTH_RATE_LIMITS` in `src/lib/auth-utils.ts`.
-- `src/proxy.ts` (Next 16's replacement for middleware) enforces a CSRF Origin/Referer check on mutating `/api/*` requests. Scripted requests to the API need an `Origin` header matching the app URL.
+- `src/proxy.ts` (Next 16's replacement for middleware) enforces a CSRF check on mutating `/api/*` requests: a *present* Origin/Referer that doesn't match the app is rejected (403). A missing Origin is deliberately allowed, because non-browser clients omit it, and SameSite=Lax cookies cover that case.
 - Use `safeRedirectPath` for any `?redirect=` value, and `textFieldsOnly` for stored address objects shown to the owner.
 
 **Photos are base64 data URLs stored in the DB**, never sent inline in pages.
@@ -58,6 +58,8 @@ End-to-end scripts hit a running server: `CUSTOMER_PASSWORD=â€¦ ADMIN_PASSWORD=â
 - Limits shared by the form and the server live in `review-policy.ts`.
 
 **Storefront content** such as store phone, socials and the WhatsApp Channel link is in `src/lib/site-contact.ts`. Catalog reads go through `src/lib/catalog-store.ts`.
+
+**Categories** are the `categories` array in `src/data/products.ts`. That one list drives the home page "Shop by mood" tiles, the owner's Publish/Edit category dropdowns, and the header search. The server accepts any category string, so adding a category is just a new entry there, with no DB change. Home tile photos come from real products via `pickCategoryImages` (`src/lib/category-images.ts`): each tile shows its category's newest in-stock product, and empty categories borrow an unused photo from another category. A category's own `image` is only a last resort when the store has no product photos. The header menu links (All Suits/Cotton/Georgette/Silk) are separate and hard-coded in `header.tsx`. Each collection page is `/products?category=<name>`.
 
 ## Gotchas
 
